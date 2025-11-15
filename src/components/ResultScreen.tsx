@@ -298,8 +298,6 @@ const ResultScreen: React.FC = () => {
 
     if (scorePercentage >= 80) {
       setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 5000);
-      return () => clearTimeout(timer);
     }
   }, [scorePercentage]);
 
@@ -311,9 +309,10 @@ const ResultScreen: React.FC = () => {
         <Confetti
           width={dimensions.width}
           height={dimensions.height}
-          recycle={false}
-          numberOfPieces={500}
-          tweenDuration={5000}
+          recycle={true}
+          numberOfPieces={200}
+          tweenDuration={8000}
+          gravity={0.15}
         />
       )}
 
