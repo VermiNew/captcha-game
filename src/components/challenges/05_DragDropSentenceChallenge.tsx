@@ -6,6 +6,7 @@ import {
   closestCenter,
   DragEndEvent,
   DragStartEvent,
+  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -106,7 +107,7 @@ const WordsContainer = styled(motion.div)`
 /**
  * Styled word card for sortable items
  */
-const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean | null }>`
+const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean | null; $isOver: boolean }>`
   background: ${theme.colors.background};
   border: 2px solid ${theme.colors.primary};
   border-radius: ${theme.borderRadius.lg};
@@ -148,6 +149,13 @@ const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean 
     border-color: ${theme.colors.error};
     background: rgba(239, 68, 68, 0.1);
     animation: shake 0.4s ease-in-out;
+  `}
+
+  ${(props) =>
+    props.$isOver &&
+    `
+    border: 3px dashed ${theme.colors.primary};
+    background: rgba(59, 130, 246, 0.15);
   `}
 
   &:hover:not(:disabled) {
@@ -207,7 +215,8 @@ const SortableWord: React.FC<{
   id: string;
   word: string;
   isCorrect: boolean | null;
-}> = ({ id, word, isCorrect }) => {
+  isOver: boolean;
+}> = ({ id, word, isCorrect, isOver }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
 
@@ -222,6 +231,7 @@ const SortableWord: React.FC<{
       style={style}
       $isDragging={isDragging}
       $isCorrect={isCorrect}
+      $isOver={isOver}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
@@ -260,14 +270,20 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [startTime] = useState(Date.now());
   const [isDragging, setIsDragging] = useState(false);
+  const [overId, setOverId] = useState<string | null>(null);
 
   const handleDragStart = (_event: DragStartEvent) => {
     setIsDragging(true);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverId(event.over?.id as string | null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setIsDragging(false);
+    setOverId(null);
 
     if (over && active.id !== over.id) {
       setWords((items) => {
@@ -329,6 +345,7 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
         <DndContext
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -347,6 +364,7 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
                     id={word.id}
                     word={word.word}
                     isCorrect={isCorrect}
+                    isOver={overId === word.id}
                   />
                 ))}
               </AnimatePresence>
