@@ -18,17 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
-
-/**
- * Sentences for drag and drop challenge
- */
-const sentences = [
-  'The cat sleeps on chair',
-  'I love to eat pizza',
-  'Birds fly high in sky',
-  'Water flows down the river',
-  'She plays piano very well',
-];
+import { sentenceDataset } from '../../utils/sentenceDataset';
 
 /**
  * Word item interface
@@ -253,7 +243,7 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [targetSentence] = useState(() =>
-    sentences[Math.floor(Math.random() * sentences.length)],
+    sentenceDataset[Math.floor(Math.random() * sentenceDataset.length)],
   );
 
   const targetWords = targetSentence.split(' ');
