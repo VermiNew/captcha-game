@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ChallengeProps } from '../../types';
+import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
@@ -193,13 +193,13 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
     if (userInput === targetText && !isCompleted) {
       setIsCompleted(true);
       const timeSpent = (Date.now() - startTime) / 1000;
-      const accuracy = 100;
+      const accuracy = 100; // Perfect match required
       const baseScore = 150;
       const timeBonus = Math.max(0, 50 - Math.floor(timeSpent));
       const totalScore = baseScore + timeBonus;
 
       setTimeout(() => {
-        onComplete(true, timeSpent, totalScore);
+        onComplete(true, timeSpent, totalScore, accuracy);
       }, 700);
     }
   }, [userInput, targetText, startTime, isCompleted, onComplete]);

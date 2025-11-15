@@ -36,7 +36,7 @@ export interface Challenge {
  * Props passed to challenge components
  */
 export interface ChallengeProps {
-  onComplete: (success: boolean, timeSpent: number, score: number) => void;
+  onComplete: (success: boolean, timeSpent: number, score: number, accuracy?: number) => void;
   timeLimit: number; // in seconds
   challengeId: number;
 }

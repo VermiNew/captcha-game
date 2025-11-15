@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ChallengeProps } from '../../types';
+import type { ChallengeProps } from '../../types';
 import Timer from '../ui/Timer';
 import { theme } from '../../styles/theme';
 
@@ -125,6 +125,7 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
    */
   const handleTimeUp = () => {
     setIsActive(false);
+    console.debug(`Challenge ${challengeId} timed out`);
     onComplete(false, timeLimit, 0);
   };
 
@@ -150,7 +151,7 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
     if (timeLeft === 0) {
       handleTimeUp();
     }
-  }, [timeLeft]);
+  }, [timeLeft, challengeId]);
 
   // Expose handlers through context or direct calls
   return (
