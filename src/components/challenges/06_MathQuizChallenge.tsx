@@ -241,7 +241,7 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
   const [userAnswer, setUserAnswer] = useState('');
   const [score, setScore] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | undefined>();
   const [startTime] = useState(Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -269,7 +269,7 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
         setCurrentQuestionIndex((prev) => prev + 1);
         setUserAnswer('');
         setIsSubmitted(false);
-        setIsCorrect(null);
+        setIsCorrect(undefined);
       } else {
         // Quiz completed
         const timeSpent = (Date.now() - startTime) / 1000;
