@@ -151,15 +151,18 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   ::-webkit-scrollbar-track {
-    background: ${theme.colors.surface};
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: ${theme.colors.border};
+    background: ${theme.colors.textSecondary};
     border-radius: ${theme.borderRadius.full};
+    border: 2px solid transparent;
+    background-clip: padding-box;
 
     &:hover {
-      background: ${theme.colors.textTertiary};
+      background: ${theme.colors.textPrimary};
+      background-clip: padding-box;
     }
   }
 
