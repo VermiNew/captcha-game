@@ -4,17 +4,7 @@ import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
-
-/**
- * Sentences that will be displayed reversed
- */
-const sentences = [
-  'The early bird catches the worm',
-  'Practice makes perfect',
-  'Better late than never',
-  'Actions speak louder than words',
-  'Where there is a will there is a way',
-];
+import { getRandomSentence } from '../../utils/sentenceDataset';
 
 /**
  * Styled container
@@ -116,9 +106,7 @@ const ReverseTextChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [targetText] = useState(() =>
-    sentences[Math.floor(Math.random() * sentences.length)],
-  );
+  const [targetText] = useState(() => getRandomSentence());
   const [userInput, setUserInput] = useState('');
   const [startTime] = useState(Date.now());
   const inputRef = useRef<HTMLInputElement>(null);

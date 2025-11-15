@@ -4,19 +4,7 @@ import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
-
-/**
- * Available sentences for typing challenge
- */
-const sentences = [
-  'The quick brown fox jumps over the lazy dog',
-  'Pack my box with five dozen liquor jugs',
-  'How vexingly quick daft zebras jump',
-  'Bright vixens jump; dozy fowl quack',
-  'Sphinx of black quartz, judge my vow',
-  'The five boxing wizards jump quickly',
-  'Waltz, nymph, for quick jigs vex Bud',
-];
+import { getRandomSentence } from '../../utils/sentenceDataset';
 
 /**
  * Character color type
@@ -171,9 +159,7 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [targetText] = useState(() =>
-    sentences[Math.floor(Math.random() * sentences.length)],
-  );
+  const [targetText] = useState(() => getRandomSentence());
   const [userInput, setUserInput] = useState('');
   const [startTime] = useState(Date.now());
   const [isCompleted, setIsCompleted] = useState(false);
