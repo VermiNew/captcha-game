@@ -338,13 +338,18 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
 
     setIsDrawing(false);
 
-    // Calculate circularity
+    // Calculate circularity - must have drawn enough points
+    if (points.length < 20) {
+      setAccuracy(0);
+      return;
+    }
+
     const circularity = calculateCircularity(points);
     const roundedAccuracy = Math.round(circularity);
     setAccuracy(roundedAccuracy);
 
-    // Check if user succeeded
-    if (circularity >= 90 && !successTriggered) {
+    // Check if user succeeded - must have drawn and achieved accuracy
+    if (circularity >= 90 && points.length >= 20 && !successTriggered) {
       setSuccessTriggered(true);
       const timeSpent = (Date.now() - startTime) / 1000;
       const score = 250; // High score for difficult challenge
