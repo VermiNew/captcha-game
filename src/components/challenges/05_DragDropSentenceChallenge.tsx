@@ -116,7 +116,7 @@ const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean 
   font-weight: ${theme.fontWeights.medium};
   text-align: center;
   cursor: grab;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   box-shadow: ${theme.shadows.sm};
   user-select: none;
   touch-action: none;
@@ -124,8 +124,14 @@ const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean 
   ${(props) =>
     props.$isDragging &&
     `
-    opacity: 0.5;
+    opacity: 1;
     cursor: grabbing;
+    transform: scale(1.08) rotateZ(2deg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: ${props.theme?.colors?.success || '#22c55e'};
+    background: ${props.theme?.colors?.primary || '#3b82f6'};
+    color: white;
+    z-index: 50;
   `}
 
   ${(props) =>
