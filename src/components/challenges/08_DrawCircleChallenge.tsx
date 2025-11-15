@@ -15,37 +15,70 @@ interface Point {
 
 /**
  * Calculate circularity of drawn shape (0-100%)
- * Based on how consistently distant points are from center
+ * Uses multiple criteria: radius consistency, closure, aspect ratio, and smoothness
  */
 const calculateCircularity = (points: Point[]): number => {
-  if (points.length < 10) return 0;
+  if (points.length < 20) return 0;
 
-  // Find center (average x, y)
+  // 1. Calculate center
   const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
   const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
 
-  // Calculate distances from center to each point
+  // 2. Calculate distances from center to each point
   const distances = points.map((p) =>
     Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2)),
   );
 
-  // Calculate average radius
   const avgRadius = distances.reduce((sum, d) => sum + d, 0) / distances.length;
 
   if (avgRadius === 0) return 0;
 
-  // Calculate standard deviation of radii
+  // 3. Radius consistency (80% weight)
   const variance = distances.reduce(
     (sum, d) => sum + Math.pow(d - avgRadius, 2),
     0,
   ) / distances.length;
   const stdDev = Math.sqrt(variance);
+  const radiusScore = Math.max(0, 100 - (stdDev / avgRadius) * 120);
 
-  // Circularity: lower std dev = more circular
-  // Normalize to 0-100%
-  const circularity = Math.max(0, 100 - (stdDev / avgRadius) * 100);
+  // 4. Check closure - distance from start to end point
+  const firstPoint = points[0];
+  const lastPoint = points[points.length - 1];
+  const closureDistance = Math.sqrt(
+    Math.pow(lastPoint.x - firstPoint.x, 2) + Math.pow(lastPoint.y - firstPoint.y, 2),
+  );
+  const closureScore = Math.max(0, 100 - (closureDistance / avgRadius) * 100);
 
-  return Math.min(100, circularity);
+  // 5. Check aspect ratio - circle should be symmetric
+  const xDistances = points.map((p) => Math.abs(p.x - centerX));
+  const yDistances = points.map((p) => Math.abs(p.y - centerY));
+  const maxX = Math.max(...xDistances);
+  const maxY = Math.max(...yDistances);
+  const aspectRatio = Math.min(maxX, maxY) / Math.max(maxX, maxY);
+  const aspectScore = aspectRatio * 100;
+
+  // 6. Check smoothness - penalize sudden direction changes
+  let angleChanges = 0;
+  for (let i = 1; i < Math.min(points.length - 1, 100); i++) {
+    const p1 = points[i - 1];
+    const p2 = points[i];
+    const p3 = points[i + 1];
+
+    const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    const angle2 = Math.atan2(p3.y - p2.y, p3.x - p2.x);
+    const angleDiff = Math.abs(angle2 - angle1);
+
+    // Penalize sharp turns (> 45 degrees)
+    if (angleDiff > Math.PI / 4 && angleDiff < (3 * Math.PI) / 4) {
+      angleChanges++;
+    }
+  }
+  const smoothScore = Math.max(0, 100 - (angleChanges / points.length) * 50);
+
+  // Combine scores with weights
+  const finalScore = radiusScore * 0.5 + closureScore * 0.2 + aspectScore * 0.2 + smoothScore * 0.1;
+
+  return Math.min(100, Math.max(0, finalScore));
 };
 
 /**
