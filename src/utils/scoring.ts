@@ -1,4 +1,4 @@
-import type { ChallengeResult } from '../types';
+import { ChallengeResult } from '../types';
 
 /**
  * Scoring System
