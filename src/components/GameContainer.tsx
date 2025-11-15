@@ -12,10 +12,13 @@ import { theme } from '../styles/theme';
 import CaptchaChallenge from './challenges/01_CaptchaChallenge';
 import SimpleMathChallenge from './challenges/02_SimpleMathChallenge';
 import TypeTextChallenge from './challenges/03_TypeTextChallenge';
-// Import additional challenges as they are created
-// import ReverseTextChallenge from './challenges/04_ReverseTextChallenge';
-// import DragDropSentenceChallenge from './challenges/05_DragDropSentenceChallenge';
-// ... etc
+import ReverseTextChallenge from './challenges/04_ReverseTextChallenge';
+import DragDropSentenceChallenge from './challenges/05_DragDropSentenceChallenge';
+import MathQuizChallenge from './challenges/06_MathQuizChallenge';
+import DrawShapeChallenge from './challenges/07_DrawShapeChallenge';
+import DrawCircleChallenge from './challenges/08_DrawCircleChallenge';
+import GeographyQuizChallenge from './challenges/09_GeographyQuizChallenge';
+import FindEmojiChallenge from './challenges/10_FindEmojiChallenge';
 
 /**
  * Styled main container
@@ -174,75 +177,19 @@ const GameContainer: React.FC = () => {
       case 3:
         return <TypeTextChallenge {...challengeProps} />;
       case 4:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <ReverseTextChallenge {...challengeProps} />;
       case 5:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <DragDropSentenceChallenge {...challengeProps} />;
       case 6:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <MathQuizChallenge {...challengeProps} />;
       case 7:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <DrawShapeChallenge {...challengeProps} />;
       case 8:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <DrawCircleChallenge {...challengeProps} />;
       case 9:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <GeographyQuizChallenge {...challengeProps} />;
       case 10:
-        return (
-          <PlaceholderChallenge>
-            <h2>{currentChallenge.name}</h2>
-            <p>{currentChallenge.description}</p>
-            <p style={{ marginTop: theme.spacing.md }}>
-              Coming soon...
-            </p>
-          </PlaceholderChallenge>
-        );
+        return <FindEmojiChallenge {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>
