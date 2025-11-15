@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { ThemeProvider } from 'styled-components';
+import { GlobalStyles } from './styles/GlobalStyles';
+import { theme } from './styles/theme';
+import { useGameStore } from './store/gameStore';
+import StartScreen from './components/StartScreen';
+import GameContainer from './components/GameContainer';
+import ResultScreen from './components/ResultScreen';
 
-function App() {
-  const [count, setCount] = useState(0)
+/**
+ * Main App Component
+ * Orchestrates screen rendering based on game state
+ * Provides theme and global styles
+ */
+const App: React.FC = () => {
+  const { gameState } = useGameStore();
+
+  /**
+   * Render appropriate screen based on game state
+   */
+  const renderScreen = () => {
+    switch (gameState) {
+      case 'idle':
+        return <StartScreen />;
+      case 'playing':
+        return <GameContainer />;
+      case 'completed':
+        return <ResultScreen />;
+      default:
+        return <StartScreen />;
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <ThemeProvider theme={theme}>
+      <GlobalStyles />
+      {renderScreen()}
+    </ThemeProvider>
+  );
+};
 
-export default App
+export default App;
