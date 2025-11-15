@@ -210,9 +210,9 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
   };
 
   const progressPercentage = Math.round(
-    (userInput.length / targetText.length) * 100,
+    Math.min(userInput.length, targetText.length) / targetText.length * 100,
   );
-  const remainingChars = targetText.length - userInput.length;
+  const remainingChars = Math.max(0, targetText.length - userInput.length);
 
   return (
     <ChallengeBase
