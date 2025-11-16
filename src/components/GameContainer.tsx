@@ -33,6 +33,12 @@ import BalanceGameChallenge from './challenges/21_BalanceGameChallenge';
 import ChessPuzzleChallenge from './challenges/22_ChessPuzzleChallenge';
 import ConnectDotsChallenge from './challenges/23_ConnectDotsChallenge';
 import MouseMazeChallenge from './challenges/24_MouseMazeChallenge';
+import PongReflexChallenge from './challenges/25_PongReflexChallenge';
+import JugglingClicksChallenge from './challenges/26_JugglingClicksChallenge';
+import LightningRoundChallenge from './challenges/27_LightningRoundChallenge';
+import WhackAMoleChallenge from './challenges/28_WhackAMoleChallenge';
+import TargetPracticeChallenge from './challenges/29_TargetPracticeChallenge';
+import KeyboardMemoryChallenge from './challenges/30_KeyboardMemoryChallenge';
 
 /**
  * Styled main container
@@ -232,6 +238,18 @@ const GameContainer: React.FC = () => {
         return <ConnectDotsChallenge {...challengeProps} />;
       case 24:
         return <MouseMazeChallenge {...challengeProps} />;
+      case 25:
+        return <PongReflexChallenge {...challengeProps} />;
+      case 26:
+        return <JugglingClicksChallenge {...challengeProps} />;
+      case 27:
+        return <LightningRoundChallenge {...challengeProps} />;
+      case 28:
+        return <WhackAMoleChallenge {...challengeProps} />;
+      case 29:
+        return <TargetPracticeChallenge {...challengeProps} />;
+      case 30:
+        return <KeyboardMemoryChallenge {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>
