@@ -19,6 +19,18 @@ import DrawShapeChallenge from './challenges/07_DrawShapeChallenge';
 import DrawCircleChallenge from './challenges/08_DrawCircleChallenge';
 import GeographyQuizChallenge from './challenges/09_GeographyQuizChallenge';
 import FindEmojiChallenge from './challenges/10_FindEmojiChallenge';
+import ColorMemoryChallenge from './challenges/11_ColorMemoryChallenge';
+import PatternRecognitionChallenge from './challenges/12_PatternRecognitionChallenge';
+import ReactionTimeChallenge from './challenges/13_ReactionTimeChallenge';
+import SlidingPuzzleChallenge from './challenges/14_SlidingPuzzleChallenge';
+import TicTacToeChallenge from './challenges/15_TicTacToeChallenge';
+import RhythmChallenge from './challenges/16_RhythmChallenge';
+import ClickPrecisionChallenge from './challenges/17_ClickPrecisionChallenge';
+import WordScrambleChallenge from './challenges/18_WordScrambleChallenge';
+import OddOneOutChallenge from './challenges/19_OddOneOutChallenge';
+import VisualMemoryChallenge from './challenges/20_VisualMemoryChallenge';
+import BalanceGameChallenge from './challenges/21_BalanceGameChallenge';
+import ChessPuzzleChallenge from './challenges/22_ChessPuzzleChallenge';
 
 /**
  * Styled main container
@@ -190,6 +202,30 @@ const GameContainer: React.FC = () => {
         return <GeographyQuizChallenge {...challengeProps} />;
       case 10:
         return <FindEmojiChallenge {...challengeProps} />;
+      case 11:
+        return <ColorMemoryChallenge {...challengeProps} />;
+      case 12:
+        return <PatternRecognitionChallenge {...challengeProps} />;
+      case 13:
+        return <ReactionTimeChallenge {...challengeProps} />;
+      case 14:
+        return <SlidingPuzzleChallenge {...challengeProps} />;
+      case 15:
+        return <TicTacToeChallenge {...challengeProps} />;
+      case 16:
+        return <RhythmChallenge {...challengeProps} />;
+      case 17:
+        return <ClickPrecisionChallenge {...challengeProps} />;
+      case 18:
+        return <WordScrambleChallenge {...challengeProps} />;
+      case 19:
+        return <OddOneOutChallenge {...challengeProps} />;
+      case 20:
+        return <VisualMemoryChallenge {...challengeProps} />;
+      case 21:
+        return <BalanceGameChallenge {...challengeProps} />;
+      case 22:
+        return <ChessPuzzleChallenge {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>
