@@ -395,7 +395,7 @@ const DiceProbabilityChallenge: React.FC<ChallengeProps> = ({
         )}
 
         <ProbabilityTable>
-          <ProbabilityLabel>Probability Reference:</ProbabilityLabel>
+          <PredictionLabel>Probability Reference:</PredictionLabel>
           {DICE_PROBABILITIES.map((prob) => (
             <ProbabilityRow key={prob.sum} $highlight={prob.sum === 7}>
               <div>Sum: {prob.sum}</div>
