@@ -191,6 +191,22 @@ export const challengeRegistry: Challenge[] = [
     timeLimit: 90,
     maxScore: 250,
   },
+  {
+    id: 23,
+    name: 'Connect Dots',
+    description: 'Connect all dots without crossing lines',
+    component: (() => null) as any,
+    timeLimit: 60,
+    maxScore: 200,
+  },
+  {
+    id: 24,
+    name: 'Mouse Maze',
+    description: 'Navigate the maze without hitting walls',
+    component: (() => null) as any,
+    timeLimit: 90,
+    maxScore: 300,
+  },
   ];
 
 /**

@@ -31,6 +31,8 @@ import OddOneOutChallenge from './challenges/19_OddOneOutChallenge';
 import VisualMemoryChallenge from './challenges/20_VisualMemoryChallenge';
 import BalanceGameChallenge from './challenges/21_BalanceGameChallenge';
 import ChessPuzzleChallenge from './challenges/22_ChessPuzzleChallenge';
+import ConnectDotsChallenge from './challenges/23_ConnectDotsChallenge';
+import MouseMazeChallenge from './challenges/24_MouseMazeChallenge';
 
 /**
  * Styled main container
@@ -226,6 +228,10 @@ const GameContainer: React.FC = () => {
         return <BalanceGameChallenge {...challengeProps} />;
       case 22:
         return <ChessPuzzleChallenge {...challengeProps} />;
+      case 23:
+        return <ConnectDotsChallenge {...challengeProps} />;
+      case 24:
+        return <MouseMazeChallenge {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>
