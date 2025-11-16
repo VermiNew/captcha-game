@@ -39,6 +39,11 @@ import LightningRoundChallenge from './challenges/27_LightningRoundChallenge';
 import WhackAMoleChallenge from './challenges/28_WhackAMoleChallenge';
 import TargetPracticeChallenge from './challenges/29_TargetPracticeChallenge';
 import KeyboardMemoryChallenge from './challenges/30_KeyboardMemoryChallenge';
+import DiceProbabilityChallenge from './challenges/32_DiceProbabilityChallenge';
+import FractionFighterChallenge from './challenges/35_FractionFighterChallenge';
+import FlagMatchChallenge from './challenges/36_FlagMatchChallenge';
+import MusicNotesChallenge from './challenges/37_MusicNotesChallenge';
+import ScienceQuizChallenge from './challenges/38_ScienceQuizChallenge';
 
 /**
  * Styled main container
@@ -250,6 +255,16 @@ const GameContainer: React.FC = () => {
         return <TargetPracticeChallenge {...challengeProps} />;
       case 30:
         return <KeyboardMemoryChallenge {...challengeProps} />;
+      case 32:
+        return <DiceProbabilityChallenge {...challengeProps} />;
+      case 35:
+        return <FractionFighterChallenge {...challengeProps} />;
+      case 36:
+        return <FlagMatchChallenge {...challengeProps} />;
+      case 37:
+        return <MusicNotesChallenge {...challengeProps} />;
+      case 38:
+        return <ScienceQuizChallenge {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>

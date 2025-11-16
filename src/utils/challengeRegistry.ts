@@ -255,6 +255,46 @@ export const challengeRegistry: Challenge[] = [
     timeLimit: 60,
     maxScore: 300,
   },
+  {
+    id: 32,
+    name: 'Dice Probability',
+    description: 'Predict the sum of two dice',
+    component: (() => null) as any,
+    timeLimit: 45,
+    maxScore: 300,
+  },
+  {
+    id: 35,
+    name: 'Fraction Fighter',
+    description: 'Compare fractions and select the larger one',
+    component: (() => null) as any,
+    timeLimit: 40,
+    maxScore: 240,
+  },
+  {
+    id: 36,
+    name: 'Flag Match',
+    description: 'Match flags to their country names',
+    component: (() => null) as any,
+    timeLimit: 50,
+    maxScore: 210,
+  },
+  {
+    id: 37,
+    name: 'Music Notes',
+    description: 'Listen and repeat the musical sequence',
+    component: (() => null) as any,
+    timeLimit: 40,
+    maxScore: 200,
+  },
+  {
+    id: 38,
+    name: 'Science Quiz',
+    description: 'Answer 6 science questions correctly',
+    component: (() => null) as any,
+    timeLimit: 60,
+    maxScore: 240,
+  },
   ];
 
 /**
