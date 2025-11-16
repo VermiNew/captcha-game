@@ -5,6 +5,7 @@ import { useGameStore } from '../store/gameStore';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import { theme } from '../styles/theme';
+import { getTotalChallenges } from '../utils/challengeRegistry';
 
 /**
  * Styled main container
@@ -220,6 +221,7 @@ const FeatureText = styled.span`
 const StartScreen: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(false);
   const { startGame } = useGameStore();
+  const totalChallenges = getTotalChallenges();
 
   /**
    * Handle start button click
@@ -256,7 +258,7 @@ const StartScreen: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <Subtitle>Prove you're human in 10 fun challenges!</Subtitle>
+          <Subtitle>Prove you're human in {totalChallenges} fun challenges!</Subtitle>
         </motion.div>
 
         {/* Start Button */}

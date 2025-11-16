@@ -5,6 +5,7 @@ import Confetti from 'react-confetti';
 import { useGameStore } from '../store/gameStore';
 import Button from './ui/Button';
 import { theme } from '../styles/theme';
+import { getTotalChallenges } from '../utils/challengeRegistry';
 
 /**
  * Rating type
@@ -271,7 +272,8 @@ const ResultScreen: React.FC = () => {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   // Calculate max score based on challenges
-  const maxScore = 1000; // 10 challenges * 100 base score max
+  const totalChallengesCount = getTotalChallenges();
+  const maxScore = totalChallengesCount * 100; // Dynamic based on number of challenges
   const scorePercentage = (totalScore / maxScore) * 100;
 
   /**
@@ -348,13 +350,13 @@ const ResultScreen: React.FC = () => {
         {/* Statistics Grid */}
         <StatsGrid>
           <StatCard
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.3 }}
-          >
-            <StatValue>{playerStats.challengesCompleted}/10</StatValue>
-            <StatLabel>Completed</StatLabel>
-          </StatCard>
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.5, duration: 0.3 }}
+           >
+             <StatValue>{playerStats.challengesCompleted}/{totalChallengesCount}</StatValue>
+             <StatLabel>Completed</StatLabel>
+           </StatCard>
 
           <StatCard
             initial={{ opacity: 0, y: 20 }}

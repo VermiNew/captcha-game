@@ -7,6 +7,7 @@ import type {
   PlayerStats,
 } from '../types/index';
 import { GameState as GameStateEnum } from '../types/index';
+import { getTotalChallenges } from '../utils/challengeRegistry';
 
 /**
  * Initial player stats
@@ -93,8 +94,9 @@ export const useGameStore = create<GameStoreState & GameStoreActions>()(
         const updatedResults = [...state.challengeResults, result];
         const updatedTotalScore = state.totalScore + result.score;
 
-        // Check if this was the last challenge (assuming 10 challenges)
-        const isLastChallenge = state.currentChallengeIndex >= 9;
+        // Check if this was the last challenge
+        const totalChallenges = getTotalChallenges();
+        const isLastChallenge = state.currentChallengeIndex >= totalChallenges - 1;
 
         set({
           challengeResults: updatedResults,

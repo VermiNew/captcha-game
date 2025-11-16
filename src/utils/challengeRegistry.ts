@@ -295,6 +295,14 @@ export const challengeRegistry: Challenge[] = [
     timeLimit: 60,
     maxScore: 240,
   },
+  {
+    id: 40,
+    name: 'Pixel Art Memory',
+    description: 'Memorize and draw the pixel art pattern',
+    component: (() => null) as any,
+    timeLimit: 50,
+    maxScore: 300,
+  },
   ];
 
 /**
