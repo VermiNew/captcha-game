@@ -396,10 +396,11 @@ const SortableWeight: React.FC<SortableWeightProps> = ({ id, value, isDragging }
 
   const style = {
     transform: CSS.Transform.toString(transform),
+    width: '100%',
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} style={{ width: '100%' }}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <DraggableWeight
         $isDragging={isDragging}
         layout
