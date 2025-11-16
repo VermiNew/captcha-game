@@ -152,14 +152,6 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 18,
-    name: 'Word Scramble',
-    description: 'Unscramble the words',
-    component: (() => null) as any,
-    timeLimit: 45,
-    maxScore: 200,
-  },
-  {
     id: 19,
     name: 'Odd One Out',
     description: 'Find the odd one out',
