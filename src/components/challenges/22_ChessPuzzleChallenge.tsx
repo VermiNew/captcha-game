@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { Chess } from 'chess.js';
+import { Chessboard } from 'react-chessboard';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import Button from '../ui/Button';
@@ -23,53 +24,35 @@ interface ChessPuzzle {
 const PUZZLES: ChessPuzzle[] = [
   {
     name: 'Back Rank Mate',
-    fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 4 4',
-    solution: 'b1a1', // Example solution
-    hint: 'Look for back rank weakness - queen to the back rank',
+    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    solution: 'a1a8',
+    hint: 'Look for back rank weakness',
   },
   {
-    name: 'Checkmate Pattern 1',
-    fen: '6k1/5ppp/8/8/8/8/5PPP/6RK w - - 0 1',
-    solution: 'g1g8', // Rook to g8
-    hint: 'Move your rook to deliver checkmate',
+    name: 'Simple Rook Mate',
+    fen: 'k7/8/8/8/8/8/R7/K7 w - - 0 1',
+    solution: 'a2a8',
+    hint: 'Rook to the back rank',
   },
   {
-    name: 'Queen Mate',
-    fen: '6k1/5ppp/8/8/8/8/5PPP/6QK w - - 0 1',
-    solution: 'g1g8', // Queen to g8
-    hint: 'Queen can deliver mate on the back rank',
+    name: 'Queen Mate Pattern',
+    fen: 'k7/8/8/8/8/8/Q7/K7 w - - 0 1',
+    solution: 'a2a8',
+    hint: 'Queen delivers mate on the back rank',
   },
   {
-    name: 'Rook on 8th Rank',
-    fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 4 4',
-    solution: 'a1a8', // Rook to a8
-    hint: 'Rook to the 8th rank for checkmate',
+    name: 'Two Rooks Mate',
+    fen: 'k7/R7/R7/8/8/8/8/K7 w - - 0 1',
+    solution: 'a6a8',
+    hint: 'Second rook to finish the mate',
   },
   {
-    name: 'Scholar\'s Mate Setup',
-    fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1',
-    solution: 'd1h5', // Queen to h5
-    hint: 'Attack f7 for a quick checkmate',
+    name: 'Rook and King Mate',
+    fen: 'k7/8/K7/8/8/8/R7/8 w - - 0 1',
+    solution: 'a2a8',
+    hint: 'Coordinate rook and king',
   },
 ];
-
-/**
- * Piece unicode symbols
- */
-const PIECE_SYMBOLS: Record<string, string> = {
-  K: '♔',
-  Q: '♕',
-  R: '♖',
-  B: '♗',
-  N: '♘',
-  P: '♙',
-  k: '♚',
-  q: '♛',
-  r: '♜',
-  b: '♝',
-  n: '♞',
-  p: '♟',
-};
 
 /**
  * Styled container
@@ -91,48 +74,18 @@ const Instruction = styled.p`
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
-  max-width: 400px;
+  max-width: 500px;
 `;
 
 /**
- * Styled chessboard
+ * Styled chessboard container
  */
-const ChessBoard = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 0;
+const ChessBoardContainer = styled(motion.div)`
   width: 100%;
-  max-width: 400px;
-  aspect-ratio: 1;
-  background: #654321;
-  border: 3px solid #3d2817;
+  max-width: 500px;
   border-radius: ${theme.borderRadius.md};
+  overflow: hidden;
   box-shadow: ${theme.shadows.lg};
-  padding: 4px;
-`;
-
-/**
- * Styled square
- */
-const Square = styled(motion.div)<{ $light: boolean; $selected: boolean; $legal: boolean }>`
-  aspect-ratio: 1;
-  background: ${(props) => {
-    if (props.$selected) return '#66bb6a';
-    if (props.$legal) return '#90ee90';
-    return props.$light ? '#f0d9b5' : '#b58863';
-  }};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
-  cursor: ${(props) => (props.$legal || !props.$light ? 'pointer' : 'default')};
-  border: ${(props) => (props.$selected || props.$legal ? '2px solid #2e7d32' : 'none')};
-  user-select: none;
-  transition: all 0.15s ease;
-
-  &:hover {
-    transform: ${(props) => (props.$legal ? 'scale(1.08)' : 'scale(1)')};
-  }
 `;
 
 /**
@@ -144,7 +97,7 @@ const Hint = styled(motion.div)`
   border-left: 4px solid ${theme.colors.info};
   border-radius: ${theme.borderRadius.md};
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
 `;
 
 /**
@@ -182,7 +135,7 @@ const Result = styled(motion.div)<{ $success: boolean }>`
   color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
   font-weight: ${theme.fontWeights.bold};
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
 `;
 
 /**
@@ -200,8 +153,9 @@ const ButtonContainer = styled.div`
  */
 const PuzzleInfo = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.base};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${theme.colors.textPrimary};
   margin: 0;
   text-align: center;
 `;
@@ -217,84 +171,57 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
   const [startTime] = useState(Date.now());
   const puzzle = useMemo(() => PUZZLES[Math.floor(Math.random() * PUZZLES.length)], []);
 
-  const [game, setGame] = useState(() => {
-    const g = new Chess(puzzle.fen);
-    return g;
-  });
-
-  const [selected, setSelected] = useState<string | null>(null);
-  const [legalMoves, setLegalMoves] = useState<string[]>([]);
-  const [completed, setCompleted] = useState(false);
+  const [game, setGame] = useState(() => new Chess(puzzle.fen));
+  const [completedPuzzle, setCompletedPuzzle] = useState(false);
   const [lastMove, setLastMove] = useState<string>('');
 
   /**
-   * Get legal moves from square (in algebraic notation)
+   * Handle move on board
    */
-  const getLegalMovesFromSquare = (square: string): string[] => {
-    const moves = game.moves({ square, verbose: true });
-    return moves.map((m) => m.to);
-  };
+  const onDrop = useCallback(
+    (sourceSquare: string, targetSquare: string) => {
+      if (completedPuzzle) return false;
 
-  /**
-   * Handle square click
-   */
-  const handleSquareClick = (square: string) => {
-    // Click same square = deselect
-    if (selected === square) {
-      setSelected(null);
-      setLegalMoves([]);
-      return;
-    }
+      try {
+        const moveResult = game.move({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: 'q',
+        });
 
-    // Click white piece = select it and show legal moves
-    const piece = game.get(square);
-    if (piece && piece.color === 'w') {
-      const moves = getLegalMovesFromSquare(square);
-      setSelected(square);
-      setLegalMoves(moves);
-      return;
-    }
+        if (!moveResult) return false;
 
-    // Click legal move destination
-    if (selected && legalMoves.includes(square)) {
-      const moveResult = game.move({
-        from: selected,
-        to: square,
-        promotion: 'q',
-      });
-
-      if (moveResult) {
-        const moveNotation = `${selected}-${square}`;
-        setLastMove(moveNotation);
-        setSelected(null);
-        setLegalMoves([]);
-
-        // Create new game state
+        const moveUCI = `${sourceSquare}${targetSquare}`;
+        setLastMove(moveUCI);
         setGame(new Chess(game.fen()));
 
-        // Check if white just moved into checkmate position (puzzle is mate in 1)
+        // Check if puzzle is solved (checkmate)
         if (game.isCheckmate()) {
-          setCompleted(true);
+          setCompletedPuzzle(true);
           const timeSpent = (Date.now() - startTime) / 1000;
           setTimeout(() => {
             onComplete(true, timeSpent, 250);
           }, 1500);
         }
+
+        return true;
+      } catch {
+        return false;
       }
-    }
-  };
+    },
+    [game, completedPuzzle, startTime, onComplete]
+  );
 
   /**
    * Reset puzzle
    */
   const handleReset = () => {
     setGame(new Chess(puzzle.fen));
-    setSelected(null);
-    setLegalMoves([]);
     setLastMove('');
+    setCompletedPuzzle(false);
   };
 
-  if (completed) {
+  if (completedPuzzle) {
     return (
       <ChallengeBase
         title="Chess Puzzle Challenge"
@@ -333,37 +260,19 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
 
         <PuzzleInfo>{puzzle.name}</PuzzleInfo>
 
-        <ChessBoard
+        <ChessBoardContainer
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {Array.from({ length: 64 }).map((_, idx) => {
-            const file = idx % 8;
-            const rank = 7 - Math.floor(idx / 8);
-            const squareIndex = rank * 8 + file;
-            const square = String.fromCharCode(97 + file) + (rank + 1);
-
-            const isLight = (file + rank) % 2 === 0;
-            const isSelected = selected === square;
-            const isLegal = legalMoves.includes(square);
-            const piece = game.get(square);
-
-            return (
-              <Square
-                key={square}
-                $light={isLight}
-                $selected={isSelected}
-                $legal={isLegal}
-                onClick={() => handleSquareClick(square)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {piece ? PIECE_SYMBOLS[piece.type === piece.type.toLowerCase() ? piece.type : piece.type.toUpperCase()] || '' : ''}
-              </Square>
-            );
-          })}
-        </ChessBoard>
+          <Chessboard
+            position={game.fen()}
+            onPieceDrop={onDrop}
+            arePiecesDraggable={!completedPuzzle}
+            boardWidth={500}
+            showBoardNotation={true}
+          />
+        </ChessBoardContainer>
 
         <Hint initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <HintLabel>Hint</HintLabel>
