@@ -39,6 +39,7 @@ import LightningRoundChallenge from './challenges/27_LightningRoundChallenge';
 import WhackAMoleChallenge from './challenges/28_WhackAMoleChallenge';
 import TargetPracticeChallenge from './challenges/29_TargetPracticeChallenge';
 import KeyboardMemoryChallenge from './challenges/30_KeyboardMemoryChallenge';
+import ColorBlindTestChallenge from './challenges/31_ColorBlindTestChallenge';
 import DiceProbabilityChallenge from './challenges/32_DiceProbabilityChallenge';
 import FractionFighterChallenge from './challenges/35_FractionFighterChallenge';
 import FlagMatchChallenge from './challenges/36_FlagMatchChallenge';
@@ -256,6 +257,8 @@ const GameContainer: React.FC = () => {
         return <TargetPracticeChallenge {...challengeProps} />;
       case 30:
         return <KeyboardMemoryChallenge {...challengeProps} />;
+      case 31:
+        return <ColorBlindTestChallenge {...challengeProps} />;
       case 32:
         return <DiceProbabilityChallenge {...challengeProps} />;
       case 35:

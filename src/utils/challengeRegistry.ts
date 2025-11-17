@@ -256,6 +256,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 31,
+    name: 'Color Blind Test',
+    description: 'Identify the hidden numbers in the colored patterns',
+    component: (() => null) as any,
+    timeLimit: 50,
+    maxScore: 250,
+  },
+  {
     id: 32,
     name: 'Dice Probability',
     description: 'Predict the sum of two dice',
