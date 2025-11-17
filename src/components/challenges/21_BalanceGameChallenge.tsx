@@ -1,48 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
 /**
  * Weight item type
  */
-interface WeightItem {
+interface Weight {
   id: string;
   value: number;
 }
-
-/**
- * All available weights
- */
-const AVAILABLE_WEIGHTS = [
-  { id: 'w10-1', value: 10 },
-  { id: 'w10-2', value: 10 },
-  { id: 'w20-1', value: 20 },
-  { id: 'w20-2', value: 20 },
-  { id: 'w30-1', value: 30 },
-  { id: 'w50-1', value: 50 },
-  { id: 'w50-2', value: 50 },
-  { id: 'w100-1', value: 100 },
-];
 
 /**
  * Styled container
@@ -53,20 +23,6 @@ const Container = styled.div`
   align-items: center;
   gap: ${theme.spacing.xl};
   width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
 `;
 
 /**
@@ -84,129 +40,106 @@ const Instruction = styled.p`
  * Styled game area
  */
 const GameArea = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: ${theme.spacing.xl};
   width: 100%;
-  align-items: flex-start;
-  justify-content: space-between;
+  max-width: 600px;
 `;
 
 /**
- * Styled available weights section
+ * Styled section
  */
-const AvailableWeightsSection = styled(motion.div)`
+const Section = styled(motion.div)`
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: ${theme.spacing.md};
-  flex: 1;
 `;
 
 /**
- * Styled section label
+ * Styled section title
  */
-const SectionLabel = styled.p`
+const SectionTitle = styled.h3`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
+  font-size: ${theme.fontSizes.base};
+  font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.textSecondary};
   margin: 0;
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-weight: ${theme.fontWeights.semibold};
 `;
 
 /**
- * Styled weights container
+ * Styled weights list
  */
-const WeightsContainer = styled.div`
+const WeightsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.sm};
-  width: 100%;
-  padding: ${theme.spacing.md};
+  padding: ${theme.spacing.lg};
   background: ${theme.colors.surface};
   border-radius: ${theme.borderRadius.lg};
   border: 2px solid ${theme.colors.border};
-  min-height: 200px;
+  min-height: 300px;
 `;
 
 /**
- * Styled draggable weight
+ * Styled weight button
  */
-const DraggableWeight = styled(motion.div)<{ $isDragging: boolean }>`
-  width: 100%;
+const WeightButton = styled(motion.button)`
   padding: ${theme.spacing.md};
   background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%);
   color: white;
+  border: none;
   border-radius: ${theme.borderRadius.md};
-  text-align: center;
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.lg};
   font-weight: ${theme.fontWeights.bold};
-  cursor: ${(props) => (props.$isDragging ? 'grabbing' : 'grab')};
-  user-select: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  touch-action: none;
-  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
-  transform: ${(props) => (props.$isDragging ? 'scale(1.05)' : 'scale(1)')};
-  transition: all 0.2s ease;
-`;
-
-/**
- * Styled weight item (in drop zone)
- */
-const WeightItem = styled(motion.div)`
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  background: linear-gradient(135deg, ${theme.colors.success} 0%, ${theme.colors.info} 100%);
-  color: white;
-  border-radius: ${theme.borderRadius.md};
-  text-align: center;
-  font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.bold};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${theme.shadows.md};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 `;
 
 /**
- * Styled balance section
+ * Styled balance display
  */
-const BalanceSection = styled(motion.div)`
+const BalanceDisplay = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: ${theme.spacing.lg};
-  flex: 1;
-`;
-
-/**
- * Styled scale container
- */
-const ScaleContainer = styled.div`
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.lg};
-  width: 100%;
 `;
 
 /**
  * Styled weight info
  */
 const WeightInfo = styled.div`
-  display: flex;
-  gap: ${theme.spacing.xl};
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${theme.spacing.lg};
   width: 100%;
 `;
 
 /**
- * Styled weight display
+ * Styled weight box
  */
-const WeightDisplay = styled.div<{ $label: 'left' | 'right' }>`
+const WeightBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.sm};
+  padding: ${theme.spacing.lg};
+  background: ${theme.colors.surface};
+  border-radius: ${theme.borderRadius.lg};
+  border: 2px solid ${theme.colors.border};
 `;
 
 /**
@@ -225,121 +158,146 @@ const WeightLabel = styled.p`
  */
 const WeightValue = styled(motion.p)`
   font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes['2xl']};
+  font-size: ${theme.fontSizes['3xl']};
   font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.primary};
   margin: 0;
 `;
 
 /**
- * Styled balance beam (the scale itself)
+ * Styled scale visual
+ */
+const ScaleVisual = styled.div`
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+`;
+
+/**
+ * Styled balance beam
  */
 const BalanceBeam = styled(motion.div)<{ $rotation: number }>`
-  width: 300px;
-  height: 20px;
-  background: linear-gradient(90deg, #8B7355 0%, #A0826D 50%, #8B7355 100%);
-  border-radius: ${theme.borderRadius.full};
-  position: relative;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  width: 200px;
+  height: 16px;
+  background: linear-gradient(90deg, #8b7355 0%, #a0826d 50%, #8b7355 100%);
+  border-radius: 8px;
+  box-shadow: ${theme.shadows.md};
   transform-origin: center;
-  transform: rotateZ(${(props) => props.$rotation}deg);
+  position: relative;
 
   &::before {
     content: '';
     position: absolute;
-    width: 30px;
-    height: 40px;
+    width: 20px;
+    height: 30px;
     background: #654321;
     border-radius: 50% 50% 0 0;
-    top: -20px;
+    top: -30px;
     left: 50%;
     transform: translateX(-50%);
-    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
   }
 `;
 
 /**
- * Styled pan container
+ * Styled difference indicator
  */
-const PanContainer = styled.div<{ $side: 'left' | 'right' }>`
-  position: absolute;
-  top: -80px;
-  ${(props) => (props.$side === 'left' ? 'left: 10px;' : 'right: 10px;')}
-  width: 100px;
-  height: 60px;
-  background: linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #DAA520 100%);
-  border-radius: ${theme.borderRadius.lg};
-  border: 3px solid #B8860B;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-/**
- * Styled right pan (drop zone)
- */
-const RightPan = styled(motion.div)`
-  position: absolute;
-  top: -80px;
-  right: 10px;
-  width: 100px;
-  height: 60px;
-  background: linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #DAA520 100%);
-  border-radius: ${theme.borderRadius.lg};
-  border: 3px solid #B8860B;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: ${theme.spacing.xs};
-  padding: ${theme.spacing.sm};
-`;
-
-/**
- * Styled right pan label
- */
-const RightPanLabel = styled.p`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.xs};
-  color: #654321;
-  margin: 0;
-  font-weight: ${theme.fontWeights.bold};
-`;
-
-/**
- * Styled feedback message
- */
-const FeedbackMessage = styled(motion.div)<{ $success: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.md};
-  padding: ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+const DifferenceIndicator = styled(motion.div)<{ $balanced: boolean }>`
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
   background: ${(props) =>
-    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  font-family: ${theme.fonts.primary};
-  font-weight: ${theme.fontWeights.bold};
+    props.$balanced ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${(props) => (props.$balanced ? theme.colors.success : theme.colors.error)};
+  border-radius: ${theme.borderRadius.lg};
   text-align: center;
+  color: ${(props) => (props.$balanced ? theme.colors.success : theme.colors.error)};
+  font-weight: ${theme.fontWeights.bold};
   width: 100%;
 `;
 
 /**
- * Styled emoji
+ * Styled pan display
  */
-const Emoji = styled.span`
-  font-size: ${theme.fontSizes['3xl']};
-  line-height: 1;
+const PanDisplay = styled(motion.div)`
+  padding: ${theme.spacing.md};
+  background: linear-gradient(135deg, #daa520 0%, #ffd700 100%);
+  border: 3px solid #b8860b;
+  border-radius: ${theme.borderRadius.md};
+  min-height: 80px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${theme.spacing.sm};
+  align-items: flex-start;
+  justify-content: center;
+  align-content: flex-start;
 `;
 
 /**
- * Styled stats section
+ * Styled weight item in pan
  */
-const StatsSection = styled(motion.div)`
+const WeightItemInPan = styled(motion.div)`
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  background: linear-gradient(135deg, ${theme.colors.success} 0%, ${theme.colors.info} 100%);
+  color: white;
+  border-radius: ${theme.borderRadius.md};
+  font-weight: ${theme.fontWeights.bold};
+  font-size: ${theme.fontSizes.sm};
+  box-shadow: ${theme.shadows.sm};
+`;
+
+/**
+ * Styled remove button
+ */
+const RemoveButton = styled(motion.button)`
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  background: ${theme.colors.error};
+  color: white;
+  border: none;
+  border-radius: ${theme.borderRadius.md};
+  font-weight: ${theme.fontWeights.bold};
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: ${theme.shadows.md};
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+/**
+ * Styled button container
+ */
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: ${theme.spacing.md};
+  justify-content: center;
+  width: 100%;
+`;
+
+/**
+ * Styled completion message
+ */
+const CompletionMessage = styled(motion.div)<{ $success: boolean }>`
+  padding: ${theme.spacing.lg};
+  background: ${(props) =>
+    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  border-radius: ${theme.borderRadius.lg};
+  text-align: center;
+  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  font-weight: ${theme.fontWeights.bold};
+  width: 100%;
+`;
+
+/**
+ * Styled stats
+ */
+const Stats = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: ${theme.spacing.lg};
@@ -368,13 +326,12 @@ const StatLabel = styled.p`
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
   margin: 0;
-  font-weight: ${theme.fontWeights.medium};
 `;
 
 /**
  * Styled stat value
  */
-const StatValue = styled(motion.p)`
+const StatValue = styled.p`
   font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes.xl};
   font-weight: ${theme.fontWeights.bold};
@@ -383,40 +340,21 @@ const StatValue = styled(motion.p)`
 `;
 
 /**
- * Sortable Weight Component
+ * Available weights pool
  */
-interface SortableWeightProps {
-  id: string;
-  value: number;
-  isDragging: boolean;
-}
-
-const SortableWeight: React.FC<SortableWeightProps> = ({ id, value, isDragging }) => {
-  const { attributes, listeners, setNodeRef, transform } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    width: '100%',
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <DraggableWeight
-        $isDragging={isDragging}
-        layout
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-      >
-        {value} units
-      </DraggableWeight>
-    </div>
-  );
-};
+const WEIGHT_POOL = [
+  { id: 'w10-1', value: 10 },
+  { id: 'w10-2', value: 10 },
+  { id: 'w20-1', value: 20 },
+  { id: 'w20-2', value: 20 },
+  { id: 'w30', value: 30 },
+  { id: 'w50-1', value: 50 },
+  { id: 'w50-2', value: 50 },
+  { id: 'w100', value: 100 },
+];
 
 /**
  * Balance Game Challenge Component
- * User must balance the scale by adding weights to the right pan
  */
 const BalanceGameChallenge: React.FC<ChallengeProps> = ({
   onComplete,
@@ -424,224 +362,217 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [leftWeight] = useState(() => Math.floor(Math.random() * 100) + 50); // 50-150
-  const [availableWeights, setAvailableWeights] = useState<WeightItem[]>(AVAILABLE_WEIGHTS);
-  const [rightWeights, setRightWeights] = useState<WeightItem[]>([]);
+  const [available, setAvailable] = useState<Weight[]>(WEIGHT_POOL);
+  const [rightWeights, setRightWeights] = useState<Weight[]>([]);
   const [completed, setCompleted] = useState(false);
   const [startTime] = useState(Date.now());
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      distance: 8,
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const rightWeight = rightWeights.reduce((sum, w) => sum + w.value, 0);
-  const difference = Math.abs(leftWeight - rightWeight);
-  const isBalanced = difference <= 5;
-  const rotation = ((rightWeight - leftWeight) / 100) * 15; // Max 15 degrees
+  const rightTotal = rightWeights.reduce((sum, w) => sum + w.value, 0);
+  const difference = Math.abs(leftWeight - rightTotal);
+  const balanced = difference <= 5;
+  const rotation = ((rightTotal - leftWeight) / 150) * 20; // Max 20 degrees
 
   /**
-   * Handle drag end
+   * Add weight to right pan
    */
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const addWeight = (weight: Weight) => {
+    setAvailable(available.filter((w) => w.id !== weight.id));
+    setRightWeights([...rightWeights, weight]);
+  };
 
-    if (!over) return;
-
-    // Moving from available to right pan
-    if (over.id === 'rightpan') {
-      const weightToMove = availableWeights.find((w) => w.id === active.id);
-      if (weightToMove) {
-        setAvailableWeights(availableWeights.filter((w) => w.id !== active.id));
-        setRightWeights([...rightWeights, weightToMove]);
-
-        // Check if balanced
-        const newRightWeight = rightWeight + weightToMove.value;
-        const newDifference = Math.abs(leftWeight - newRightWeight);
-
-        if (newDifference <= 5) {
-          setCompleted(true);
-          const timeSpent = (Date.now() - startTime) / 1000;
-          const weightCount = rightWeights.length + 1;
-          const accuracyBonus = Math.max(0, 50 - (newDifference * 10));
-          const efficiencyBonus = Math.max(0, 50 - weightCount * 5);
-          const score = 200 + accuracyBonus + efficiencyBonus;
-
-          setTimeout(() => {
-            onComplete(true, timeSpent, Math.round(score));
-          }, 1500);
-        }
-      }
+  /**
+   * Remove weight from right pan
+   */
+  const removeWeight = (weightId: string) => {
+    const weight = rightWeights.find((w) => w.id === weightId);
+    if (weight) {
+      setRightWeights(rightWeights.filter((w) => w.id !== weightId));
+      setAvailable([...available, weight]);
     }
+  };
 
-    // Moving back from right pan to available
-    if (over.id === 'available') {
-      const indexInRight = rightWeights.findIndex((w) => w.id === active.id);
-      if (indexInRight >= 0) {
-        const weightToMove = rightWeights[indexInRight];
-        setRightWeights(rightWeights.filter((_, i) => i !== indexInRight));
-        setAvailableWeights([...availableWeights, weightToMove]);
-      }
+  /**
+   * Check balance and complete
+   */
+  useEffect(() => {
+    if (balanced && rightWeights.length > 0 && !completed) {
+      setCompleted(true);
+      const timeSpent = (Date.now() - startTime) / 1000;
+      const score = Math.max(100, 200 - Math.floor(rightWeights.length * 5) - Math.floor(timeSpent / 2));
+
+      setTimeout(() => {
+        onComplete(true, timeSpent, score);
+      }, 1500);
     }
+  }, [balanced, rightWeights.length, completed, startTime, onComplete]);
+
+  /**
+   * Reset game
+   */
+  const handleReset = () => {
+    setAvailable(WEIGHT_POOL);
+    setRightWeights([]);
+    setCompleted(false);
   };
 
   return (
     <ChallengeBase
       title="Balance Game Challenge"
-      description="Balance the scale by adding weights to the right pan"
+      description="Add weights to the right pan to balance the scale"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Balance the Scale!
-        </Title>
-
         <Instruction>
           {completed
             ? 'Perfect balance achieved!'
-            : `Drag weights to the right pan. Current difference: ${difference} units`}
+            : `Left: ${leftWeight} | Right: ${rightTotal} | Difference: ${difference}`}
         </Instruction>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <GameArea>
-            {/* Left Section - Available Weights */}
-            <AvailableWeightsSection
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <SectionLabel>Available Weights</SectionLabel>
-              <WeightsContainer>
-                <SortableContext
-                  items={availableWeights.map((w) => w.id)}
-                  strategy={verticalListSortingStrategy}
-                  id="available"
-                >
-                  {availableWeights.map((weight) => (
-                    <SortableWeight
-                      key={weight.id}
-                      id={weight.id}
-                      value={weight.value}
-                      isDragging={false}
-                    />
-                  ))}
-                </SortableContext>
-              </WeightsContainer>
-            </AvailableWeightsSection>
+        <GameArea>
+          {/* Available Weights */}
+          <Section
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <SectionTitle>Available Weights</SectionTitle>
+            <WeightsList>
+              <AnimatePresence>
+                {available.map((weight) => (
+                  <WeightButton
+                    key={weight.id}
+                    onClick={() => addWeight(weight)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                  >
+                    {weight.value} units
+                  </WeightButton>
+                ))}
+              </AnimatePresence>
+              {available.length === 0 && (
+                <p style={{ textAlign: 'center', color: theme.colors.textSecondary, margin: 0 }}>
+                  No weights available
+                </p>
+              )}
+            </WeightsList>
+          </Section>
 
-            {/* Middle Section - Balance */}
-            <BalanceSection
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
-              <SectionLabel>Scale</SectionLabel>
+          {/* Balance Display */}
+          <Section
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <SectionTitle>Scale</SectionTitle>
 
+            <BalanceDisplay>
               <WeightInfo>
-                <WeightDisplay>
+                <WeightBox>
                   <WeightLabel>Left Pan</WeightLabel>
                   <WeightValue>{leftWeight}</WeightValue>
-                </WeightDisplay>
-                <WeightDisplay>
+                </WeightBox>
+                <WeightBox>
                   <WeightLabel>Right Pan</WeightLabel>
                   <WeightValue
-                    key={rightWeight}
-                    initial={{ scale: 1.2 }}
+                    key={rightTotal}
                     animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
+                    initial={{ scale: 1.2 }}
                   >
-                    {rightWeight}
+                    {rightTotal}
                   </WeightValue>
-                </WeightDisplay>
+                </WeightBox>
               </WeightInfo>
 
-              <ScaleContainer>
+              <ScaleVisual>
                 <BalanceBeam
                   $rotation={rotation}
-                  initial={{ rotation: 0 }}
-                  animate={{ rotation }}
-                  transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-                >
-                  <PanContainer $side="left" />
-                  <RightPan id="rightpan">
-                    <RightPanLabel>Right Pan</RightPanLabel>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                      {rightWeights.map((w, idx) => (
-                        <WeightItem
-                          key={w.id}
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: idx * 0.05 }}
-                        >
-                          {w.value}
-                        </WeightItem>
-                      ))}
-                    </div>
-                  </RightPan>
-                </BalanceBeam>
-              </ScaleContainer>
+                  animate={{ rotateZ: rotation }}
+                  transition={{ type: 'spring', stiffness: 80, damping: 12 }}
+                />
+              </ScaleVisual>
 
-              {isBalanced && !completed && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 200 }}
+              <DifferenceIndicator $balanced={balanced}>
+                {balanced ? 'BALANCED!' : `Difference: ±${difference} units`}
+              </DifferenceIndicator>
+
+              <PanDisplay
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <AnimatePresence>
+                  {rightWeights.map((weight, idx) => (
+                    <WeightItemInPan
+                      key={weight.id}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      {weight.value}
+                    </WeightItemInPan>
+                  ))}
+                </AnimatePresence>
+              </PanDisplay>
+
+              {rightWeights.length > 0 && (
+                <RemoveButton
+                  onClick={() => removeWeight(rightWeights[rightWeights.length - 1].id)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <FeedbackMessage $success={true}>
-                    <Emoji>⚖️</Emoji>
-                    <span>Perfectly balanced!</span>
-                  </FeedbackMessage>
-                </motion.div>
+                  Remove Last Weight
+                </RemoveButton>
               )}
-            </BalanceSection>
-          </GameArea>
-        </DndContext>
+            </BalanceDisplay>
+          </Section>
+        </GameArea>
 
         {completed && (
-          <StatsSection
-            initial={{ opacity: 0, y: 20 }}
+          <Stats
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, staggerChildren: 0.1 }}
+            transition={{ staggerChildren: 0.1 }}
           >
-            <StatCard
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
+            <StatCard>
               <StatLabel>Weights Used</StatLabel>
               <StatValue>{rightWeights.length}</StatValue>
             </StatCard>
-
-            <StatCard
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
+            <StatCard>
               <StatLabel>Total Weight</StatLabel>
-              <StatValue>{rightWeight}</StatValue>
+              <StatValue>{rightTotal}</StatValue>
             </StatCard>
-
-            <StatCard
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+            <StatCard>
               <StatLabel>Difference</StatLabel>
               <StatValue>±{difference}</StatValue>
             </StatCard>
-          </StatsSection>
+            <CompletionMessage
+              $success={true}
+              style={{ gridColumn: '1 / -1' }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Perfect Balance Achieved!
+            </CompletionMessage>
+          </Stats>
+        )}
+
+        {!completed && (
+          <ButtonContainer>
+            <Button
+              onClick={handleReset}
+              disabled={false}
+              size="md"
+              variant="secondary"
+            >
+              Reset
+            </Button>
+          </ButtonContainer>
         )}
       </Container>
     </ChallengeBase>
