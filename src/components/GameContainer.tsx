@@ -42,6 +42,7 @@ import KeyboardMemoryChallenge from './challenges/30_KeyboardMemoryChallenge';
 import ColorBlindTestChallenge from './challenges/31_ColorBlindTestChallenge';
 import DiceProbabilityChallenge from './challenges/32_DiceProbabilityChallenge';
 import CarDrivingChallenge from './challenges/33_CarDrivingChallenge';
+import ShutdownComputerChallenge from './challenges/34_ShutdownComputerChallenge';
 import FractionFighterChallenge from './challenges/35_FractionFighterChallenge';
 import FlagMatchChallenge from './challenges/36_FlagMatchChallenge';
 import MusicNotesChallenge from './challenges/37_MusicNotesChallenge';
@@ -264,6 +265,8 @@ const GameContainer: React.FC = () => {
         return <DiceProbabilityChallenge {...challengeProps} />;
       case 33:
         return <CarDrivingChallenge {...challengeProps} />;
+      case 34:
+        return <ShutdownComputerChallenge {...challengeProps} />;
       case 35:
         return <FractionFighterChallenge {...challengeProps} />;
       case 36:

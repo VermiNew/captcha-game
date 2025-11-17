@@ -280,6 +280,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 34,
+    name: 'Shutdown Computer',
+    description: 'Navigate through the OS and shut down the computer',
+    component: (() => null) as any,
+    timeLimit: 45,
+    maxScore: 130,
+  },
+  {
     id: 35,
     name: 'Fraction Fighter',
     description: 'Compare fractions and select the larger one',
