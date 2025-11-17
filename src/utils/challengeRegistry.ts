@@ -320,6 +320,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 240,
   },
   {
+    id: 39,
+    name: 'Space Shooter',
+    description: 'Destroy asteroids and survive for 60 seconds',
+    component: (() => null) as any,
+    timeLimit: 65,
+    maxScore: 400,
+  },
+  {
     id: 40,
     name: 'Pixel Art Memory',
     description: 'Memorize and draw the pixel art pattern',

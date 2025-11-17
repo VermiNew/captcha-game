@@ -47,6 +47,7 @@ import FractionFighterChallenge from './challenges/35_FractionFighterChallenge';
 import FlagMatchChallenge from './challenges/36_FlagMatchChallenge';
 import MusicNotesChallenge from './challenges/37_MusicNotesChallenge';
 import ScienceQuizChallenge from './challenges/38_ScienceQuizChallenge';
+import SpaceShooterChallenge from './challenges/39_SpaceShooterChallenge';
 import PixelArtMemoryChallenge from './challenges/40_PixelArtMemoryChallenge';
 
 /**
@@ -275,6 +276,8 @@ const GameContainer: React.FC = () => {
         return <MusicNotesChallenge {...challengeProps} />;
       case 38:
         return <ScienceQuizChallenge {...challengeProps} />;
+      case 39:
+        return <SpaceShooterChallenge {...challengeProps} />;
       case 40:
         return <PixelArtMemoryChallenge {...challengeProps} />;
       default:
