@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -343,15 +343,32 @@ const ShutdownComputerChallenge: React.FC<ChallengeProps> = ({
     const [movingButtonPos, setMovingButtonPos] = useState({ x: 0, y: 0 });
     const startButtonRef = useRef<HTMLButtonElement>(null);
     const osWindowRef = useRef<HTMLDivElement>(null);
+    const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    /**
+     * Cleanup notification timeout on unmount
+     */
+    useEffect(() => {
+        return () => {
+            if (notificationTimeoutRef.current) {
+                clearTimeout(notificationTimeoutRef.current);
+            }
+        };
+    }, []);
 
     /**
      * Show notification
      */
-    const showNotification = (text: string) => {
+    const showNotification = useCallback((text: string) => {
         setNotificationText(text);
         setNotificationVisible(true);
-        setTimeout(() => setNotificationVisible(false), 2000);
-    };
+        if (notificationTimeoutRef.current) {
+            clearTimeout(notificationTimeoutRef.current);
+        }
+        notificationTimeoutRef.current = setTimeout(() => {
+            setNotificationVisible(false);
+        }, 2000);
+    }, []);
 
     /**
      * Handle fake button hover - move away

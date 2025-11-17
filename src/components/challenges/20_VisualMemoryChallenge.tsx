@@ -291,7 +291,9 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
   const [wrongTile, setWrongTile] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
   const [startTime] = useState(Date.now());
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const showingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const failureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Handle phase transition from showing to waiting
@@ -299,13 +301,13 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
   useEffect(() => {
     if (phase !== 'showing') return;
 
-    timeoutRef.current = setTimeout(() => {
+    showingTimeoutRef.current = setTimeout(() => {
       setPhase('waiting');
     }, SHOWING_DURATION);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (showingTimeoutRef.current) {
+        clearTimeout(showingTimeoutRef.current);
       }
     };
   }, [phase]);
@@ -327,31 +329,44 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
       setCorrectTiles(newCorrect);
 
       // Check if all tiles are correct
-      if (newCorrect.size === TILES_TO_REMEMBER) {
-        // Success!
-        const timeSpent = (Date.now() - startTime) / 1000;
-        const speedBonus = Math.max(0, 100 - Math.floor(timeSpent / 2));
-        const score = 250 + speedBonus;
+       if (newCorrect.size === TILES_TO_REMEMBER) {
+         // Success!
+         const timeSpent = (Date.now() - startTime) / 1000;
+         const speedBonus = Math.max(0, 100 - Math.floor(timeSpent / 2));
+         const score = 250 + speedBonus;
 
-        setCompleted(true);
-        setPhase('complete');
+         setCompleted(true);
+         setPhase('complete');
 
-        setTimeout(() => {
-          onComplete(true, timeSpent, score);
-        }, 2000);
+         if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+         successTimeoutRef.current = setTimeout(() => {
+           onComplete(true, timeSpent, score);
+         }, 2000);
+       }
+      } else {
+       // Wrong tile - game over
+       setWrongTile(index);
+       setCompleted(true);
+       setPhase('complete');
+
+       const timeSpent = (Date.now() - startTime) / 1000;
+       if (failureTimeoutRef.current) clearTimeout(failureTimeoutRef.current);
+       failureTimeoutRef.current = setTimeout(() => {
+         onComplete(false, timeSpent, 0);
+       }, 1500);
       }
-    } else {
-      // Wrong tile - game over
-      setWrongTile(index);
-      setCompleted(true);
-      setPhase('complete');
-
-      const timeSpent = (Date.now() - startTime) / 1000;
-      setTimeout(() => {
-        onComplete(false, timeSpent, 0);
-      }, 1500);
-    }
   };
+
+  /**
+   * Cleanup timeouts on unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (showingTimeoutRef.current) clearTimeout(showingTimeoutRef.current);
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+      if (failureTimeoutRef.current) clearTimeout(failureTimeoutRef.current);
+    };
+  }, []);
 
   const progress = correctTiles.size;
 

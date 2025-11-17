@@ -170,6 +170,8 @@ const WhackAMoleChallenge: React.FC<ChallengeProps> = ({
   const spawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const moleTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const moleCountRef = useRef(0);
+  const completionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const finalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Spawn a mole
@@ -244,16 +246,21 @@ const WhackAMoleChallenge: React.FC<ChallengeProps> = ({
   useEffect(() => {
     if (totalMoles >= 25) {
       // Wait for last mole to hide
-      setTimeout(() => {
+      completionTimeoutRef.current = setTimeout(() => {
         setCompleted(true);
         const timeSpent = (Date.now() - startTime) / 1000;
         const score = hits * 10;
         const success = hits >= 18;
 
-        setTimeout(() => {
+        finalTimeoutRef.current = setTimeout(() => {
           onComplete(success, timeSpent, score);
         }, 1000);
       }, 1100);
+
+      return () => {
+        if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
+        if (finalTimeoutRef.current) clearTimeout(finalTimeoutRef.current);
+      };
     }
   }, [totalMoles, hits, startTime, onComplete]);
 
@@ -266,6 +273,8 @@ const WhackAMoleChallenge: React.FC<ChallengeProps> = ({
         clearInterval(spawnIntervalRef.current);
       }
       moleTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
+      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
+      if (finalTimeoutRef.current) clearTimeout(finalTimeoutRef.current);
     };
   }, []);
 

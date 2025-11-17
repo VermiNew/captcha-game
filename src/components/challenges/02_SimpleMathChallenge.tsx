@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { ChallengeProps } from '../../types';
+import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
