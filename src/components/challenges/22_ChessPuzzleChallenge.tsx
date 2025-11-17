@@ -1,17 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
 /**
@@ -20,93 +12,15 @@ import { theme } from '../../styles/theme';
 type Piece = 'wK' | 'wQ' | 'wR' | 'wB' | 'wN' | 'wP' | 'bK' | 'bQ' | 'bR' | 'bB' | 'bN' | 'bP' | null;
 
 /**
- * Position on board (0-63)
- */
-type Position = number;
-
-/**
  * Chess puzzle definition
  */
 interface ChessPuzzle {
   name: string;
-  board: Piece[]; // 64 squares
-  whiteToMove: true;
-  matingMove: { from: Position; to: Position }; // Solution
+  description: string;
+  board: Piece[];
+  solution: { from: number; to: number };
   hint: string;
 }
-
-/**
- * All predefined chess puzzles - mat w 1 ruchu
- */
-const CHESS_PUZZLES: ChessPuzzle[] = [
-  {
-    name: 'Back Rank Mate',
-    hint: 'Wieża na ostatnim rzędzie',
-    board: Array(64).fill(null).map((_, i) => {
-      if (i === 0) return 'wR'; // a1
-      if (i === 4) return 'bK'; // e1
-      if (i === 8) return 'wK'; // a2
-      return null;
-    }),
-    whiteToMove: true,
-    matingMove: { from: 0, to: 4 }, // Ra1-e1#
-  },
-  {
-    name: 'Back Rank Mate 2',
-    hint: 'Mata na ostatnim rzędzie przeciwnika',
-    board: Array(64).fill(null).map((_, i) => {
-      if (i === 56) return 'bK'; // a8
-      if (i === 57) return 'bP'; // b8
-      if (i === 58) return 'bP'; // c8
-      if (i === 48) return 'wR'; // a7
-      if (i === 8) return 'wK'; // a2
-      return null;
-    }),
-    whiteToMove: true,
-    matingMove: { from: 48, to: 56 }, // Ra7-a8#
-  },
-  {
-    name: 'Queen Checkmate',
-    hint: 'Hetmana zablokowana przez własne piony',
-    board: Array(64).fill(null).map((_, i) => {
-      if (i === 62) return 'bK'; // g8
-      if (i === 61) return 'bP'; // f8
-      if (i === 60) return 'bP'; // e8
-      if (i === 46) return 'wQ'; // g7
-      if (i === 8) return 'wK'; // a2
-      return null;
-    }),
-    whiteToMove: true,
-    matingMove: { from: 46, to: 62 }, // Qg7-g8#
-  },
-  {
-    name: 'Smothered Mate Setup',
-    hint: 'Koń daje mata zablokowanemu królowi',
-    board: Array(64).fill(null).map((_, i) => {
-      if (i === 62) return 'bK'; // g8
-      if (i === 61) return 'bP'; // f8
-      if (i === 52) return 'bP'; // e7
-      if (i === 45) return 'wN'; // f6
-      if (i === 8) return 'wK'; // a2
-      return null;
-    }),
-    whiteToMove: true,
-    matingMove: { from: 45, to: 63 }, // Nf6-h7#
-  },
-  {
-    name: 'Two Rooks Mate',
-    hint: 'Druga wieża daje mata na pierwszym rzędzie',
-    board: Array(64).fill(null).map((_, i) => {
-      if (i === 4) return 'bK'; // e1
-      if (i === 0) return 'wR'; // a1
-      if (i === 1) return 'wR'; // b1
-      if (i === 12) return 'wK'; // a3
-      return null;
-    }),
-    whiteToMove: true,
-    matingMove: { from: 1, to: 4 }, // Rb1-e1#
-  },
-];
 
 /**
  * Piece unicode symbols
@@ -128,18 +42,98 @@ const PIECE_SYMBOLS: Record<Piece, string> = {
 };
 
 /**
- * Convert position to notation (a1-h8)
+ * Simple chess puzzles (mate in 1)
  */
-const positionToNotation = (pos: Position): string => {
+const PUZZLES: ChessPuzzle[] = [
+  {
+    name: 'Back Rank Mate',
+    description: 'Queen to the back rank',
+    board: (() => {
+      const b = Array(64).fill(null) as Piece[];
+      b[0] = 'bK'; // a1
+      b[1] = 'bP'; // b1
+      b[2] = 'bP'; // c1
+      b[48] = 'wQ'; // a7
+      b[56] = 'wK'; // a8
+      return b;
+    })(),
+    solution: { from: 48, to: 0 }, // Qa7-a1#
+    hint: 'Queen moves to the back rank for checkmate',
+  },
+  {
+    name: 'Queen Checkmate',
+    description: 'Queen delivers mate',
+    board: (() => {
+      const b = Array(64).fill(null) as Piece[];
+      b[62] = 'bK'; // g8
+      b[61] = 'bP'; // f8
+      b[60] = 'bP'; // e8
+      b[46] = 'wQ'; // g7
+      b[8] = 'wK'; // a2
+      return b;
+    })(),
+    solution: { from: 46, to: 62 }, // Qg7-g8#
+    hint: 'Queen captures on g8 for checkmate',
+  },
+  {
+    name: 'Rook Mate',
+    description: 'Rook on first rank',
+    board: (() => {
+      const b = Array(64).fill(null) as Piece[];
+      b[4] = 'bK'; // e1
+      b[0] = 'wR'; // a1
+      b[12] = 'wK'; // a3
+      return b;
+    })(),
+    solution: { from: 0, to: 4 }, // Ra1-e1#
+    hint: 'Rook moves to e1 for checkmate',
+  },
+  {
+    name: 'Two Rooks Mate',
+    description: 'Second rook delivers mate',
+    board: (() => {
+      const b = Array(64).fill(null) as Piece[];
+      b[4] = 'bK'; // e1
+      b[1] = 'wR'; // b1
+      b[9] = 'wR'; // b2
+      b[12] = 'wK'; // a3
+      return b;
+    })(),
+    solution: { from: 1, to: 4 }, // Rb1-e1#
+    hint: 'Move rook to e1 for checkmate',
+  },
+  {
+    name: 'Knight Mate',
+    description: 'Knight delivers smothered mate',
+    board: (() => {
+      const b = Array(64).fill(null) as Piece[];
+      b[62] = 'bK'; // g8
+      b[61] = 'bP'; // f8
+      b[53] = 'bP'; // f7
+      b[37] = 'wN'; // f5
+      b[8] = 'wK'; // a2
+      return b;
+    })(),
+    solution: { from: 37, to: 63 }, // Nf5-h7#
+    hint: 'Knight to h7 for smothered mate',
+  },
+];
+
+/**
+ * Position to notation (a1-h8)
+ */
+function posToNotation(pos: number): string {
   const file = String.fromCharCode(97 + (pos % 8));
   const rank = Math.floor(pos / 8) + 1;
   return `${file}${rank}`;
-};
+}
 
 /**
- * Check if a move is legal for a piece
+ * Check if move is legal (simple path check)
  */
-const isLegalMove = (board: Piece[], from: Position, to: Position): boolean => {
+function canMovePiece(board: Piece[], from: number, to: number): boolean {
+  if (from === to) return false;
+
   const piece = board[from];
   if (!piece) return false;
 
@@ -148,77 +142,16 @@ const isLegalMove = (board: Piece[], from: Position, to: Position): boolean => {
   const toFile = to % 8;
   const toRank = Math.floor(to / 8);
 
-  const targetPiece = board[to];
-
-  // Can't capture own piece
-  if (targetPiece && targetPiece[0] === piece[0]) return false;
+  const target = board[to];
+  if (target && target[0] === piece[0]) return false; // Can't capture own piece
 
   const type = piece[1];
 
   switch (type) {
-    case 'P': {
-      const direction = piece[0] === 'w' ? -1 : 1;
-      const startRank = piece[0] === 'w' ? 6 : 1;
-      // Pawn moves forward 1 square
-      if (fromFile === toFile) {
-        if (toRank === fromRank + direction && !board[to]) return true;
-        // Pawn moves forward 2 squares from start
-        if (
-          fromRank === startRank &&
-          toRank === fromRank + 2 * direction &&
-          !board[from + 8 * direction] &&
-          !board[to]
-        )
-          return true;
-      }
-      // Pawn captures diagonally
-      if (
-        Math.abs(fromFile - toFile) === 1 &&
-        toRank === fromRank + direction &&
-        targetPiece
-      )
-        return true;
-      return false;
-    }
-    case 'N': {
-      const fileDiff = Math.abs(fromFile - toFile);
-      const rankDiff = Math.abs(fromRank - toRank);
-      return (fileDiff === 2 && rankDiff === 1) || (fileDiff === 1 && rankDiff === 2);
-    }
-    case 'B': {
-      if (Math.abs(fromFile - toFile) !== Math.abs(fromRank - toRank)) return false;
-      // Check path is clear
-      const fileDir = toFile > fromFile ? 1 : -1;
-      const rankDir = toRank > fromRank ? 1 : -1;
-      let curFile = fromFile + fileDir;
-      let curRank = fromRank + rankDir;
-      while (curFile !== toFile) {
-        if (board[curRank * 8 + curFile]) return false;
-        curFile += fileDir;
-        curRank += rankDir;
-      }
-      return true;
-    }
-    case 'R': {
-      if (fromFile !== toFile && fromRank !== toRank) return false;
-      // Check path is clear
-      if (fromFile === toFile) {
-        const step = toRank > fromRank ? 1 : -1;
-        for (let r = fromRank + step; r !== toRank; r += step) {
-          if (board[r * 8 + fromFile]) return false;
-        }
-      } else {
-        const step = toFile > fromFile ? 1 : -1;
-        for (let f = fromFile + step; f !== toFile; f += step) {
-          if (board[fromRank * 8 + f]) return false;
-        }
-      }
-      return true;
-    }
     case 'Q': {
-      // Queen = Rook + Bishop
+      // Queen moves like rook or bishop
       if (fromFile === toFile || fromRank === toRank) {
-        // Rook move
+        // Rook-like move - check path
         if (fromFile === toFile) {
           const step = toRank > fromRank ? 1 : -1;
           for (let r = fromRank + step; r !== toRank; r += step) {
@@ -232,74 +165,66 @@ const isLegalMove = (board: Piece[], from: Position, to: Position): boolean => {
         }
         return true;
       } else if (Math.abs(fromFile - toFile) === Math.abs(fromRank - toRank)) {
-        // Bishop move
+        // Bishop-like move - check diagonal
         const fileDir = toFile > fromFile ? 1 : -1;
         const rankDir = toRank > fromRank ? 1 : -1;
-        let curFile = fromFile + fileDir;
-        let curRank = fromRank + rankDir;
-        while (curFile !== toFile) {
-          if (board[curRank * 8 + curFile]) return false;
-          curFile += fileDir;
-          curRank += rankDir;
+        let f = fromFile + fileDir;
+        let r = fromRank + rankDir;
+        while (f !== toFile) {
+          if (board[r * 8 + f]) return false;
+          f += fileDir;
+          r += rankDir;
         }
         return true;
       }
       return false;
     }
+    case 'R': {
+      if (fromFile !== toFile && fromRank !== toRank) return false;
+      if (fromFile === toFile) {
+        const step = toRank > fromRank ? 1 : -1;
+        for (let r = fromRank + step; r !== toRank; r += step) {
+          if (board[r * 8 + fromFile]) return false;
+        }
+      } else {
+        const step = toFile > fromFile ? 1 : -1;
+        for (let f = fromFile + step; f !== toFile; f += step) {
+          if (board[fromRank * 8 + f]) return false;
+        }
+      }
+      return true;
+    }
+    case 'N': {
+      const fileDiff = Math.abs(fromFile - toFile);
+      const rankDiff = Math.abs(fromRank - toRank);
+      return (fileDiff === 2 && rankDiff === 1) || (fileDiff === 1 && rankDiff === 2);
+    }
+    case 'B': {
+      if (Math.abs(fromFile - toFile) !== Math.abs(fromRank - toRank)) return false;
+      const fileDir = toFile > fromFile ? 1 : -1;
+      const rankDir = toRank > fromRank ? 1 : -1;
+      let f = fromFile + fileDir;
+      let r = fromRank + rankDir;
+      while (f !== toFile) {
+        if (board[r * 8 + f]) return false;
+        f += fileDir;
+        r += rankDir;
+      }
+      return true;
+    }
     case 'K': {
       return Math.abs(fromFile - toFile) <= 1 && Math.abs(fromRank - toRank) <= 1;
+    }
+    case 'P': {
+      const dir = piece[0] === 'w' ? -1 : 1;
+      if (fromFile === toFile && !target && toRank === fromRank + dir) return true;
+      if (Math.abs(fromFile - toFile) === 1 && target && toRank === fromRank + dir) return true;
+      return false;
     }
     default:
       return false;
   }
-};
-
-/**
- * Check if king is in checkmate
- */
-const isCheckmate = (board: Piece[], kingColor: 'w' | 'b'): boolean => {
-  // Find king
-  const kingPos = board.findIndex((p) => p === `${kingColor}K`);
-  if (kingPos === -1) return false;
-
-  // Check if king is under attack
-  const isUnderAttack = (pos: Position): boolean => {
-    for (let i = 0; i < 64; i++) {
-      const piece = board[i];
-      if (!piece || piece[0] === kingColor) continue;
-      if (isLegalMove(board, i, pos)) return true;
-    }
-    return false;
-  };
-
-  if (!isUnderAttack(kingPos)) return false;
-
-  // Check if king can escape
-  const kingFile = kingPos % 8;
-  const kingRank = Math.floor(kingPos / 8);
-
-  for (let df = -1; df <= 1; df++) {
-    for (let dr = -1; dr <= 1; dr++) {
-      if (df === 0 && dr === 0) continue;
-      const newFile = kingFile + df;
-      const newRank = kingRank + dr;
-      if (newFile < 0 || newFile > 7 || newRank < 0 || newRank > 7) continue;
-
-      const newPos = newRank * 8 + newFile;
-      const target = board[newPos];
-      if (target && target[0] === kingColor) continue;
-
-      // Simulate move
-      const newBoard = [...board];
-      newBoard[kingPos] = null;
-      newBoard[newPos] = `${kingColor}K`;
-
-      if (!isUnderAttack(newPos)) return false;
-    }
-  }
-
-  return true;
-};
+}
 
 /**
  * Styled container
@@ -310,20 +235,6 @@ const Container = styled.div`
   align-items: center;
   gap: ${theme.spacing.lg};
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
 `;
 
 /**
@@ -338,139 +249,104 @@ const Instruction = styled.p`
 `;
 
 /**
- * Chessboard grid
+ * Styled chessboard
  */
-const ChessboardContainer = styled(motion.div)`
+const ChessBoard = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 0;
   width: 100%;
   max-width: 400px;
   aspect-ratio: 1;
-  background: #8b7355;
-  border: 3px solid #654321;
-  padding: 8px;
-  gap: 0;
+  background: #654321;
+  border: 3px solid #3d2817;
   border-radius: ${theme.borderRadius.md};
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: ${theme.shadows.lg};
+  padding: 4px;
 `;
 
 /**
- * Single square
+ * Styled square
  */
-const Square = styled(motion.div)<{ $light: boolean; $selected: boolean; $hasLegalMove: boolean }>`
+const Square = styled(motion.div)<{ $light: boolean; $selected: boolean; $legal: boolean }>`
   aspect-ratio: 1;
   background: ${(props) => {
-    if (props.$selected) return '#4CAF50';
-    if (props.$hasLegalMove) return '#90EE90';
-    return props.$light ? '#F0D9B5' : '#B58863';
+    if (props.$selected) return '#66bb6a';
+    if (props.$legal) return '#90ee90';
+    return props.$light ? '#f0d9b5' : '#b58863';
   }};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
-  cursor: ${(props) => (props.$hasLegalMove ? 'pointer' : 'default')};
-  border: 2px solid
-    ${(props) => {
-      if (props.$selected) return '#2E7D32';
-      if (props.$hasLegalMove) return '#228B22';
-      return 'transparent';
-    }};
+  font-size: 2.2rem;
+  cursor: ${(props) => (props.$legal ? 'pointer' : 'default')};
+  border: ${(props) => (props.$selected || props.$legal ? '2px solid #2e7d32' : 'none')};
   user-select: none;
-  transition: all 0.1s ease;
-  position: relative;
+  transition: all 0.15s ease;
 
   &:hover {
-    transform: ${(props) => (props.$hasLegalMove ? 'scale(1.05)' : 'scale(1)')};
+    ${(props) => (props.$legal ? 'transform: scale(1.08);' : '')}
   }
 `;
 
 /**
- * Piece element (draggable)
+ * Styled hint
  */
-const PieceElement = styled.div<{ $isDragging: boolean }>`
-  font-size: 2.5rem;
-  cursor: grab;
-  user-select: none;
-  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
-  transition: opacity 0.1s ease;
-
-  &:active {
-    cursor: grabbing;
-  }
-`;
-
-/**
- * Hint section
- */
-const HintSection = styled(motion.div)`
+const Hint = styled(motion.div)`
   padding: ${theme.spacing.md};
   background: ${theme.colors.surface};
   border-left: 4px solid ${theme.colors.info};
   border-radius: ${theme.borderRadius.md};
   width: 100%;
+  max-width: 400px;
 `;
 
 /**
- * Hint label
+ * Styled hint label
  */
 const HintLabel = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
+  font-size: ${theme.fontSizes.xs};
   color: ${theme.colors.textSecondary};
   margin: 0 0 ${theme.spacing.sm} 0;
-  font-weight: ${theme.fontWeights.semibold};
+  font-weight: ${theme.fontWeights.bold};
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 `;
 
 /**
- * Hint text
+ * Styled hint text
  */
 const HintText = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.info};
   margin: 0;
 `;
 
 /**
- * Feedback message
+ * Styled result
  */
-const FeedbackMessage = styled(motion.div)<{ $success: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.md};
+const Result = styled(motion.div)<{ $success: boolean }>`
   padding: ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
   background: ${(props) =>
     props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  font-family: ${theme.fonts.primary};
-  font-weight: ${theme.fontWeights.bold};
+  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  border-radius: ${theme.borderRadius.lg};
   text-align: center;
-  width: 100%;
-`;
-
-/**
- * Emoji
- */
-const Emoji = styled.span`
-  font-size: ${theme.fontSizes['3xl']};
-  line-height: 1;
-`;
-
-/**
- * Move notation display
- */
-const MoveDisplay = styled.p`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.lg};
+  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
+  width: 100%;
+  max-width: 400px;
+`;
+
+/**
+ * Styled button container
+ */
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: ${theme.spacing.md};
+  justify-content: center;
+  width: 100%;
 `;
 
 /**
@@ -482,34 +358,22 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [startTime] = useState(Date.now());
-
-  // Randomly select a puzzle
-  const puzzle = useMemo(
-    () => CHESS_PUZZLES[Math.floor(Math.random() * CHESS_PUZZLES.length)],
-    []
-  );
+  const puzzle = useMemo(() => PUZZLES[Math.floor(Math.random() * PUZZLES.length)], []);
 
   const [board, setBoard] = useState<Piece[]>(puzzle.board);
-  const [selectedSquare, setSelectedSquare] = useState<Position | null>(null);
-  const [legalMoves, setLegalMoves] = useState<Position[]>([]);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [legalMoves, setLegalMoves] = useState<number[]>([]);
   const [completed, setCompleted] = useState(false);
-  const [moveNotation, setMoveNotation] = useState<string>('');
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      distance: 8,
-    }),
-    useSensor(KeyboardSensor)
-  );
+  const [lastMove, setLastMove] = useState<string>('');
 
   /**
-   * Get legal moves for a square
+   * Get legal moves for position
    */
-  const getLegalMovesForSquare = useCallback(
-    (pos: Position): Position[] => {
-      const moves: Position[] = [];
+  const getLegalMoves = useCallback(
+    (pos: number): number[] => {
+      const moves: number[] = [];
       for (let i = 0; i < 64; i++) {
-        if (isLegalMove(board, pos, i)) {
+        if (canMovePiece(board, pos, i)) {
           moves.push(i);
         }
       }
@@ -521,53 +385,55 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
   /**
    * Handle square click
    */
-  const handleSquareClick = (pos: Position) => {
+  const handleSquareClick = (pos: number) => {
     const piece = board[pos];
 
-    // If clicking same square, deselect
-    if (selectedSquare === pos) {
-      setSelectedSquare(null);
+    // Click same square = deselect
+    if (selected === pos) {
+      setSelected(null);
       setLegalMoves([]);
       return;
     }
 
-    // If clicking a white piece, select it
+    // Click white piece = select it
     if (piece && piece[0] === 'w') {
-      const moves = getLegalMovesForSquare(pos);
-      setSelectedSquare(pos);
+      const moves = getLegalMoves(pos);
+      setSelected(pos);
       setLegalMoves(moves);
       return;
     }
 
-    // If clicking a legal move destination
-    if (selectedSquare !== null && legalMoves.includes(pos)) {
-      const fromNotation = positionToNotation(selectedSquare);
-      const toNotation = positionToNotation(pos);
-      const notation = `${fromNotation}-${toNotation}`;
-      setMoveNotation(notation);
-
-      // Make the move
+    // Click legal move destination
+    if (selected !== null && legalMoves.includes(pos)) {
       const newBoard = [...board];
-      newBoard[pos] = newBoard[selectedSquare];
-      newBoard[selectedSquare] = null;
+      newBoard[pos] = newBoard[selected];
+      newBoard[selected] = null;
 
+      const moveStr = `${posToNotation(selected)}-${posToNotation(pos)}`;
+      setLastMove(moveStr);
       setBoard(newBoard);
-      setSelectedSquare(null);
+      setSelected(null);
       setLegalMoves([]);
 
-      // Check if this is the mating move
-      if (
-        selectedSquare === puzzle.matingMove.from &&
-        pos === puzzle.matingMove.to &&
-        isCheckmate(newBoard, 'b')
-      ) {
+      // Check if this is the solution
+      if (selected === puzzle.solution.from && pos === puzzle.solution.to) {
         setCompleted(true);
         const timeSpent = (Date.now() - startTime) / 1000;
         setTimeout(() => {
           onComplete(true, timeSpent, 250);
-        }, 2000);
+        }, 1500);
       }
     }
+  };
+
+  /**
+   * Reset board
+   */
+  const handleReset = () => {
+    setBoard([...puzzle.board]);
+    setSelected(null);
+    setLegalMoves([]);
+    setLastMove('');
   };
 
   if (completed) {
@@ -580,16 +446,17 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
         onComplete={onComplete}
       >
         <Container>
-          <FeedbackMessage
+          <Result
             $success={true}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 200 }}
           >
-            <Emoji>♔</Emoji>
-            <span>Checkmate! Perfect!</span>
-            <MoveDisplay>{moveNotation}</MoveDisplay>
-          </FeedbackMessage>
+            <div style={{ fontSize: theme.fontSizes['3xl'], marginBottom: theme.spacing.md }}>
+              ♔ Checkmate!
+            </div>
+            <div>Perfect move: {lastMove}</div>
+          </Result>
         </Container>
       </ChallengeBase>
     );
@@ -604,67 +471,48 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <Instruction>White to move - Find mate in one move!</Instruction>
+
+        <ChessBoard
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {puzzle.name}
-        </Title>
+          {board.map((piece, pos) => {
+            const file = pos % 8;
+            const rank = Math.floor(pos / 8);
+            const isLight = (file + rank) % 2 === 0;
+            const isSelected = selected === pos;
+            const isLegal = legalMoves.includes(pos);
 
-        <Instruction>White to move - Find the checkmate in one move!</Instruction>
+            return (
+              <Square
+                key={pos}
+                $light={isLight}
+                $selected={isSelected}
+                $legal={isLegal}
+                onClick={() => handleSquareClick(pos)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {piece ? PIECE_SYMBOLS[piece] : ''}
+              </Square>
+            );
+          })}
+        </ChessBoard>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-        >
-          <ChessboardContainer
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            {board.map((piece, pos) => {
-              const file = pos % 8;
-              const rank = Math.floor(pos / 8);
-              const isLight = (file + rank) % 2 === 0;
-              const isSelected = selectedSquare === pos;
-              const hasLegalMove = legalMoves.includes(pos);
-
-              return (
-                <Square
-                  key={pos}
-                  $light={isLight}
-                  $selected={isSelected}
-                  $hasLegalMove={hasLegalMove}
-                  onClick={() => handleSquareClick(pos)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {piece && <PieceElement $isDragging={false}>{PIECE_SYMBOLS[piece]}</PieceElement>}
-                </Square>
-              );
-            })}
-          </ChessboardContainer>
-        </DndContext>
-
-        <HintSection
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <HintLabel>💡 Hint</HintLabel>
+        <Hint initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <HintLabel>Hint</HintLabel>
           <HintText>{puzzle.hint}</HintText>
-        </HintSection>
+        </Hint>
 
-        {moveNotation && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ width: '100%' }}
-          >
-            <Instruction>Last move: {moveNotation}</Instruction>
-          </motion.div>
-        )}
+        {lastMove && <Instruction>Last move: {lastMove}</Instruction>}
+
+        <ButtonContainer>
+          <Button onClick={handleReset} disabled={false} size="md" variant="secondary">
+            Reset
+          </Button>
+        </ButtonContainer>
       </Container>
     </ChallengeBase>
   );
