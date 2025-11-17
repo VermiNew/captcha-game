@@ -272,6 +272,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 33,
+    name: 'Car Driving',
+    description: 'Avoid obstacles and stay on the road for 30 seconds',
+    component: (() => null) as any,
+    timeLimit: 35,
+    maxScore: 300,
+  },
+  {
     id: 35,
     name: 'Fraction Fighter',
     description: 'Compare fractions and select the larger one',
