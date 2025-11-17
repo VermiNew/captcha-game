@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
@@ -8,40 +8,7 @@ import { theme } from '../../styles/theme';
 /**
  * Game phase type
  */
-type GamePhase = 'playing-sequence' | 'waiting-input' | 'complete';
-
-/**
- * Feedback type
- */
-type HitFeedback = 'hit' | 'miss';
-
-/**
- * Audio context for beep sounds
- */
-let audioContext: AudioContext | null = null;
-
-/**
- * Play beep sound
- */
-const playBeep = (frequency: number = 800, duration: number = 100) => {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  }
-
-  const now = audioContext.currentTime;
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-
-  osc.connect(gain);
-  gain.connect(audioContext.destination);
-
-  osc.frequency.value = frequency;
-  gain.gain.setValueAtTime(0.3, now);
-  gain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
-
-  osc.start(now);
-  osc.stop(now + duration / 1000);
-};
+type GamePhase = 'waiting' | 'playing' | 'complete';
 
 /**
  * Styled container
@@ -52,20 +19,6 @@ const Container = styled.div`
   align-items: center;
   gap: ${theme.spacing.xl};
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
 `;
 
 /**
@@ -77,69 +30,54 @@ const Instruction = styled.p`
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
+  height: 24px;
 `;
 
 /**
- * Styled beats container
+ * Styled beats grid
  */
-const BeatsContainer = styled(motion.div)`
-  display: flex;
+const BeatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: ${theme.spacing.lg};
-  justify-content: center;
-  align-items: center;
-  height: 160px;
   width: 100%;
-  margin: ${theme.spacing.lg} 0;
+  max-width: 500px;
+  margin: ${theme.spacing.xl} 0;
 `;
 
 /**
- * Styled beat circle
+ * Styled beat tile
  */
-const BeatCircle = styled(motion.div)<{ $index: number }>`
-  width: 80px;
-  height: 80px;
-  border-radius: ${theme.borderRadius.full};
+const BeatTile = styled(motion.div)<{ $active: boolean; $hit?: boolean | null }>`
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: ${(props) => {
-    const colors = [
-      theme.colors.primary,
-      theme.colors.secondary,
-      theme.colors.accent,
-      theme.colors.success,
-      theme.colors.info,
-    ];
-    return colors[props.$index % 5];
+    if (props.$hit === true) return theme.colors.success;
+    if (props.$hit === false) return theme.colors.error;
+    return props.$active ? theme.colors.primary : theme.colors.surface;
   }};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
+  border: 2px solid ${(props) => {
+    if (props.$hit === true) return theme.colors.success;
+    if (props.$hit === false) return theme.colors.error;
+    return props.$active ? theme.colors.primary : theme.colors.border;
+  }};
+  border-radius: ${theme.borderRadius.lg};
   font-weight: ${theme.fontWeights.bold};
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  flex-shrink: 0;
-`;
+  font-size: ${theme.fontSizes.xl};
+  color: ${(props) => (props.$active || props.$hit ? 'white' : theme.colors.textSecondary)};
+  cursor: pointer;
+  transition: all 0.1s ease;
 
-/**
- * Styled input section
- */
-const InputSection = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.lg};
-  width: 100%;
-`;
+  &:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: ${theme.shadows.md};
+  }
 
-/**
- * Styled spacebar hint
- */
-const SpacebarHint = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  text-align: center;
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
 `;
 
 /**
@@ -180,77 +118,49 @@ const TapButton = styled(motion.button)`
 `;
 
 /**
- * Styled feedback grid
+ * Styled progress bar
  */
-const FeedbackGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: ${theme.spacing.md};
+const ProgressBar = styled.div`
   width: 100%;
+  max-width: 400px;
+  height: 8px;
+  background: ${theme.colors.border};
+  border-radius: ${theme.borderRadius.full};
+  overflow: hidden;
 `;
 
 /**
- * Styled feedback item
+ * Styled progress fill
  */
-const FeedbackItem = styled(motion.div)<{ $hit: HitFeedback | null }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.md};
-  border-radius: ${theme.borderRadius.lg};
-  background: ${(props) =>
-    props.$hit === 'hit'
-      ? 'rgba(16, 185, 129, 0.1)'
-      : props.$hit === 'miss'
-        ? 'rgba(239, 68, 68, 0.1)'
-        : theme.colors.surface};
-  border: 2px solid
-    ${(props) =>
-      props.$hit === 'hit'
-        ? theme.colors.success
-        : props.$hit === 'miss'
-          ? theme.colors.error
-          : theme.colors.border};
-`;
-
-/**
- * Styled feedback icon
- */
-const FeedbackIcon = styled.span`
-  font-size: ${theme.fontSizes.xl};
-  line-height: 1;
-`;
-
-/**
- * Styled feedback label
- */
-const FeedbackLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
+const ProgressFill = styled(motion.div)`
+  height: 100%;
+  background: ${theme.colors.primary};
+  border-radius: ${theme.borderRadius.full};
 `;
 
 /**
  * Styled stats
  */
 const Stats = styled(motion.div)`
-  display: flex;
-  gap: ${theme.spacing.xl};
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: ${theme.spacing.lg};
   width: 100%;
-  flex-wrap: wrap;
+  max-width: 400px;
 `;
 
 /**
- * Styled stat item
+ * Styled stat box
  */
-const StatItem = styled.div`
+const StatBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.sm};
+  padding: ${theme.spacing.lg};
+  background: ${theme.colors.surface};
+  border-radius: ${theme.borderRadius.lg};
+  border: 1px solid ${theme.colors.border};
 `;
 
 /**
@@ -261,13 +171,12 @@ const StatLabel = styled.p`
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
   margin: 0;
-  font-weight: ${theme.fontWeights.medium};
 `;
 
 /**
  * Styled stat value
  */
-const StatValue = styled(motion.p)`
+const StatValue = styled.p`
   font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
@@ -276,299 +185,260 @@ const StatValue = styled(motion.p)`
 `;
 
 /**
- * Styled completion message
+ * Styled result message
  */
-const CompletionMessage = styled(motion.div)<{ $success: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.md};
+const ResultMessage = styled(motion.div)<{ $success: boolean }>`
   padding: ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
   background: ${(props) =>
     props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  font-family: ${theme.fonts.primary};
-  font-weight: ${theme.fontWeights.bold};
+  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  border-radius: ${theme.borderRadius.lg};
   text-align: center;
-  width: 100%;
+  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  font-weight: ${theme.fontWeights.bold};
+  font-size: ${theme.fontSizes.base};
 `;
 
 /**
- * Styled emoji
+ * Play beep sound
  */
-const Emoji = styled.span`
-  font-size: ${theme.fontSizes['3xl']};
-  line-height: 1;
-`;
+function playBeep(frequency: number = 800, duration: number = 100) {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    osc.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+
+    osc.start(now);
+    osc.stop(now + duration / 1000);
+  } catch (e) {
+    console.debug('Audio context not available');
+  }
+}
 
 /**
  * Rhythm Challenge Component
- * User must follow a rhythm by tapping to the beat
+ * Player must follow a rhythm pattern by tapping beats
  */
 const RhythmChallenge: React.FC<ChallengeProps> = ({
   onComplete,
   timeLimit,
   challengeId,
 }) => {
-  const [phase, setPhase] = useState<GamePhase>('playing-sequence');
-  const [beatIndex, setBeatIndex] = useState(-1);
+  const [phase, setPhase] = useState<GamePhase>('waiting');
+  const [sequence, setSequence] = useState<number[]>([]);
+  const [currentBeat, setCurrentBeat] = useState(-1);
   const [userTaps, setUserTaps] = useState<number[]>([]);
-  const [feedback, setFeedback] = useState<(HitFeedback | null)[]>([null, null, null, null, null]);
-  const [startTime] = useState(Date.now());
+  const [taps, setTaps] = useState<{ beat: number; correct: boolean }[]>([]);
+  const [gameStarted, setGameStarted] = useState(false);
 
-  const beatTimingsRef = useRef<number[]>([]);
   const sequenceStartRef = useRef<number>(0);
-  const phaseTimeoutRef = useRef<NodeJS.Timeout>();
-
-  const BEAT_DURATION = 400; // ms
-  const BEAT_INTERVAL = 600; // 400ms pulse + 200ms gap
-  const TOLERANCE = 150; // ±150ms tolerance
+  const timerRef = useRef<NodeJS.Timeout>();
+  const BEAT_INTERVAL = 600; // ms between beats
+  const TOLERANCE = 150; // ms tolerance for hitting beat
 
   /**
-   * Play visual sequence
+   * Start the game and play sequence
    */
-  useEffect(() => {
-    if (phase !== 'playing-sequence') return;
+  const startGame = () => {
+    setGameStarted(true);
+    setPhase('playing');
+    setUserTaps([]);
+    setTaps([]);
 
-    const playSequence = async () => {
-      await new Promise((resolve) => {
-        phaseTimeoutRef.current = setTimeout(resolve, 500);
-      });
+    // Generate random sequence
+    const beatSequence = Array.from({ length: 5 }, () => Math.floor(Math.random() * 100));
+    setSequence(beatSequence);
 
-      sequenceStartRef.current = Date.now();
-      const timings: number[] = [];
+    // Play sequence
+    sequenceStartRef.current = Date.now();
+    let beatIdx = 0;
 
-      for (let i = 0; i < 5; i++) {
-        await new Promise((resolve) => {
-          phaseTimeoutRef.current = setTimeout(() => {
-            setBeatIndex(i);
-            timings.push(Date.now() - sequenceStartRef.current);
-            playBeep(400 + i * 100, BEAT_DURATION);
-
-            phaseTimeoutRef.current = setTimeout(() => {
-              setBeatIndex(-1);
-              resolve(null);
-            }, BEAT_DURATION);
-          }, i * BEAT_INTERVAL);
-        });
+    const playNextBeat = () => {
+      if (beatIdx >= 5) {
+        // Sequence complete, wait for user input
+        setTimeout(() => {
+          setPhase('playing');
+          setCurrentBeat(-1);
+        }, 500);
+        return;
       }
 
-      beatTimingsRef.current = timings;
-      setPhase('waiting-input');
+      setCurrentBeat(beatIdx);
+      playBeep(400 + beatIdx * 100, 100);
+
+      timerRef.current = setTimeout(() => {
+        setCurrentBeat(-1);
+        beatIdx++;
+        timerRef.current = setTimeout(playNextBeat, BEAT_INTERVAL);
+      }, 100);
     };
 
-    playSequence();
-
-    return () => {
-      if (phaseTimeoutRef.current) {
-        clearTimeout(phaseTimeoutRef.current);
-      }
-    };
-  }, [phase]);
+    playNextBeat();
+  };
 
   /**
-   * Handle tap/spacebar
+   * Handle beat tap/click
    */
-  const handleTap = () => {
-    if (phase !== 'waiting-input' || userTaps.length >= 5) return;
+  const handleTap = (beatIdx: number) => {
+    if (phase !== 'playing' || taps.length >= 5) return;
 
     const tapTime = Date.now() - sequenceStartRef.current;
-    const newTaps = [...userTaps, tapTime];
-    setUserTaps(newTaps);
-
-    const expectedTime = beatTimingsRef.current[newTaps.length - 1];
+    const expectedTime = beatIdx * BEAT_INTERVAL + 500; // 500ms delay before sequence starts
     const timeDiff = Math.abs(tapTime - expectedTime);
-    const isHit = timeDiff <= TOLERANCE;
+    const isCorrect = timeDiff <= TOLERANCE;
 
-    const newFeedback = [...feedback];
-    newFeedback[newTaps.length - 1] = isHit ? 'hit' : 'miss';
-    setFeedback(newFeedback);
+    const newTaps = [...taps, { beat: beatIdx, correct: isCorrect }];
+    setTaps(newTaps);
+    setUserTaps([...userTaps, beatIdx]);
 
-    playBeep(isHit ? 1000 : 300, 100);
+    playBeep(isCorrect ? 1000 : 300, 80);
 
-    // Check if complete
+    // Check if game complete
     if (newTaps.length === 5) {
-      phaseTimeoutRef.current = setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         setPhase('complete');
-      }, 1000);
+      }, 800);
     }
   };
 
   /**
-   * Handle spacebar press
+   * Handle spacebar
    */
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.key === ' ') {
+      if (e.code === 'Space') {
         e.preventDefault();
-        handleTap();
+        if (phase === 'waiting' && !gameStarted) {
+          startGame();
+        } else if (phase === 'playing' && userTaps.length < 5) {
+          handleTap(userTaps.length);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [phase, userTaps]);
+  }, [phase, gameStarted, userTaps, taps]);
 
-  // Calculate statistics
-  const hits = feedback.filter((f) => f === 'hit').length;
+  /**
+   * Calculate score
+   */
+  const hits = taps.filter((t) => t.correct).length;
   const success = hits >= 4;
-  const isPerfect = hits === 5;
-  const score = hits * 20 + (isPerfect ? 50 : 0);
+  const score = hits * 50;
+
+  /**
+   * Complete the challenge
+   */
+  useEffect(() => {
+    if (phase === 'complete') {
+      timerRef.current = setTimeout(() => {
+        onComplete(success, 0, score);
+      }, 2000);
+    }
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [phase, success, score, onComplete]);
 
   return (
     <ChallengeBase
       title="Rhythm Challenge"
-      description="Follow the rhythm and tap in sync with the beats"
+      description="Follow the rhythm and tap each beat in sync"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Feel the Beat!
-        </Title>
-
         <Instruction>
-          {phase === 'playing-sequence'
-            ? 'Watch the rhythm pattern...'
-            : phase === 'waiting-input'
-              ? 'Tap the beat in sync! Use spacebar or click the button.'
-              : 'Great performance!'}
+          {phase === 'waiting'
+            ? 'Watch the rhythm, then tap each beat'
+            : phase === 'playing'
+              ? 'Tap the beats in order!'
+              : 'Complete!'}
         </Instruction>
 
-        {phase === 'playing-sequence' && (
-          <BeatsContainer
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            {[0, 1, 2, 3, 4].map((idx) => (
-              <BeatCircle
+        <BeatsGrid>
+          {[0, 1, 2, 3, 4].map((idx) => {
+            const hit = taps[idx];
+            return (
+              <BeatTile
                 key={idx}
-                $index={idx}
+                $active={currentBeat === idx}
+                $hit={hit ? hit.correct : null}
+                onClick={() => handleTap(idx)}
                 animate={
-                  beatIndex === idx
-                    ? {
-                        scale: [1, 1.2, 1],
-                        boxShadow: [
-                          '0 4px 12px rgba(0, 0, 0, 0.15)',
-                          '0 0 30px currentColor',
-                          '0 4px 12px rgba(0, 0, 0, 0.15)',
-                        ],
-                      }
-                    : { scale: 1, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }
+                  currentBeat === idx
+                    ? { scale: 1.15, boxShadow: '0 0 20px rgba(99, 102, 241, 0.5)' }
+                    : { scale: 1, boxShadow: 'none' }
                 }
-                transition={{ duration: BEAT_DURATION / 1000 }}
-                initial={{ scale: 0, opacity: 0 }}
-                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.1 }}
               >
                 {idx + 1}
-              </BeatCircle>
-            ))}
-          </BeatsContainer>
+              </BeatTile>
+            );
+          })}
+        </BeatsGrid>
+
+        {phase === 'waiting' && !gameStarted && (
+          <TapButton
+            onClick={startGame}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span>START</span>
+            <span style={{ fontSize: theme.fontSizes.sm, fontWeight: 'normal' }}>
+              or SPACE
+            </span>
+          </TapButton>
         )}
 
-        {phase === 'waiting-input' && (
-          <InputSection
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <TapButton onClick={handleTap} disabled={userTaps.length >= 5}>
-              <span>TAP</span>
-              <span style={{ fontSize: theme.fontSizes.sm, fontWeight: 'normal' }}>
-                or SPACE
-              </span>
-            </TapButton>
-            <SpacebarHint>
-              Progress: {userTaps.length}/5 taps • Hits: {userTaps.filter((_, idx) => feedback[idx] === 'hit').length}/5
-            </SpacebarHint>
-          </InputSection>
-        )}
-
-        {phase === 'waiting-input' && userTaps.length > 0 && (
-          <FeedbackGrid
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1 }}
-          >
-            {feedback.map((fb, idx) => (
-              <FeedbackItem
-                key={idx}
-                $hit={fb}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: idx * 0.1 }}
-              >
-                <FeedbackIcon>
-                  {fb === 'hit' ? '✓' : fb === 'miss' ? '✗' : '◯'}
-                </FeedbackIcon>
-                <FeedbackLabel>Beat {idx + 1}</FeedbackLabel>
-              </FeedbackItem>
-            ))}
-          </FeedbackGrid>
+        {phase === 'playing' && gameStarted && (
+          <>
+            <ProgressBar>
+              <ProgressFill
+                animate={{ width: `${(taps.length / 5) * 100}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </ProgressBar>
+            <Instruction>{taps.length}/5 taps</Instruction>
+          </>
         )}
 
         {phase === 'complete' && (
-          <>
-            <FeedbackGrid
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ staggerChildren: 0.1 }}
-            >
-              {feedback.map((fb, idx) => (
-                <FeedbackItem
-                  key={idx}
-                  $hit={fb}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                >
-                  <FeedbackIcon>
-                    {fb === 'hit' ? '✓' : fb === 'miss' ? '✗' : '◯'}
-                  </FeedbackIcon>
-                  <FeedbackLabel>Beat {idx + 1}</FeedbackLabel>
-                </FeedbackItem>
-              ))}
-            </FeedbackGrid>
+          <Stats
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <StatBox>
+              <StatLabel>Accuracy</StatLabel>
+              <StatValue>{hits}/5</StatValue>
+            </StatBox>
+            <StatBox>
+              <StatLabel>Score</StatLabel>
+              <StatValue>{score}</StatValue>
+            </StatBox>
 
-            <Stats
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <StatItem>
-                <StatLabel>Accuracy</StatLabel>
-                <StatValue>{hits}/5</StatValue>
-              </StatItem>
-              <StatItem>
-                <StatLabel>Score</StatLabel>
-                <StatValue>{score}</StatValue>
-              </StatItem>
-            </Stats>
-
-            <CompletionMessage
+            <ResultMessage
               $success={success}
+              style={{ gridColumn: '1 / -1' }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
+              transition={{ delay: 0.5 }}
             >
-              <Emoji>{success ? (isPerfect ? '🎵' : '🎉') : '😢'}</Emoji>
-              <div>
-                {success
-                  ? isPerfect
-                    ? 'Perfect! Flawless rhythm!'
-                    : 'Great! You got the beat!'
-                  : 'Keep practicing your rhythm!'}
-              </div>
-            </CompletionMessage>
-          </>
+              {success ? (hits === 5 ? 'Perfect! Flawless rhythm!' : 'Great! You got it!') : 'Keep practicing!'}
+            </ResultMessage>
+          </Stats>
         )}
       </Container>
     </ChallengeBase>
