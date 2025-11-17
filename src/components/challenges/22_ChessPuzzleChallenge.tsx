@@ -1,230 +1,75 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { Chess } from 'chess.js';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
 /**
- * Chess piece type
- */
-type Piece = 'wK' | 'wQ' | 'wR' | 'wB' | 'wN' | 'wP' | 'bK' | 'bQ' | 'bR' | 'bB' | 'bN' | 'bP' | null;
-
-/**
  * Chess puzzle definition
  */
 interface ChessPuzzle {
   name: string;
-  description: string;
-  board: Piece[];
-  solution: { from: number; to: number };
+  fen: string;
+  solution: string; // In UCI format: e2e4
   hint: string;
 }
 
 /**
- * Piece unicode symbols
- */
-const PIECE_SYMBOLS: Record<Piece, string> = {
-  wK: '♔',
-  wQ: '♕',
-  wR: '♖',
-  wB: '♗',
-  wN: '♘',
-  wP: '♙',
-  bK: '♚',
-  bQ: '♛',
-  bR: '♜',
-  bB: '♝',
-  bN: '♞',
-  bP: '♟',
-  null: '',
-};
-
-/**
- * Simple chess puzzles (mate in 1)
+ * Predefined chess puzzles (mate in 1)
  */
 const PUZZLES: ChessPuzzle[] = [
   {
     name: 'Back Rank Mate',
-    description: 'Queen to the back rank',
-    board: (() => {
-      const b = Array(64).fill(null) as Piece[];
-      b[0] = 'bK'; // a1
-      b[1] = 'bP'; // b1
-      b[2] = 'bP'; // c1
-      b[48] = 'wQ'; // a7
-      b[56] = 'wK'; // a8
-      return b;
-    })(),
-    solution: { from: 48, to: 0 }, // Qa7-a1#
-    hint: 'Queen moves to the back rank for checkmate',
+    fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 4 4',
+    solution: 'b1a1', // Example solution
+    hint: 'Look for back rank weakness - queen to the back rank',
   },
   {
-    name: 'Queen Checkmate',
-    description: 'Queen delivers mate',
-    board: (() => {
-      const b = Array(64).fill(null) as Piece[];
-      b[62] = 'bK'; // g8
-      b[61] = 'bP'; // f8
-      b[60] = 'bP'; // e8
-      b[46] = 'wQ'; // g7
-      b[8] = 'wK'; // a2
-      return b;
-    })(),
-    solution: { from: 46, to: 62 }, // Qg7-g8#
-    hint: 'Queen captures on g8 for checkmate',
+    name: 'Checkmate Pattern 1',
+    fen: '6k1/5ppp/8/8/8/8/5PPP/6RK w - - 0 1',
+    solution: 'g1g8', // Rook to g8
+    hint: 'Move your rook to deliver checkmate',
   },
   {
-    name: 'Rook Mate',
-    description: 'Rook on first rank',
-    board: (() => {
-      const b = Array(64).fill(null) as Piece[];
-      b[4] = 'bK'; // e1
-      b[0] = 'wR'; // a1
-      b[12] = 'wK'; // a3
-      return b;
-    })(),
-    solution: { from: 0, to: 4 }, // Ra1-e1#
-    hint: 'Rook moves to e1 for checkmate',
+    name: 'Queen Mate',
+    fen: '6k1/5ppp/8/8/8/8/5PPP/6QK w - - 0 1',
+    solution: 'g1g8', // Queen to g8
+    hint: 'Queen can deliver mate on the back rank',
   },
   {
-    name: 'Two Rooks Mate',
-    description: 'Second rook delivers mate',
-    board: (() => {
-      const b = Array(64).fill(null) as Piece[];
-      b[4] = 'bK'; // e1
-      b[1] = 'wR'; // b1
-      b[9] = 'wR'; // b2
-      b[12] = 'wK'; // a3
-      return b;
-    })(),
-    solution: { from: 1, to: 4 }, // Rb1-e1#
-    hint: 'Move rook to e1 for checkmate',
+    name: 'Rook on 8th Rank',
+    fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 4 4',
+    solution: 'a1a8', // Rook to a8
+    hint: 'Rook to the 8th rank for checkmate',
   },
   {
-    name: 'Knight Mate',
-    description: 'Knight delivers smothered mate',
-    board: (() => {
-      const b = Array(64).fill(null) as Piece[];
-      b[62] = 'bK'; // g8
-      b[61] = 'bP'; // f8
-      b[53] = 'bP'; // f7
-      b[37] = 'wN'; // f5
-      b[8] = 'wK'; // a2
-      return b;
-    })(),
-    solution: { from: 37, to: 63 }, // Nf5-h7#
-    hint: 'Knight to h7 for smothered mate',
+    name: 'Scholar\'s Mate Setup',
+    fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1',
+    solution: 'd1h5', // Queen to h5
+    hint: 'Attack f7 for a quick checkmate',
   },
 ];
 
 /**
- * Position to notation (a1-h8)
+ * Piece unicode symbols
  */
-function posToNotation(pos: number): string {
-  const file = String.fromCharCode(97 + (pos % 8));
-  const rank = Math.floor(pos / 8) + 1;
-  return `${file}${rank}`;
-}
-
-/**
- * Check if move is legal (simple path check)
- */
-function canMovePiece(board: Piece[], from: number, to: number): boolean {
-  if (from === to) return false;
-
-  const piece = board[from];
-  if (!piece) return false;
-
-  const fromFile = from % 8;
-  const fromRank = Math.floor(from / 8);
-  const toFile = to % 8;
-  const toRank = Math.floor(to / 8);
-
-  const target = board[to];
-  if (target && target[0] === piece[0]) return false; // Can't capture own piece
-
-  const type = piece[1];
-
-  switch (type) {
-    case 'Q': {
-      // Queen moves like rook or bishop
-      if (fromFile === toFile || fromRank === toRank) {
-        // Rook-like move - check path
-        if (fromFile === toFile) {
-          const step = toRank > fromRank ? 1 : -1;
-          for (let r = fromRank + step; r !== toRank; r += step) {
-            if (board[r * 8 + fromFile]) return false;
-          }
-        } else {
-          const step = toFile > fromFile ? 1 : -1;
-          for (let f = fromFile + step; f !== toFile; f += step) {
-            if (board[fromRank * 8 + f]) return false;
-          }
-        }
-        return true;
-      } else if (Math.abs(fromFile - toFile) === Math.abs(fromRank - toRank)) {
-        // Bishop-like move - check diagonal
-        const fileDir = toFile > fromFile ? 1 : -1;
-        const rankDir = toRank > fromRank ? 1 : -1;
-        let f = fromFile + fileDir;
-        let r = fromRank + rankDir;
-        while (f !== toFile) {
-          if (board[r * 8 + f]) return false;
-          f += fileDir;
-          r += rankDir;
-        }
-        return true;
-      }
-      return false;
-    }
-    case 'R': {
-      if (fromFile !== toFile && fromRank !== toRank) return false;
-      if (fromFile === toFile) {
-        const step = toRank > fromRank ? 1 : -1;
-        for (let r = fromRank + step; r !== toRank; r += step) {
-          if (board[r * 8 + fromFile]) return false;
-        }
-      } else {
-        const step = toFile > fromFile ? 1 : -1;
-        for (let f = fromFile + step; f !== toFile; f += step) {
-          if (board[fromRank * 8 + f]) return false;
-        }
-      }
-      return true;
-    }
-    case 'N': {
-      const fileDiff = Math.abs(fromFile - toFile);
-      const rankDiff = Math.abs(fromRank - toRank);
-      return (fileDiff === 2 && rankDiff === 1) || (fileDiff === 1 && rankDiff === 2);
-    }
-    case 'B': {
-      if (Math.abs(fromFile - toFile) !== Math.abs(fromRank - toRank)) return false;
-      const fileDir = toFile > fromFile ? 1 : -1;
-      const rankDir = toRank > fromRank ? 1 : -1;
-      let f = fromFile + fileDir;
-      let r = fromRank + rankDir;
-      while (f !== toFile) {
-        if (board[r * 8 + f]) return false;
-        f += fileDir;
-        r += rankDir;
-      }
-      return true;
-    }
-    case 'K': {
-      return Math.abs(fromFile - toFile) <= 1 && Math.abs(fromRank - toRank) <= 1;
-    }
-    case 'P': {
-      const dir = piece[0] === 'w' ? -1 : 1;
-      if (fromFile === toFile && !target && toRank === fromRank + dir) return true;
-      if (Math.abs(fromFile - toFile) === 1 && target && toRank === fromRank + dir) return true;
-      return false;
-    }
-    default:
-      return false;
-  }
-}
+const PIECE_SYMBOLS: Record<string, string> = {
+  K: '♔',
+  Q: '♕',
+  R: '♖',
+  B: '♗',
+  N: '♘',
+  P: '♙',
+  k: '♚',
+  q: '♛',
+  r: '♜',
+  b: '♝',
+  n: '♞',
+  p: '♟',
+};
 
 /**
  * Styled container
@@ -246,6 +91,7 @@ const Instruction = styled.p`
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
+  max-width: 400px;
 `;
 
 /**
@@ -279,13 +125,13 @@ const Square = styled(motion.div)<{ $light: boolean; $selected: boolean; $legal:
   align-items: center;
   justify-content: center;
   font-size: 2.2rem;
-  cursor: ${(props) => (props.$legal ? 'pointer' : 'default')};
+  cursor: ${(props) => (props.$legal || !props.$light ? 'pointer' : 'default')};
   border: ${(props) => (props.$selected || props.$legal ? '2px solid #2e7d32' : 'none')};
   user-select: none;
   transition: all 0.15s ease;
 
   &:hover {
-    ${(props) => (props.$legal ? 'transform: scale(1.08);' : '')}
+    transform: ${(props) => (props.$legal ? 'scale(1.08)' : 'scale(1)')};
   }
 `;
 
@@ -350,6 +196,17 @@ const ButtonContainer = styled.div`
 `;
 
 /**
+ * Styled puzzle info
+ */
+const PuzzleInfo = styled.p`
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.textSecondary};
+  margin: 0;
+  text-align: center;
+`;
+
+/**
  * Chess Puzzle Challenge Component
  */
 const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
@@ -360,77 +217,78 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
   const [startTime] = useState(Date.now());
   const puzzle = useMemo(() => PUZZLES[Math.floor(Math.random() * PUZZLES.length)], []);
 
-  const [board, setBoard] = useState<Piece[]>(puzzle.board);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [legalMoves, setLegalMoves] = useState<number[]>([]);
+  const [game, setGame] = useState(() => {
+    const g = new Chess(puzzle.fen);
+    return g;
+  });
+
+  const [selected, setSelected] = useState<string | null>(null);
+  const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [completed, setCompleted] = useState(false);
   const [lastMove, setLastMove] = useState<string>('');
 
   /**
-   * Get legal moves for position
+   * Get legal moves from square (in algebraic notation)
    */
-  const getLegalMoves = useCallback(
-    (pos: number): number[] => {
-      const moves: number[] = [];
-      for (let i = 0; i < 64; i++) {
-        if (canMovePiece(board, pos, i)) {
-          moves.push(i);
-        }
-      }
-      return moves;
-    },
-    [board]
-  );
+  const getLegalMovesFromSquare = (square: string): string[] => {
+    const moves = game.moves({ square, verbose: true });
+    return moves.map((m) => m.to);
+  };
 
   /**
    * Handle square click
    */
-  const handleSquareClick = (pos: number) => {
-    const piece = board[pos];
-
+  const handleSquareClick = (square: string) => {
     // Click same square = deselect
-    if (selected === pos) {
+    if (selected === square) {
       setSelected(null);
       setLegalMoves([]);
       return;
     }
 
-    // Click white piece = select it
-    if (piece && piece[0] === 'w') {
-      const moves = getLegalMoves(pos);
-      setSelected(pos);
+    // Click white piece = select it and show legal moves
+    const piece = game.get(square);
+    if (piece && piece.color === 'w') {
+      const moves = getLegalMovesFromSquare(square);
+      setSelected(square);
       setLegalMoves(moves);
       return;
     }
 
     // Click legal move destination
-    if (selected !== null && legalMoves.includes(pos)) {
-      const newBoard = [...board];
-      newBoard[pos] = newBoard[selected];
-      newBoard[selected] = null;
+    if (selected && legalMoves.includes(square)) {
+      const moveResult = game.move({
+        from: selected,
+        to: square,
+        promotion: 'q',
+      });
 
-      const moveStr = `${posToNotation(selected)}-${posToNotation(pos)}`;
-      setLastMove(moveStr);
-      setBoard(newBoard);
-      setSelected(null);
-      setLegalMoves([]);
+      if (moveResult) {
+        const moveNotation = `${selected}-${square}`;
+        setLastMove(moveNotation);
+        setSelected(null);
+        setLegalMoves([]);
 
-      // Check if this is the solution
-      if (selected === puzzle.solution.from && pos === puzzle.solution.to) {
-        setCompleted(true);
-        const timeSpent = (Date.now() - startTime) / 1000;
-        setTimeout(() => {
-          onComplete(true, timeSpent, 250);
-        }, 1500);
+        // Create new game state
+        setGame(new Chess(game.fen()));
+
+        // Check if white just moved into checkmate position (puzzle is mate in 1)
+        if (game.isCheckmate()) {
+          setCompleted(true);
+          const timeSpent = (Date.now() - startTime) / 1000;
+          setTimeout(() => {
+            onComplete(true, timeSpent, 250);
+          }, 1500);
+        }
       }
     }
   };
 
   /**
-   * Reset board
+   * Reset puzzle
    */
   const handleReset = () => {
-    setBoard([...puzzle.board]);
+    setGame(new Chess(puzzle.fen));
     setSelected(null);
     setLegalMoves([]);
     setLastMove('');
@@ -473,29 +331,35 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
       <Container>
         <Instruction>White to move - Find mate in one move!</Instruction>
 
+        <PuzzleInfo>{puzzle.name}</PuzzleInfo>
+
         <ChessBoard
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {board.map((piece, pos) => {
-            const file = pos % 8;
-            const rank = Math.floor(pos / 8);
+          {Array.from({ length: 64 }).map((_, idx) => {
+            const file = idx % 8;
+            const rank = 7 - Math.floor(idx / 8);
+            const squareIndex = rank * 8 + file;
+            const square = String.fromCharCode(97 + file) + (rank + 1);
+
             const isLight = (file + rank) % 2 === 0;
-            const isSelected = selected === pos;
-            const isLegal = legalMoves.includes(pos);
+            const isSelected = selected === square;
+            const isLegal = legalMoves.includes(square);
+            const piece = game.get(square);
 
             return (
               <Square
-                key={pos}
+                key={square}
                 $light={isLight}
                 $selected={isSelected}
                 $legal={isLegal}
-                onClick={() => handleSquareClick(pos)}
+                onClick={() => handleSquareClick(square)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {piece ? PIECE_SYMBOLS[piece] : ''}
+                {piece ? PIECE_SYMBOLS[piece.type === piece.type.toLowerCase() ? piece.type : piece.type.toUpperCase()] || '' : ''}
               </Square>
             );
           })}
