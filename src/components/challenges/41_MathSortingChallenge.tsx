@@ -161,6 +161,18 @@ const TooltipTitle = styled.div`
 `;
 
 /**
+ * Styled controls container
+ */
+const ControlsContainer = styled.div`
+  display: flex;
+  gap: ${theme.spacing.md};
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+`;
+
+/**
  * Styled button container
  */
 const ButtonContainer = styled.div`
@@ -168,6 +180,146 @@ const ButtonContainer = styled.div`
   gap: ${theme.spacing.md};
   justify-content: center;
   width: 100%;
+`;
+
+/**
+ * Styled calculator button
+ */
+const CalculatorButton = styled.button`
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
+  background: ${theme.colors.secondary};
+  color: white;
+  border: none;
+  border-radius: ${theme.borderRadius.lg};
+  cursor: pointer;
+  font-weight: ${theme.fontWeights.semibold};
+  font-size: ${theme.fontSizes.base};
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: ${theme.shadows.md};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+/**
+ * Styled modal overlay
+ */
+const ModalOverlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+`;
+
+/**
+ * Styled modal container
+ */
+const ModalContainer = styled(motion.div)`
+  background: white;
+  border-radius: ${theme.borderRadius.lg};
+  box-shadow: ${theme.shadows.xl};
+  width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+`;
+
+/**
+ * Styled modal header
+ */
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: ${theme.spacing.lg};
+  border-bottom: 1px solid ${theme.colors.border};
+  background: ${theme.colors.surface};
+`;
+
+/**
+ * Styled modal title
+ */
+const ModalTitle = styled.h2`
+  margin: 0;
+  font-size: ${theme.fontSizes.lg};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${theme.colors.textPrimary};
+`;
+
+/**
+ * Styled close button
+ */
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: ${theme.fontSizes.xl};
+  cursor: pointer;
+  color: ${theme.colors.textSecondary};
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: ${theme.borderRadius.md};
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${theme.colors.border};
+    color: ${theme.colors.textPrimary};
+  }
+`;
+
+/**
+ * Styled modal body
+ */
+const ModalBody = styled.div`
+  padding: ${theme.spacing.lg};
+`;
+
+/**
+ * Styled iframe container
+ */
+const IframeContainer = styled.div`
+  width: 100%;
+  height: 550px;
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  overflow: hidden;
+`;
+
+/**
+ * Styled attribution
+ */
+const Attribution = styled.p`
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: ${theme.spacing.md};
+  margin-bottom: 0;
+
+  a {
+    color: #2f7fff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 /**
@@ -360,6 +512,7 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
     message: string;
   } | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
 
   /**
    * Generate and shuffle expressions on mount
@@ -552,25 +705,79 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
         )}
 
         {!verified && (
-          <ButtonContainer>
-            <Button
-              onClick={handleReset}
-              disabled={false}
-              size="md"
-              variant="secondary"
+          <ControlsContainer>
+            <CalculatorButton
+              onClick={() => setCalculatorOpen(true)}
+              title="Open scientific calculator"
             >
-              Reset
-            </Button>
-            <Button
-              onClick={handleVerify}
-              disabled={selected.length !== 9}
-              size="md"
-              variant="primary"
-            >
-              Verify ({selected.length}/9)
-            </Button>
-          </ButtonContainer>
+              🧮 Calculator
+            </CalculatorButton>
+            <ButtonContainer style={{ flex: 1 }}>
+              <Button
+                onClick={handleReset}
+                disabled={false}
+                size="md"
+                variant="secondary"
+              >
+                Reset
+              </Button>
+              <Button
+                onClick={handleVerify}
+                disabled={selected.length !== 9}
+                size="md"
+                variant="primary"
+              >
+                Verify ({selected.length}/9)
+              </Button>
+            </ButtonContainer>
+          </ControlsContainer>
         )}
+
+        <AnimatePresence>
+          {calculatorOpen && (
+            <ModalOverlay
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCalculatorOpen(false)}
+            >
+              <ModalContainer
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ModalHeader>
+                  <ModalTitle>Scientific Calculator</ModalTitle>
+                  <CloseButton onClick={() => setCalculatorOpen(false)}>
+                    ✕
+                  </CloseButton>
+                </ModalHeader>
+                <ModalBody>
+                  <IframeContainer>
+                    <iframe
+                      src="https://www.desmos.com/scientific"
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      style={{ border: 'none' }}
+                    />
+                  </IframeContainer>
+                  <Attribution>
+                    Calculator powered by{' '}
+                    <a
+                      href="https://www.desmos.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Desmos
+                    </a>
+                  </Attribution>
+                </ModalBody>
+              </ModalContainer>
+            </ModalOverlay>
+          )}
+        </AnimatePresence>
       </Container>
     </ChallengeBase>
   );
