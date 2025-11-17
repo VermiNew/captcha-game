@@ -26,6 +26,7 @@ import SlidingPuzzleChallenge from './challenges/14_SlidingPuzzleChallenge';
 import TicTacToeChallenge from './challenges/15_TicTacToeChallenge';
 import RhythmChallenge from './challenges/16_RhythmChallenge';
 import ClickPrecisionChallenge from './challenges/17_ClickPrecisionChallenge';
+import TowerBuilderChallenge from './challenges/18_TowerBuilderChallenge';
 import OddOneOutChallenge from './challenges/19_OddOneOutChallenge';
 import VisualMemoryChallenge from './challenges/20_VisualMemoryChallenge';
 import BalanceGameChallenge from './challenges/21_BalanceGameChallenge';
@@ -229,6 +230,8 @@ const GameContainer: React.FC = () => {
         return <RhythmChallenge {...challengeProps} />;
       case 17:
         return <ClickPrecisionChallenge {...challengeProps} />;
+      case 18:
+        return <TowerBuilderChallenge {...challengeProps} />;
       case 19:
         return <OddOneOutChallenge {...challengeProps} />;
       case 20:
