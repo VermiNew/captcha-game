@@ -23,34 +23,40 @@ interface ChessPuzzle {
  */
 const PUZZLES: ChessPuzzle[] = [
   {
+    name: 'Rook Mate I',
+    fen: '6k1/5ppk/6p1/8/8/5P2/5RPK w - - 0 1',
+    solution: 'f2f8',
+    hint: 'Move rook to f8 for checkmate',
+  },
+  {
+    name: 'Queen Mate I',
+    fen: '6k1/5pp1/8/8/8/5Q2/5KP1 w - - 0 1',
+    solution: 'f3f8',
+    hint: 'Queen to f8 delivers mate',
+  },
+  {
     name: 'Back Rank Mate',
-    fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    fen: '6k1/5ppp/8/8/8/8/5Q1K w - - 0 1',
+    solution: 'f2f8',
+    hint: 'Checkmate on the back rank',
+  },
+  {
+    name: 'Knight Fork Mate',
+    fen: '6k1/5ppp/8/8/8/6N1/5KPP w - - 0 1',
+    solution: 'g3f5',
+    hint: 'Knight moves to deliver checkmate',
+  },
+  {
+    name: 'Rook and Pawn Mate',
+    fen: '6k1/5ppp/5P2/8/8/8/R5K w - - 0 1',
     solution: 'a1a8',
-    hint: 'Look for back rank weakness',
+    hint: 'Rook to a8 for mate',
   },
   {
-    name: 'Simple Rook Mate',
-    fen: 'k7/8/8/8/8/8/R7/K7 w - - 0 1',
-    solution: 'a2a8',
-    hint: 'Rook to the back rank',
-  },
-  {
-    name: 'Queen Mate Pattern',
-    fen: 'k7/8/8/8/8/8/Q7/K7 w - - 0 1',
-    solution: 'a2a8',
-    hint: 'Queen delivers mate on the back rank',
-  },
-  {
-    name: 'Two Rooks Mate',
-    fen: 'k7/R7/R7/8/8/8/8/K7 w - - 0 1',
-    solution: 'a6a8',
-    hint: 'Second rook to finish the mate',
-  },
-  {
-    name: 'Rook and King Mate',
-    fen: 'k7/8/K7/8/8/8/R7/8 w - - 0 1',
-    solution: 'a2a8',
-    hint: 'Coordinate rook and king',
+    name: 'Queen Back Rank',
+    fen: '5rk1/5ppp/8/8/8/8/4Q2K w - - 0 1',
+    solution: 'e2e8',
+    hint: 'Queen to e8 checkmate',
   },
 ];
 
