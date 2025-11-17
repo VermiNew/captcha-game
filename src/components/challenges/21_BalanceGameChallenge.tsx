@@ -343,8 +343,11 @@ const StatValue = styled.p`
  * Available weights pool
  */
 const WEIGHT_POOL = [
+  { id: 'w5-1', value: 5 },
+  { id: 'w5-2', value: 5 },
   { id: 'w10-1', value: 10 },
   { id: 'w10-2', value: 10 },
+  { id: 'w15-1', value: 15 },
   { id: 'w20-1', value: 20 },
   { id: 'w20-2', value: 20 },
   { id: 'w30', value: 30 },
@@ -354,6 +357,31 @@ const WEIGHT_POOL = [
 ];
 
 /**
+ * Generate target weight achievable with available weights
+ */
+function generateTargetWeight(): number {
+  const possibleWeights = new Set<number>();
+  
+  // Generate all possible sums from WEIGHT_POOL
+  const weights = WEIGHT_POOL.map(w => w.value);
+  
+  for (let i = 0; i < Math.pow(2, weights.length); i++) {
+    let sum = 0;
+    for (let j = 0; j < weights.length; j++) {
+      if (i & (1 << j)) {
+        sum += weights[j];
+      }
+    }
+    if (sum > 0 && sum < 300) {
+      possibleWeights.add(sum);
+    }
+  }
+  
+  const arr = Array.from(possibleWeights).sort((a, b) => a - b);
+  return arr[Math.floor(Math.random() * arr.length)] || 75;
+}
+
+/**
  * Balance Game Challenge Component
  */
 const BalanceGameChallenge: React.FC<ChallengeProps> = ({
@@ -361,7 +389,7 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [leftWeight] = useState(() => Math.floor(Math.random() * 100) + 50); // 50-150
+  const [leftWeight] = useState(() => generateTargetWeight());
   const [available, setAvailable] = useState<Weight[]>(WEIGHT_POOL);
   const [rightWeights, setRightWeights] = useState<Weight[]>([]);
   const [completed, setCompleted] = useState(false);
