@@ -242,8 +242,6 @@ const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const now = Date.now();
-
     const animate = () => {
       const now = Date.now();
       const elapsedSeconds = (now - startTime) / 1000;

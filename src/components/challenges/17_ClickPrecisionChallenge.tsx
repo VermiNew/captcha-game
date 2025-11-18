@@ -344,7 +344,6 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   const [phase, setPhase] = useState<GamePhase>('active');
   const [missIndicator, setMissIndicator] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(1);
-  const [startTime] = useState(() => Date.now());
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationStartRef = useRef<number>(0);
@@ -493,7 +492,7 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
               transition={{ type: 'tween', duration: ANIMATION_DURATION / 1000 }}
               onClick={(e) => {
                 e.stopPropagation();
-                handleCircleClick(e as any);
+                handleCircleClick(e as unknown as React.MouseEvent<HTMLDivElement>);
               }}
             />
 

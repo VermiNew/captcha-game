@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -191,11 +191,11 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
   const successThreshold = 5;
   const pointsPerMatch = 35;
 
-  const [flags, setFlags] = useState<FlagData[]>(() => {
+  const [flags] = useState<FlagData[]>(() => {
     const selected = shuffleArray(FLAG_DATABASE).slice(0, totalPairs);
     return shuffleArray([...selected]);
   });
-  const [countries, setCountries] = useState<FlagData[]>(() => {
+  const [countries] = useState<FlagData[]>(() => {
     const selected = shuffleArray(FLAG_DATABASE).slice(0, totalPairs);
     return shuffleArray([...selected]);
   });

@@ -208,7 +208,7 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
    * Clear lines
    */
   const clearLines = (gridToCheck: number[][]) => {
-    let newGrid = gridToCheck.filter((row) => !row.every((cell) => cell !== 0));
+    const newGrid = gridToCheck.filter((row) => !row.every((cell) => cell !== 0));
     const clearedLines = gridToCheck.length - newGrid.length;
     while (newGrid.length < GRID_HEIGHT) {
       newGrid.unshift(Array(GRID_WIDTH).fill(0));
@@ -283,20 +283,22 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
           }
           break;
         case 'arrowup':
-        case 'w':
+        case 'w': {
           const newRot = (rotation + 1) % 4;
           const rotPiece = getPieceShape(currentPiece, newRot);
           if (canMove(rotPiece, position.x, position.y)) {
             setRotation(newRot);
           }
           break;
+        }
         case 'arrowdown':
-        case 's':
+        case 's': {
           if (canMove(piece, position.x, position.y + 1)) {
             setPosition((p) => ({ ...p, y: p.y + 1 }));
           }
           setSpeed((prev) => Math.max(100, prev - 50));
           break;
+        }
       }
     };
 

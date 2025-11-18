@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -612,7 +612,7 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
     >
       <Container>
         <Grid>
-          {shuffled.map((expr, idx) => {
+          {shuffled.map((expr) => {
             const tileIndex = selected.indexOf(expr.id);
             const isSelected = tileIndex > -1;
             const isHovered = hoveredId === expr.id;

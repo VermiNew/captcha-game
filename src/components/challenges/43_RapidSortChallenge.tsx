@@ -203,7 +203,7 @@ const isSortedCorrectly = (numbers: number[], rule: SortRule): boolean => {
         if (numbers[i] > numbers[i - 1]) return false;
       }
       return true;
-    case 'even-odd':
+    case 'even-odd': {
       let lastEven = true;
       for (const num of numbers) {
         const isEven = num % 2 === 0;
@@ -211,7 +211,8 @@ const isSortedCorrectly = (numbers: number[], rule: SortRule): boolean => {
         if (!isEven) lastEven = false;
       }
       return true;
-    case 'divisible-3':
+    }
+    case 'divisible-3': {
       let lastDiv3 = true;
       for (const num of numbers) {
         const isDiv3 = num % 3 === 0;
@@ -219,6 +220,7 @@ const isSortedCorrectly = (numbers: number[], rule: SortRule): boolean => {
         if (!isDiv3) lastDiv3 = false;
       }
       return true;
+    }
     default:
       return false;
   }

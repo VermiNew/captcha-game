@@ -187,7 +187,7 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
 
     const moveLoop = setInterval(() => {
       setPlayerPos((prev) => {
-        let newPos = { ...prev };
+        const newPos = { ...prev };
 
         if (keysPressed.current['arrowup'] || keysPressed.current['w']) {
           if (maze[prev.y - 1]?.[prev.x] === 0) newPos.y -= 1;

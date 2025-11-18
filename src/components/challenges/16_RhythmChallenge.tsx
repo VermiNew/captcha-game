@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
@@ -204,7 +204,7 @@ const ResultMessage = styled(motion.div)<{ $success: boolean }>`
  */
 function playBeep(frequency: number = 800, duration: number = 100) {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = new (window.AudioContext || (window as Record<string, unknown>).webkitAudioContext)() as AudioContext;
     const now = audioContext.currentTime;
     const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
@@ -218,7 +218,7 @@ function playBeep(frequency: number = 800, duration: number = 100) {
 
     osc.start(now);
     osc.stop(now + duration / 1000);
-  } catch (e) {
+  } catch {
     console.debug('Audio context not available');
   }
 }
@@ -237,7 +237,6 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [userTaps, setUserTaps] = useState<number[]>([]);
   const [taps, setTaps] = useState<{ beat: number; correct: boolean }[]>([]);
-  const [gameStarted, setGameStarted] = useState(false);
 
   const sequenceStartRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout>();

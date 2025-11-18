@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import Button from './ui/Button';
-import Card from './ui/Card';
 import { theme } from '../styles/theme';
 import { getTotalChallenges } from '../utils/challengeRegistry';
 

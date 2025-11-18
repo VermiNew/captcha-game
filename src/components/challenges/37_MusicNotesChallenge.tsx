@@ -195,7 +195,7 @@ let audioContext: AudioContext | null = null;
 const playNote = (frequency: number, duration: number = 600) => {
   if (!audioContext) {
     audioContext = new (window.AudioContext ||
-      (window as any).webkitAudioContext)();
+      (window as Record<string, unknown>).webkitAudioContext)() as AudioContext;
   }
 
   const oscillator = audioContext.createOscillator();

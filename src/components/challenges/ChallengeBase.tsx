@@ -175,7 +175,7 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
 
       <Content>
         {React.isValidElement(children)
-          ? React.cloneElement(children as React.ReactElement<any>, {
+          ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
               isActive,
               onSuccess: handleSuccess,
               onFailure: handleFailure,

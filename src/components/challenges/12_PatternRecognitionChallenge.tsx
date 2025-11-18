@@ -331,8 +331,6 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
-  const answeredCount = answers.filter((a) => a !== null).length;
-  const correctCount = feedback.filter((f) => f === true).length;
 
   /**
    * Handle answer submission

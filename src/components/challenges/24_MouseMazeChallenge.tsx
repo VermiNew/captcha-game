@@ -236,7 +236,6 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
 
         if (dist < minDist) {
           minDist = dist;
-          closest = maze.path[i];
           closestIdx = i;
         }
       }

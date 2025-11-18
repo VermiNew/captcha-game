@@ -262,7 +262,7 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [overId, setOverId] = useState<string | null>(null);
 
-  const handleDragStart = (_event: DragStartEvent) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setIsDragging(true);
   };
 

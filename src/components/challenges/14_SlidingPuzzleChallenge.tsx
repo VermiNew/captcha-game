@@ -291,7 +291,6 @@ const SlidingPuzzleChallenge: React.FC<ChallengeProps> = ({
   const [moves, setMoves] = useState(0);
   const [startTime] = useState(() => Date.now());
   const [completed, setCompleted] = useState(false);
-  const [lastMovedTile, setLastMovedTile] = useState<TileValue | null>(null);
 
   /**
    * Find empty position

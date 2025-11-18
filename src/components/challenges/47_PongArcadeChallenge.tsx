@@ -187,7 +187,7 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
 
     const gameLoop = setInterval(() => {
       setGameState((prevState) => {
-        let newState = { ...prevState };
+        const newState = { ...prevState };
 
         // Player paddle movement
         if (keysPressed.current['arrowup'] || keysPressed.current['w']) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -346,7 +346,7 @@ const ScienceQuizChallenge: React.FC<ChallengeProps> = ({
   const successThreshold = 4;
   const pointsPerQuestion = 40;
 
-  const [questions, setQuestions] = useState<Question[]>(() => {
+  const [questions] = useState<Question[]>(() => {
     const shuffled = [...SCIENCE_QUESTIONS]
       .sort(() => Math.random() - 0.5)
       .slice(0, totalQuestions);
