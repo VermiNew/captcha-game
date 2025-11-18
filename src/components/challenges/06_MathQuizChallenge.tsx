@@ -260,6 +260,40 @@ const ScoreValue = styled.p`
 `;
 
 /**
+ * Styled answer feedback
+ */
+const AnswerFeedback = styled(motion.div)<{ $isCorrect: boolean }>`
+  width: 100%;
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
+  border-radius: ${theme.borderRadius.lg};
+  text-align: center;
+  font-weight: ${theme.fontWeights.semibold};
+  background-color: ${(props) =>
+    props.$isCorrect ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${(props) => (props.$isCorrect ? theme.colors.success : theme.colors.error)};
+  color: ${(props) => (props.$isCorrect ? theme.colors.success : theme.colors.error)};
+`;
+
+/**
+ * Styled feedback label
+ */
+const FeedbackLabel = styled.span`
+  display: block;
+  font-size: ${theme.fontSizes.sm};
+  margin-bottom: ${theme.spacing.xs};
+`;
+
+/**
+ * Styled correct answer
+ */
+const CorrectAnswer = styled.span`
+  display: block;
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes.lg};
+  font-weight: ${theme.fontWeights.bold};
+`;
+
+/**
  * Math Quiz Challenge Component
  */
 const MathQuizChallenge: React.FC<ChallengeProps> = ({
@@ -384,6 +418,27 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
         >
           {isSubmitted ? (isCorrect ? '✓ Correct!' : '✗ Wrong') : 'Submit'}
         </SubmitButton>
+
+        {isSubmitted && (
+          <AnswerFeedback
+            $isCorrect={isCorrect === true}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {isCorrect ? (
+              <>
+                <FeedbackLabel>✓ Excellent!</FeedbackLabel>
+                <CorrectAnswer>{userAnswer}</CorrectAnswer>
+              </>
+            ) : (
+              <>
+                <FeedbackLabel>Correct answer:</FeedbackLabel>
+                <CorrectAnswer>{currentQuestion.answer}</CorrectAnswer>
+              </>
+            )}
+          </AnswerFeedback>
+        )}
 
         <ScoreDisplay
           initial={{ opacity: 0 }}
