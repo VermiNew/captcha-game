@@ -229,7 +229,7 @@ const CarDrivingChallenge: React.FC<ChallengeProps> = ({
     const [carX, setCarX] = useState(CANVAS_WIDTH / 2 - CAR_WIDTH / 2);
     const [obstacles, setObstacles] = useState<Obstacle[]>([]);
     const [gameOver, setGameOver] = useState(false);
-    const [gameStarted, setGameStarted] = useState(false);
+    const [gameStarted, setGameStarted] = useState(true);
     const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
     const [score, setScore] = useState(0);
     const [obstaclesAvoided, setObstaclesAvoided] = useState(0);
@@ -446,11 +446,9 @@ const CarDrivingChallenge: React.FC<ChallengeProps> = ({
     }, [timeLeft, gameStarted, score, onComplete]);
 
     /**
-     * Start game on mount
+     * Start game on mount - use initializer instead
      */
-    useEffect(() => {
-        setGameStarted(true);
-    }, []);
+    // gameStarted should be initialized as true in useState instead
 
     return (
         <ChallengeBase
