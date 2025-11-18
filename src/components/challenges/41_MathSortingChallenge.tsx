@@ -502,8 +502,13 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [expressions, setExpressions] = useState<MathExpression[]>([]);
-  const [shuffled, setShuffled] = useState<MathExpression[]>([]);
+  const [expressions, setExpressions] = useState<MathExpression[]>(() => {
+    return generateExpressions();
+  });
+  const [shuffled, setShuffled] = useState<MathExpression[]>(() => {
+    const newExpressions = generateExpressions();
+    return [...newExpressions].sort(() => Math.random() - 0.5);
+  });
   const [selected, setSelected] = useState<string[]>([]);
   const [verified, setVerified] = useState(false);
   const [result, setResult] = useState<{
@@ -513,20 +518,6 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
   } | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-
-  /**
-   * Generate and shuffle expressions on mount
-   */
-  useEffect(() => {
-    const newExpressions = generateExpressions();
-    setExpressions(newExpressions);
-
-    // Shuffle for display
-    const shuffledExpressions = [...newExpressions].sort(
-      () => Math.random() - 0.5
-    );
-    setShuffled(shuffledExpressions);
-  }, []);
 
   /**
    * Handle tile click
