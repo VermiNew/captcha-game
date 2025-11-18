@@ -56,6 +56,7 @@ const ReversedTextDisplay = styled(motion.div)`
   text-align: center;
   width: 100%;
   word-break: break-word;
+  white-space: pre-wrap;
   user-select: text;
 `;
 
@@ -111,10 +112,12 @@ const ReverseTextChallenge: React.FC<ChallengeProps> = ({
   const [startTime] = useState(() => Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const reversedText = useMemo(
-    () => targetText.split('').reverse().join(''),
-    [targetText],
-  );
+  const reversedText = useMemo(() => {
+    // Reverse text but preserve newlines
+    const lines = targetText.split('\n');
+    const reversedLines = lines.map((line) => line.split('').reverse().join(''));
+    return reversedLines.reverse().join('\n');
+  }, [targetText]);
 
   useEffect(() => {
     inputRef.current?.focus();

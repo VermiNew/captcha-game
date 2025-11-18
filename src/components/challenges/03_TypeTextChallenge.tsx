@@ -34,10 +34,10 @@ const TargetTextContainer = styled(motion.div)`
   font-size: ${theme.fontSizes.lg};
   line-height: 1.8;
   word-break: break-all;
+  white-space: pre-wrap;
   border: 1px solid ${theme.colors.border};
   min-height: 100px;
-  display: flex;
-  flex-wrap: wrap;
+  display: block;
   gap: 2px;
 `;
 
@@ -194,19 +194,32 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
    * Render target text with color coding
    */
   const renderTargetText = () => {
-    return targetText.split('').map((char, index) => {
-      let charColor: CharColor = 'pending';
+    const chars: React.ReactNode[] = [];
+    let inputIndex = 0;
 
-      if (index < userInput.length) {
-        charColor = userInput[index] === char ? 'success' : 'error';
+    for (let i = 0; i < targetText.length; i++) {
+      const char = targetText[i];
+
+      if (char === '\n') {
+        chars.push(<br key={i} />);
+      } else {
+        let charColor: CharColor = 'pending';
+
+        if (inputIndex < userInput.length) {
+          const userChar = userInput[inputIndex];
+          charColor = userChar === char ? 'success' : 'error';
+        }
+
+        chars.push(
+          <Char key={i} $color={charColor}>
+            {char}
+          </Char>,
+        );
+        inputIndex++;
       }
+    }
 
-      return (
-        <Char key={index} $color={charColor}>
-          {char}
-        </Char>
-      );
-    });
+    return chars;
   };
 
   const progressPercentage = Math.round(
