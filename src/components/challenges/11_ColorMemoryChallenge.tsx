@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -6,34 +6,22 @@ import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
 /**
- * Color definitions
+ * Available colors pool
  */
-const COLORS = {
-  red: '#EF4444',
-  blue: '#3B82F6',
-  green: '#10B981',
-  yellow: '#FBBF24',
-  purple: '#A855F7',
-  orange: '#F97316',
-} as const;
-
-type ColorKey = keyof typeof COLORS;
-
-const COLOR_NAMES: Record<ColorKey, string> = {
-  red: 'Red',
-  blue: 'Blue',
-  green: 'Green',
-  yellow: 'Yellow',
-  purple: 'Purple',
-  orange: 'Orange',
-};
-
-const COLOR_SEQUENCE: ColorKey[] = ['red', 'blue', 'green', 'yellow', 'purple'];
-
-/**
- * Game state type
- */
-type GamePhase = 'playing-sequence' | 'waiting-input' | 'showing-error';
+const COLOR_POOL = [
+  { hex: '#FF6B6B', name: 'Red' },
+  { hex: '#4ECDC4', name: 'Teal' },
+  { hex: '#45B7D1', name: 'Blue' },
+  { hex: '#96CEB4', name: 'Green' },
+  { hex: '#FFEAA7', name: 'Yellow' },
+  { hex: '#DDA15E', name: 'Tan' },
+  { hex: '#BC6C25', name: 'Brown' },
+  { hex: '#D62828', name: 'Dark Red' },
+  { hex: '#F77F00', name: 'Orange' },
+  { hex: '#06A77D', name: 'Emerald' },
+  { hex: '#9D84B7', name: 'Purple' },
+  { hex: '#E75480', name: 'Pink' },
+];
 
 /**
  * Styled container
@@ -49,18 +37,6 @@ const Container = styled.div`
 `;
 
 /**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
  * Styled instruction
  */
 const Instruction = styled.p`
@@ -72,88 +48,71 @@ const Instruction = styled.p`
 `;
 
 /**
- * Styled colors grid
+ * Styled color display box
  */
-const ColorsGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${theme.spacing.lg};
-  margin: ${theme.spacing.xl} 0;
-  width: 100%;
-
-  @media (max-width: 500px) {
-    gap: ${theme.spacing.md};
-  }
+const ColorBox = styled(motion.div)`
+  width: 200px;
+  height: 200px;
+  border-radius: ${theme.borderRadius.lg};
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin: ${theme.spacing.lg} 0;
 `;
 
 /**
- * Styled color square
+ * Styled answers grid
  */
-const ColorSquare = styled(motion.button)<{ $color: ColorKey; $isActive: boolean }>`
-  aspect-ratio: 1;
-  border: none;
+const AnswersGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: ${theme.spacing.lg};
+  width: 100%;
+  max-width: 400px;
+`;
+
+/**
+ * Styled answer button
+ */
+const AnswerButton = styled(motion.button)<{ $isCorrect?: boolean; $isSelected?: boolean }>`
+  padding: ${theme.spacing.lg};
+  border: 2px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.lg};
-  background: ${(props) => COLORS[props.$color]};
+  background: ${theme.colors.surface};
+  color: ${theme.colors.textPrimary};
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes.base};
+  font-weight: ${theme.fontWeights.semibold};
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.15s ease;
-  padding: 0;
-  min-height: 80px;
+  transition: all 0.2s ease;
 
-  ${(props) =>
-    props.$isActive
-      ? `
-    box-shadow: 0 0 20px ${COLORS[props.$color]}, inset 0 0 15px rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
-  `
-      : `
-    opacity: 0.8;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  &:hover {
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    transform: translateY(-2px);
+  }
 
-    &:hover {
-      opacity: 1;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
-
-    &:active {
-      transform: scale(0.98);
-    }
-  `}
+  &:active {
+    transform: scale(0.98);
+  }
 
   &:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
-  /**
-   * Shine effect for active state
-   */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: ${(props) => (props.$isActive ? 'shine 0.6s ease-in-out' : 'none')};
-  }
-
-  @keyframes shine {
-    0% {
-      left: -100%;
-    }
-    100% {
-      left: 100%;
-    }
-  }
+  ${(props) =>
+    props.$isSelected
+      ? `
+    border-color: ${props.$isCorrect ? theme.colors.success : theme.colors.error};
+    background: ${props.$isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+    color: ${props.$isCorrect ? theme.colors.success : theme.colors.error};
+  `
+      : ''}
 `;
 
 /**
- * Styled info section
+ * Styled stats
  */
-const InfoSection = styled(motion.div)`
+const Stats = styled(motion.div)`
   display: flex;
   gap: ${theme.spacing.xl};
   justify-content: center;
@@ -162,9 +121,9 @@ const InfoSection = styled(motion.div)`
 `;
 
 /**
- * Styled info item
+ * Styled stat item
  */
-const InfoItem = styled.div`
+const StatItem = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -172,250 +131,179 @@ const InfoItem = styled.div`
 `;
 
 /**
- * Styled info label
+ * Styled stat label
  */
-const InfoLabel = styled.p`
+const StatLabel = styled.p`
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
   margin: 0;
-  letter-spacing: 0.5px;
 `;
 
 /**
- * Styled info value
+ * Styled stat value
  */
-const InfoValue = styled(motion.p)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.xl};
+const StatValue = styled.p`
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.primary};
   margin: 0;
 `;
 
 /**
- * Styled message
+ * Styled result message
  */
-const Message = styled(motion.p)<{ $type: 'info' | 'error' | 'success' }>`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.semibold};
+const ResultMessage = styled(motion.div)<{ $success: boolean }>`
+  padding: ${theme.spacing.lg};
+  background: ${(props) =>
+    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  border-radius: ${theme.borderRadius.lg};
   text-align: center;
-  margin: 0;
-  color: ${(props) => {
-    switch (props.$type) {
-      case 'error':
-        return theme.colors.error;
-      case 'success':
-        return theme.colors.success;
-      default:
-        return theme.colors.textSecondary;
-    }
-  }};
+  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  font-weight: ${theme.fontWeights.bold};
+  font-size: ${theme.fontSizes.base};
 `;
 
 /**
  * Color Memory Challenge Component
- * User must remember and repeat the color sequence
+ * Guess the hex code of the displayed color
  */
 const ColorMemoryChallenge: React.FC<ChallengeProps> = ({
   onComplete,
   timeLimit,
   challengeId,
 }) => {
-  const [sequence, setSequence] = useState<ColorKey[]>([]);
-  const [userSequence, setUserSequence] = useState<ColorKey[]>([]);
-  const [phase, setPhase] = useState<GamePhase>('playing-sequence');
-  const [activeColor, setActiveColor] = useState<ColorKey | null>(null);
+  const [currentColor, setCurrentColor] = useState<typeof COLOR_POOL[0] | null>(null);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [correctAnswer, setCorrectAnswer] = useState<string>('');
+  const [selected, setSelected] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
+  const [totalRounds, setTotalRounds] = useState(0);
+  const [isAnswered, setIsAnswered] = useState(false);
   const [startTime] = useState(() => Date.now());
-  const [gameStarted, setGameStarted] = useState(false);
-  const sequenceTimeoutRef = useRef<NodeJS.Timeout>();
-  const phaseTimeoutRef = useRef<NodeJS.Timeout>();
 
   /**
-   * Initialize game on mount
+   * Generate new round
+   */
+  const generateRound = () => {
+    const randomColor = COLOR_POOL[Math.floor(Math.random() * COLOR_POOL.length)];
+    setCurrentColor(randomColor);
+    setCorrectAnswer(randomColor.hex);
+    setSelected(null);
+    setIsAnswered(false);
+
+    // Generate 3 wrong answers
+    const wrongAnswers = COLOR_POOL.filter((c) => c.hex !== randomColor.hex)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map((c) => c.hex);
+
+    const allAnswers = [randomColor.hex, ...wrongAnswers].sort(() => Math.random() - 0.5);
+    setAnswers(allAnswers);
+    setTotalRounds((prev) => prev + 1);
+  };
+
+  /**
+   * Initialize first round
    */
   useEffect(() => {
-    // Generate random sequence
-    const newSequence = Array(5)
-      .fill(null)
-      .map(() => COLOR_SEQUENCE[Math.floor(Math.random() * COLOR_SEQUENCE.length)]);
-
-    setSequence(newSequence);
-    setGameStarted(true);
+    generateRound();
   }, []);
 
   /**
-   * Play the sequence animation
+   * Handle answer selection
    */
-  useEffect(() => {
-    if (!gameStarted || sequence.length === 0 || phase !== 'playing-sequence') {
-      return;
+  const handleAnswer = (answer: string) => {
+    if (isAnswered) return;
+
+    setSelected(answer);
+    setIsAnswered(true);
+    const isCorrect = answer === correctAnswer;
+
+    if (isCorrect) {
+      setScore((prev) => prev + 1);
     }
 
-    const playSequence = async () => {
-      // Wait a bit before starting
-      await new Promise((resolve) => {
-        sequenceTimeoutRef.current = setTimeout(resolve, 500);
-      });
-
-      // Play each color in sequence
-      for (let i = 0; i < sequence.length; i++) {
-        await new Promise((resolve) => {
-          sequenceTimeoutRef.current = setTimeout(() => {
-            setActiveColor(sequence[i]);
-
-            // Light up for 800ms
-            sequenceTimeoutRef.current = setTimeout(() => {
-              setActiveColor(null);
-              resolve(null);
-            }, 800);
-          }, 500);
-        });
+    // Next round after delay
+    setTimeout(() => {
+      if (totalRounds >= 5) {
+        // Game complete
+        const timeSpent = (Date.now() - startTime) / 1000;
+        const finalScore = (score + (isCorrect ? 1 : 0)) * 50;
+        const accuracy = Math.round(((score + (isCorrect ? 1 : 0)) / 5) * 100);
+        onComplete(score + (isCorrect ? 1 : 0) >= 4, timeSpent, finalScore);
+      } else {
+        generateRound();
       }
-
-      // After sequence, wait for user input
-      setPhase('waiting-input');
-    };
-
-    playSequence();
-
-    return () => {
-      if (sequenceTimeoutRef.current) {
-        clearTimeout(sequenceTimeoutRef.current);
-      }
-    };
-  }, [sequence, gameStarted, phase]);
-
-  /**
-   * Handle color click
-   */
-  const handleColorClick = (color: ColorKey) => {
-    if (phase !== 'waiting-input') return;
-
-    const newUserSequence = [...userSequence, color];
-    setUserSequence(newUserSequence);
-
-    // Play color feedback
-    setActiveColor(color);
-    phaseTimeoutRef.current = setTimeout(() => {
-      setActiveColor(null);
-    }, 300);
-
-    // Check if click is correct
-    const expectedColor = sequence[newUserSequence.length - 1];
-    if (color !== expectedColor) {
-      // Wrong sequence
-      setPhase('showing-error');
-      setTimeout(() => {
-        onComplete(false, (Date.now() - startTime) / 1000, 0);
-      }, 500);
-      return;
-    }
-
-    // Check if sequence is complete
-    if (newUserSequence.length === sequence.length) {
-      // Success!
-      const timeSpent = (Date.now() - startTime) / 1000;
-      // Base 150 points + bonus for speed (30 second limit)
-      const speedBonus = Math.max(0, 100 - Math.floor((timeSpent / timeLimit) * 100));
-      const score = 150 + speedBonus;
-
-      setPhase('waiting-input');
-      setTimeout(() => {
-        onComplete(true, timeSpent, score);
-      }, 1000);
-    }
+    }, 800);
   };
 
-  const progress = Math.round(((userSequence.length) / sequence.length) * 100) || 0;
+  const progress = totalRounds;
+  const currentScore = selected === correctAnswer ? score + 1 : score;
 
   return (
     <ChallengeBase
       title="Color Memory Challenge"
-      description="Watch the sequence and click the colors in the same order"
+      description="Identify the hex code of the displayed color"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Remember the Sequence!
-        </Title>
+        <Instruction>What is the hex code of this color?</Instruction>
 
-        <Instruction>
-          {phase === 'playing-sequence'
-            ? 'Watch carefully as the colors light up...'
-            : phase === 'waiting-input'
-              ? 'Click the colors in the same order'
-              : 'Wrong sequence! Game over.'}
-        </Instruction>
-
-        <ColorsGrid
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          {COLOR_SEQUENCE.map((color) => (
-            <ColorSquare
-              key={color}
-              $color={color}
-              $isActive={activeColor === color}
-              onClick={() => handleColorClick(color)}
-              disabled={phase !== 'waiting-input'}
-              whileHover={phase === 'waiting-input' ? { scale: 1.05 } : {}}
-              whileTap={phase === 'waiting-input' ? { scale: 0.95 } : {}}
-            />
-          ))}
-        </ColorsGrid>
-
-        <InfoSection
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <InfoItem>
-            <InfoLabel>Progress</InfoLabel>
-            <InfoValue
-              key={progress}
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              {userSequence.length}/{sequence.length}
-            </InfoValue>
-          </InfoItem>
-
-          <InfoItem>
-            <InfoLabel>Sequence Length</InfoLabel>
-            <InfoValue>{sequence.length}</InfoValue>
-          </InfoItem>
-        </InfoSection>
-
-        {phase === 'showing-error' && (
-          <Message
-            $type="error"
+        {currentColor && (
+          <ColorBox
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            Wrong! Expected {COLOR_NAMES[sequence[userSequence.length - 1]]} but you clicked{' '}
-            {COLOR_NAMES[userSequence[userSequence.length - 1]]}
-          </Message>
+            transition={{ duration: 0.3 }}
+            style={{ backgroundColor: currentColor.hex }}
+          />
         )}
 
-        {phase === 'waiting-input' && userSequence.length < sequence.length && (
-          <Message
-            $type="info"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+        <AnswersGrid>
+          {answers.map((answer) => (
+            <AnswerButton
+              key={answer}
+              onClick={() => handleAnswer(answer)}
+              disabled={isAnswered}
+              $isSelected={selected === answer}
+              $isCorrect={answer === correctAnswer}
+              whileHover={!isAnswered ? { scale: 1.05 } : {}}
+              whileTap={!isAnswered ? { scale: 0.95 } : {}}
+            >
+              {answer}
+            </AnswerButton>
+          ))}
+        </AnswersGrid>
+
+        <Stats
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <StatItem>
+            <StatLabel>Round</StatLabel>
+            <StatValue>{progress}/5</StatValue>
+          </StatItem>
+
+          <StatItem>
+            <StatLabel>Correct</StatLabel>
+            <StatValue>{currentScore}/{progress}</StatValue>
+          </StatItem>
+        </Stats>
+
+        {isAnswered && (
+          <ResultMessage
+            $success={selected === correctAnswer}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
           >
-            Next: {COLOR_NAMES[sequence[userSequence.length]]}
-          </Message>
+            {selected === correctAnswer ? '✓ Correct!' : `✗ Wrong! It was ${correctAnswer}`}
+          </ResultMessage>
         )}
       </Container>
     </ChallengeBase>
