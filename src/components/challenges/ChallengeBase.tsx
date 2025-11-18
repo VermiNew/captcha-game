@@ -63,7 +63,7 @@ const Description = styled.p`
 /**
  * Styled timer container
  */
-const TimerContainer = styled.div`
+const TimerContainer = styled(motion.div)`
   position: fixed;
   top: ${theme.spacing.md};
   right: ${theme.spacing.md};
@@ -177,7 +177,11 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
         <Description>{description}</Description>
       </Header>
 
-      <TimerContainer>
+      <TimerContainer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 3, duration: 1.5, ease: 'easeIn' }}
+      >
         <Timer
           timeLeft={timeLeft}
           totalTime={timeLimit}
