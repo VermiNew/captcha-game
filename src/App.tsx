@@ -58,6 +58,37 @@ const App: React.FC = () => {
   }, [setCurrentChallengeIndex, setGameState]);
 
   /**
+   * Block page refresh
+   */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block F5
+      if (e.key === 'F5') {
+        e.preventDefault();
+        return;
+      }
+      // Block Ctrl+R / Cmd+R
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        return;
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
+  /**
    * Render appropriate screen based on game state
    */
   const renderScreen = () => {
