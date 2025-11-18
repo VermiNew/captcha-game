@@ -233,6 +233,7 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [phase, setPhase] = useState<GamePhase>('waiting');
+  const [gameStarted, setGameStarted] = useState(false);
   const [sequence, setSequence] = useState<number[]>([]);
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [userTaps, setUserTaps] = useState<number[]>([]);
