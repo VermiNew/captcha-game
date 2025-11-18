@@ -195,32 +195,21 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
    */
   const renderTargetText = () => {
     const chars: React.ReactNode[] = [];
-    let inputIndex = 0;
 
     for (let i = 0; i < targetText.length; i++) {
       const char = targetText[i];
+      let charColor: CharColor = 'pending';
 
-      if (char === '\n') {
-        chars.push(<br key={i} />);
-        // Skip space after newline
-        if (i + 1 < targetText.length && targetText[i + 1] === ' ') {
-          i++;
-        }
-      } else {
-        let charColor: CharColor = 'pending';
-
-        if (inputIndex < userInput.length) {
-          const userChar = userInput[inputIndex];
-          charColor = userChar === char ? 'success' : 'error';
-        }
-
-        chars.push(
-          <Char key={i} $color={charColor}>
-            {char}
-          </Char>,
-        );
-        inputIndex++;
+      if (i < userInput.length) {
+        const userChar = userInput[i];
+        charColor = userChar === char ? 'success' : 'error';
       }
+
+      chars.push(
+        <Char key={i} $color={charColor}>
+          {char}
+        </Char>,
+      );
     }
 
     return chars;
