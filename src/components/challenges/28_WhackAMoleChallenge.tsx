@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -149,20 +149,16 @@ const WhackAMoleChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   // Initialize 9 holes
-  const initialHoles: Hole[] = useMemo(
-    () =>
-      Array.from({ length: 9 }, (_, i) => ({
-        id: i,
-        active: false,
-        moleId: null,
-      })),
-    []
+  const [holes, setHoles] = useState<Hole[]>(() =>
+    Array.from({ length: 9 }, (_, i) => ({
+      id: i,
+      active: false,
+      moleId: null,
+    }))
   );
-
-  const [holes, setHoles] = useState<Hole[]>(initialHoles);
   const [hits, setHits] = useState(0);
   const [totalMoles, setTotalMoles] = useState(0);
   const [completed, setCompleted] = useState(false);
