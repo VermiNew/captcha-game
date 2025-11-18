@@ -400,9 +400,7 @@ const GameContainer: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{
-              delay: 3,
-              duration: 1.5,
-              ease: 'easeIn',
+              duration: 0.5,
             }}
           >
             <Timer
