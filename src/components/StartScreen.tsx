@@ -358,7 +358,7 @@ const StartScreen: React.FC = () => {
               transition={{ duration: 0.3 }}
             >
               <InstructionsList>
-                <li>Complete 10 different challenges</li>
+                <li>Complete all challenges to prove you're human</li>
                 <li>Each challenge has a time limit</li>
                 <li>Earn points for speed and accuracy</li>
                 <li>Try to get the highest score!</li>
