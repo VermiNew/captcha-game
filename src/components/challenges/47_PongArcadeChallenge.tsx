@@ -379,7 +379,13 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
           Use Arrow Keys or WASD to move your paddle (left side). Win 3 rounds!
         </Instruction>
 
-        <GameCanvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+        <GameCanvas 
+          ref={canvasRef} 
+          width={CANVAS_WIDTH} 
+          height={CANVAS_HEIGHT}
+          role="img"
+          aria-label="Pong game canvas showing player paddle on left, AI paddle on right, and ball in the middle"
+        />
 
         <ScoreDisplay>
           <div>

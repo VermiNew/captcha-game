@@ -313,6 +313,8 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
           ref={canvasRef}
           width={MAZE_WIDTH * CELL_SIZE}
           height={MAZE_HEIGHT * CELL_SIZE}
+          role="img"
+          aria-label="Maze game showing white walls, green start position, yellow key, and cyan exit"
         />
 
         <Status>

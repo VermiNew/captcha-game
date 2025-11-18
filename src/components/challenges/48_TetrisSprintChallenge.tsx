@@ -393,7 +393,13 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
           Arrow Keys: Move & Rotate | Down Arrow: Speed Up | Goal: 5000 points or 10 lines
         </Instruction>
 
-        <GameCanvas ref={canvasRef} width={GRID_WIDTH * CELL_SIZE} height={GRID_HEIGHT * CELL_SIZE} />
+        <GameCanvas 
+          ref={canvasRef} 
+          width={GRID_WIDTH * CELL_SIZE} 
+          height={GRID_HEIGHT * CELL_SIZE}
+          role="img"
+          aria-label="Tetris game grid showing falling and stacked blocks"
+        />
 
         <Stats>
           <div>
