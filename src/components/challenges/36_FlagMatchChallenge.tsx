@@ -187,25 +187,21 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [flags, setFlags] = useState<FlagData[]>([]);
-  const [countries, setCountries] = useState<FlagData[]>([]);
-  const [matches, setMatches] = useState<Record<string, string>>({});
-  const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-
   const totalPairs = 6;
   const successThreshold = 5;
   const pointsPerMatch = 35;
 
-  /**
-   * Initialize challenge
-   */
-  useEffect(() => {
-    // Select 6 random flags
+  const [flags, setFlags] = useState<FlagData[]>(() => {
     const selected = shuffleArray(FLAG_DATABASE).slice(0, totalPairs);
-    setFlags(shuffleArray([...selected]));
-    setCountries(shuffleArray([...selected]));
-  }, []);
+    return shuffleArray([...selected]);
+  });
+  const [countries, setCountries] = useState<FlagData[]>(() => {
+    const selected = shuffleArray(FLAG_DATABASE).slice(0, totalPairs);
+    return shuffleArray([...selected]);
+  });
+  const [matches, setMatches] = useState<Record<string, string>>({});
+  const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   /**
    * Handle flag selection and country matching
