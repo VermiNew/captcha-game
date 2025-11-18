@@ -359,9 +359,12 @@ const StartScreen: React.FC = () => {
             >
               <InstructionsList>
                 <li>Complete all challenges to prove you're human</li>
-                <li>Each challenge has a time limit</li>
+                <li>Each challenge has a time limit - complete before it runs out</li>
+                <li>Different challenges test different skills</li>
                 <li>Earn points for speed and accuracy</li>
-                <li>Try to get the highest score!</li>
+                <li>Your score depends on completion time and bonus points</li>
+                <li>You can quit anytime, but progress won't be saved</li>
+                <li>Try to get the highest score and beat your record!</li>
               </InstructionsList>
             </InstructionsCard>
           )}
