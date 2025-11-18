@@ -20,9 +20,6 @@ import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 import { sentenceDataset } from '../../utils/sentenceDataset';
 
-/**
- * Word item interface
- */
 interface WordItem {
   id: string;
   word: string;
@@ -35,22 +32,11 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.xl};
+  gap: ${theme.spacing.lg};
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
+  padding: 0 ${theme.spacing.md};
 `;
 
 /**
@@ -65,22 +51,56 @@ const Instruction = styled.p`
 `;
 
 /**
- * Styled target sentence display
+ * Styled target sentence
  */
 const TargetSentence = styled(motion.div)`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
+  font-size: ${theme.fontSizes.base};
   color: ${theme.colors.primary};
-  background: ${theme.colors.surface};
-  padding: ${theme.spacing.md};
-  border-radius: ${theme.borderRadius.md};
-  margin-bottom: ${theme.spacing.xl};
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
+  border-radius: ${theme.borderRadius.lg};
+  border: 1px solid rgba(99, 102, 241, 0.3);
   text-align: center;
   width: 100%;
   min-height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1.6;
+  word-break: break-word;
+`;
+
+/**
+ * Styled words container with scroll
+ */
+const WordsContainerScroll = styled.div`
+  width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: ${theme.spacing.md};
+  background: ${theme.colors.surface};
+  border-radius: ${theme.borderRadius.lg};
+  border: 2px solid rgba(99, 102, 241, 0.2);
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.5);
+    }
+  }
 `;
 
 /**
@@ -89,38 +109,46 @@ const TargetSentence = styled(motion.div)`
 const WordsContainer = styled(motion.div)`
   display: flex;
   flex-direction: column;
-  gap: ${theme.spacing.md};
-  margin-bottom: ${theme.spacing.xl};
+  gap: ${theme.spacing.sm};
   width: 100%;
 `;
 
 /**
- * Styled word card for sortable items
+ * Styled word card
  */
-const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean | null; $isOver: boolean }>`
+const WordCard = styled(motion.div)<{
+  $isDragging: boolean;
+  $isCorrect: boolean | null;
+  $isOver: boolean;
+}>`
   background: ${theme.colors.background};
-  border: 2px solid ${theme.colors.primary};
-  border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: ${theme.borderRadius.md};
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
+  font-size: ${theme.fontSizes.base};
   font-weight: ${theme.fontWeights.medium};
   text-align: center;
   cursor: grab;
   transition: all 0.15s ease;
-  box-shadow: ${theme.shadows.sm};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   user-select: none;
   touch-action: none;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-break: break-word;
 
   ${(props) =>
     props.$isDragging &&
     `
     opacity: 1;
     cursor: grabbing;
-    transform: scale(1.08) rotateZ(2deg);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    border-color: ${props.theme?.colors?.success || '#22c55e'};
-    background: ${props.theme?.colors?.primary || '#3b82f6'};
+    transform: scale(1.05) rotateZ(1deg);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    border-color: #6366f1;
+    background: #6366f1;
     color: white;
     z-index: 50;
   `}
@@ -129,7 +157,7 @@ const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean 
     props.$isCorrect === true &&
     `
     border-color: ${theme.colors.success};
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(16, 185, 129, 0.1);
     color: ${theme.colors.success};
   `}
 
@@ -144,26 +172,20 @@ const WordCard = styled(motion.div)<{ $isDragging: boolean; $isCorrect: boolean 
   ${(props) =>
     props.$isOver &&
     `
-    border: 3px dashed ${theme.colors.primary};
-    background: rgba(59, 130, 246, 0.15);
+    border: 2px dashed #6366f1;
+    background: rgba(99, 102, 241, 0.2);
   `}
 
   &:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: ${theme.shadows.md};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
   }
 
   @keyframes shake {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-    25% {
-      transform: translateX(-5px);
-    }
-    75% {
-      transform: translateX(5px);
-    }
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
   }
 `;
 
@@ -185,16 +207,40 @@ const CheckButton = styled(motion.button)<{ $isCorrect: boolean | null }>`
     return theme.colors.primary;
   }};
   color: white;
-  box-shadow: ${theme.shadows.md};
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 280px;
 
   &:hover:not(:disabled) {
-    box-shadow: ${theme.shadows.lg};
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+`;
+
+/**
+ * Styled progress info
+ */
+const ProgressInfo = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: ${theme.spacing.lg};
+  width: 100%;
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.textSecondary};
+
+  span {
+    font-family: ${theme.fonts.mono};
+    color: ${theme.colors.primary};
+    font-weight: ${theme.fontWeights.semibold};
   }
 `;
 
@@ -222,9 +268,9 @@ const SortableWord: React.FC<{
       $isDragging={isDragging}
       $isCorrect={isCorrect}
       $isOver={isOver}
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.15 }}
       {...attributes}
       {...listeners}
     >
@@ -235,7 +281,6 @@ const SortableWord: React.FC<{
 
 /**
  * Drag & Drop Sentence Challenge Component
- * User must arrange words in correct order
  */
 const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
   onComplete,
@@ -246,10 +291,9 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
     sentenceDataset[Math.floor(Math.random() * sentenceDataset.length)],
   );
 
-  const targetWords = targetSentence.split(' ');
+  const targetWords = targetSentence.split(' ').filter((word) => word.trim() !== '');
 
   const [words, setWords] = useState<WordItem[]>(() => {
-    // Shuffle words
     const shuffled = [...targetWords]
       .map((word) => ({ id: Math.random().toString(36).substring(7), word }))
       .sort(() => Math.random() - 0.5);
@@ -286,8 +330,13 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
 
   const handleCheck = () => {
     setIsChecking(true);
-    const userSentence = words.map((w) => w.word).join(' ');
-    const correct = userSentence === targetSentence;
+    const userSentence = words
+      .map((w) => w.word)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const targetForComparison = targetSentence.replace(/\s+/g, ' ').trim();
+    const correct = userSentence === targetForComparison;
     setIsCorrect(correct);
 
     if (correct) {
@@ -307,30 +356,28 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
 
   return (
     <ChallengeBase
-      title="Drag & Drop Sentence Challenge"
+      title="Drag & Drop Sentence"
       description="Arrange the words in the correct order"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Build the Sentence
-        </Title>
-
-        <Instruction>Drag the words to build this sentence:</Instruction>
+        <Instruction>Arrange these words to match the sentence:</Instruction>
 
         <TargetSentence
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          transition={{ duration: 0.3 }}
         >
           {targetSentence}
         </TargetSentence>
+
+        <ProgressInfo>
+          <div>
+            Words: <span>{words.length}</span>
+          </div>
+        </ProgressInfo>
 
         <DndContext
           collisionDetection={closestCenter}
@@ -342,23 +389,25 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
             items={words.map((w) => w.id)}
             strategy={verticalListSortingStrategy}
           >
-            <WordsContainer
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <AnimatePresence mode="popLayout">
-                {words.map((word) => (
-                  <SortableWord
-                    key={word.id}
-                    id={word.id}
-                    word={word.word}
-                    isCorrect={isCorrect}
-                    isOver={overId === word.id}
-                  />
-                ))}
-              </AnimatePresence>
-            </WordsContainer>
+            <WordsContainerScroll>
+              <WordsContainer
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <AnimatePresence mode="popLayout">
+                  {words.map((word) => (
+                    <SortableWord
+                      key={word.id}
+                      id={word.id}
+                      word={word.word}
+                      isCorrect={isCorrect}
+                      isOver={overId === word.id}
+                    />
+                  ))}
+                </AnimatePresence>
+              </WordsContainer>
+            </WordsContainerScroll>
           </SortableContext>
         </DndContext>
 
@@ -368,7 +417,7 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
           $isCorrect={isCorrect}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
+          transition={{ duration: 0.3 }}
         >
           {isChecking
             ? isCorrect
