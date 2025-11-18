@@ -368,12 +368,36 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 47,
+    name: 'Pong Arcade',
+    description: 'Win 3 rounds of Pong against AI (first to 11 points)',
+    component: (() => null) as any,
+    timeLimit: 120,
+    maxScore: 300,
+  },
+  {
+    id: 48,
+    name: 'Tetris Sprint',
+    description: 'Clear lines and score 5000 points or clear 10 lines',
+    component: (() => null) as any,
+    timeLimit: 180,
+    maxScore: 500,
+  },
+  {
     id: 49,
     name: 'IT & Network Knowledge Quiz',
     description: 'Answer 12 IT and Network questions (need 9/12 correct)',
     component: (() => null) as any,
     timeLimit: 90,
     maxScore: 300,
+  },
+  {
+    id: 50,
+    name: 'Maze Key Quest',
+    description: 'Navigate the maze, find the key, and reach the exit',
+    component: (() => null) as any,
+    timeLimit: 120,
+    maxScore: 250,
   },
   ];
 
