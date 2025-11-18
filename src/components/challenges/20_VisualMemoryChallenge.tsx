@@ -8,7 +8,13 @@ import { theme } from '../../styles/theme';
 /**
  * Game phase type
  */
-type GamePhase = 'showing' | 'waiting' | 'complete';
+type GamePhase = 'playing' | 'showing' | 'waiting' | 'complete';
+
+/**
+ * Button colors for Simon game
+ */
+const SIMON_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3'];
+const SIMON_LABELS = ['Red', 'Cyan', 'Yellow', 'Green'];
 
 /**
  * Styled container
@@ -44,6 +50,76 @@ const Instruction = styled.p`
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
+`;
+
+/**
+ * Styled grid (2x2)
+ */
+const Grid = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: ${theme.spacing.lg};
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1;
+`;
+
+/**
+ * Styled button
+ */
+const SimonButton = styled(motion.button)<{
+  $color: string;
+  $isActive: boolean;
+  $isWrong: boolean;
+}>`
+  border: none;
+  border-radius: ${theme.borderRadius.lg};
+  background: ${(props) => props.$color};
+  cursor: ${(props) => (props.$isWrong ? 'default' : 'pointer')};
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  opacity: ${(props) => (props.$isActive ? 1 : 0.6)};
+  transition: all 0.1s ease;
+
+  ${(props) => {
+    if (props.$isWrong) {
+      return `
+        animation: shake 0.4s ease-out;
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(239, 68, 68, 0.8);
+      `;
+    }
+    if (props.$isActive) {
+      return `
+        box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.4), 0 0 30px rgba(0, 0, 0, 0.3);
+        transform: scale(0.95);
+      `;
+    }
+    return `
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+
+      &:hover:not(:disabled) {
+        opacity: 0.8;
+        box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.2), 0 0 20px rgba(0, 0, 0, 0.3);
+      }
+
+      &:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+    `;
+  }}
+
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-10px);
+    }
+    75% {
+      transform: translateX(10px);
+    }
+  }
 `;
 
 /**
@@ -94,103 +170,6 @@ const InfoValue = styled(motion.p)`
 `;
 
 /**
- * Styled grid
- */
-const Grid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: ${theme.spacing.md};
-  width: 100%;
-  max-width: 400px;
-  aspect-ratio: 1;
-`;
-
-/**
- * Styled tile
- */
-const Tile = styled(motion.button)<{
-  $isLit: boolean;
-  $isCorrect: boolean;
-  $isWrong: boolean;
-}>`
-  border: none;
-  border-radius: ${theme.borderRadius.lg};
-  background: ${(props) => {
-    if (props.$isWrong) {
-      return theme.colors.error;
-    }
-    if (props.$isCorrect) {
-      return theme.colors.success;
-    }
-    return props.$isLit ? theme.colors.primary : theme.colors.surface;
-  }};
-  cursor: ${(props) =>
-    props.$isWrong || props.$isCorrect ? 'default' : 'pointer'};
-  position: relative;
-  overflow: hidden;
-  transition: all 0.15s ease;
-  padding: 0;
-
-  ${(props) => {
-    if (props.$isWrong) {
-      return `
-        box-shadow: 0 0 25px ${theme.colors.error};
-        pointer-events: none;
-        animation: pulse-error 0.4s ease-out;
-      `;
-    }
-    if (props.$isCorrect) {
-      return `
-        box-shadow: 0 0 25px ${theme.colors.success};
-      `;
-    }
-    if (props.$isLit) {
-      return `
-        box-shadow: 0 0 25px ${theme.colors.primary}, inset 0 0 15px rgba(255, 255, 255, 0.2);
-        animation: pulse-lit 0.6s ease-out;
-      `;
-    }
-    return `
-      border: 2px solid ${theme.colors.border};
-
-      &:hover {
-        border-color: ${theme.colors.primary};
-        box-shadow: 0 0 12px ${theme.colors.primary};
-        transform: translateY(-2px);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-    `;
-  }}
-
-  @keyframes pulse-lit {
-    0% {
-      box-shadow: 0 0 0 0 ${theme.colors.primary};
-    }
-    50% {
-      box-shadow: 0 0 30px ${theme.colors.primary};
-    }
-    100% {
-      box-shadow: 0 0 15px ${theme.colors.primary};
-    }
-  }
-
-  @keyframes pulse-error {
-    0%, 100% {
-      transform: scale(1);
-    }
-    25% {
-      transform: scale(0.95);
-    }
-    75% {
-      transform: scale(1.05);
-    }
-  }
-`;
-
-/**
  * Styled feedback message
  */
 const FeedbackMessage = styled(motion.div)<{ $success: boolean }>`
@@ -219,142 +198,129 @@ const Emoji = styled.span`
 `;
 
 /**
- * Styled stats grid
- */
-const StatsGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: ${theme.spacing.lg};
-  width: 100%;
-`;
-
-/**
- * Styled stat card
- */
-const StatCard = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.border};
-`;
-
-/**
- * Styled stat label
- */
-const StatLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.medium};
-`;
-
-/**
- * Styled stat value
- */
-const StatValue = styled(motion.p)`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
-`;
-
-/**
- * Visual Memory Challenge Component
- * User must remember and click the lit tiles
+ * Visual Memory Challenge - Simon Says
+ * Memorize and click the color sequence
  */
 const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
   onComplete,
   timeLimit,
   challengeId,
 }) => {
-  const TOTAL_TILES = 16;
-  const TILES_TO_REMEMBER = 6;
-  const SHOWING_DURATION = 3000; // ms
+  const ROUNDS_TO_WIN = 8;
+  const SHOW_DURATION = 600; // ms per button flash
+  const BUTTON_DELAY = 600; // ms between button flashes
 
-  const [litTiles] = useState<Set<number>>(() => {
-    const tiles = new Set<number>();
-    while (tiles.size < TILES_TO_REMEMBER) {
-      tiles.add(Math.floor(Math.random() * TOTAL_TILES));
-    }
-    return tiles;
-  });
-
-  const [phase, setPhase] = useState<GamePhase>('showing');
-  const [clickedTiles, setClickedTiles] = useState<Set<number>>(new Set());
-  const [correctTiles, setCorrectTiles] = useState<Set<number>>(new Set());
-  const [wrongTile, setWrongTile] = useState<number | null>(null);
+  const [sequence, setSequence] = useState<number[]>([]);
+  const [playerSequence, setPlayerSequence] = useState<number[]>([]);
+  const [activeButton, setActiveButton] = useState<number | null>(null);
+  const [phase, setPhase] = useState<GamePhase>('playing');
+  const [currentRound, setCurrentRound] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [startTime] = useState(Date.now());
-  const showingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const failureTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const sequenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const buttonFlashRef = useRef<NodeJS.Timeout | null>(null);
+  const completionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
-   * Handle phase transition from showing to waiting
+   * Play button flash animation
+   */
+  const playButtonFlash = (buttonIndex: number) => {
+    return new Promise<void>((resolve) => {
+      setActiveButton(buttonIndex);
+
+      buttonFlashRef.current = setTimeout(() => {
+        setActiveButton(null);
+        resolve();
+      }, SHOW_DURATION);
+    });
+  };
+
+  /**
+   * Show the entire sequence
+   */
+  const showSequence = async (seq: number[]) => {
+    setPhase('showing');
+    setPlayerSequence([]);
+
+    // Wait a bit before starting
+    await new Promise((resolve) => {
+      sequenceTimeoutRef.current = setTimeout(resolve, 500);
+    });
+
+    // Flash each button in sequence
+    for (const buttonIndex of seq) {
+      await playButtonFlash(buttonIndex);
+      await new Promise((resolve) => {
+        sequenceTimeoutRef.current = setTimeout(resolve, BUTTON_DELAY);
+      });
+    }
+
+    setPhase('waiting');
+  };
+
+  /**
+   * Start new round
    */
   useEffect(() => {
-    if (phase !== 'showing') return;
+    if (phase !== 'playing' || gameOver || completed) return;
 
-    showingTimeoutRef.current = setTimeout(() => {
-      setPhase('waiting');
-    }, SHOWING_DURATION);
+    const newSequence = [...sequence, Math.floor(Math.random() * 4)];
+    setSequence(newSequence);
+    setCurrentRound(newSequence.length);
 
-    return () => {
-      if (showingTimeoutRef.current) {
-        clearTimeout(showingTimeoutRef.current);
-      }
-    };
-  }, [phase]);
+    const timer = setTimeout(() => {
+      showSequence(newSequence);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [phase, sequence, gameOver, completed]);
 
   /**
-   * Handle tile click
+   * Handle button click
    */
-  const handleTileClick = (index: number) => {
-    if (phase !== 'waiting' || clickedTiles.has(index) || completed) return;
+  const handleButtonClick = async (buttonIndex: number) => {
+    if (phase !== 'waiting' || gameOver || completed) return;
 
-    const newClicked = new Set(clickedTiles);
-    newClicked.add(index);
-    setClickedTiles(newClicked);
+    const newPlayerSequence = [...playerSequence, buttonIndex];
+    setPlayerSequence(newPlayerSequence);
 
-    if (litTiles.has(index)) {
-      // Correct tile
-      const newCorrect = new Set(correctTiles);
-      newCorrect.add(index);
-      setCorrectTiles(newCorrect);
+    // Flash the button
+    await playButtonFlash(buttonIndex);
 
-      // Check if all tiles are correct
-       if (newCorrect.size === TILES_TO_REMEMBER) {
-         // Success!
-         const timeSpent = (Date.now() - startTime) / 1000;
-         const speedBonus = Math.max(0, 100 - Math.floor(timeSpent / 2));
-         const score = 250 + speedBonus;
+    // Check if correct
+    if (sequence[newPlayerSequence.length - 1] !== buttonIndex) {
+      // Wrong button!
+      setGameOver(true);
+      setPhase('complete');
 
-         setCompleted(true);
-         setPhase('complete');
+      const timeSpent = (Date.now() - startTime) / 1000;
+      completionTimeoutRef.current = setTimeout(() => {
+        onComplete(false, timeSpent, 0);
+      }, 1500);
+      return;
+    }
 
-         if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-         successTimeoutRef.current = setTimeout(() => {
-           onComplete(true, timeSpent, score);
-         }, 2000);
-       }
+    // Check if player completed the sequence
+    if (newPlayerSequence.length === sequence.length) {
+      if (sequence.length === ROUNDS_TO_WIN) {
+        // Victory!
+        setCompleted(true);
+        setPhase('complete');
+
+        const timeSpent = (Date.now() - startTime) / 1000;
+        const speedBonus = Math.max(0, 100 - Math.floor(timeSpent / 3));
+        const score = 250 + speedBonus;
+
+        completionTimeoutRef.current = setTimeout(() => {
+          onComplete(true, timeSpent, score);
+        }, 2000);
       } else {
-       // Wrong tile - game over
-       setWrongTile(index);
-       setCompleted(true);
-       setPhase('complete');
-
-       const timeSpent = (Date.now() - startTime) / 1000;
-       if (failureTimeoutRef.current) clearTimeout(failureTimeoutRef.current);
-       failureTimeoutRef.current = setTimeout(() => {
-         onComplete(false, timeSpent, 0);
-       }, 1500);
+        // Next round
+        setPhase('playing');
       }
+    }
   };
 
   /**
@@ -362,18 +328,16 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
    */
   useEffect(() => {
     return () => {
-      if (showingTimeoutRef.current) clearTimeout(showingTimeoutRef.current);
-      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
-      if (failureTimeoutRef.current) clearTimeout(failureTimeoutRef.current);
+      if (sequenceTimeoutRef.current) clearTimeout(sequenceTimeoutRef.current);
+      if (buttonFlashRef.current) clearTimeout(buttonFlashRef.current);
+      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
     };
   }, []);
 
-  const progress = correctTiles.size;
-
   return (
     <ChallengeBase
-      title="Visual Memory Challenge"
-      description="Remember which tiles light up"
+      title="Simon Says"
+      description="Remember and repeat the color sequence"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
@@ -384,32 +348,32 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          Test Your Memory!
+          Simon Says
         </Title>
 
         <Instruction>
           {phase === 'showing'
-            ? 'Watch carefully which tiles light up...'
+            ? 'Watch the sequence...'
             : phase === 'waiting'
-              ? 'Click the tiles in the same pattern'
+              ? 'Click the buttons in order'
               : 'Challenge complete!'}
         </Instruction>
 
         <InfoSection>
           <InfoItem>
-            <InfoLabel>Tiles to Remember</InfoLabel>
-            <InfoValue>{TILES_TO_REMEMBER}</InfoValue>
-          </InfoItem>
-          <InfoItem>
-            <InfoLabel>Correct So Far</InfoLabel>
+            <InfoLabel>Round</InfoLabel>
             <InfoValue
-              key={progress}
+              key={currentRound}
               initial={{ scale: 1.2 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              {progress}/{TILES_TO_REMEMBER}
+              {currentRound}/{ROUNDS_TO_WIN}
             </InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>Clicks</InfoLabel>
+            <InfoValue>{playerSequence.length}/{currentRound}</InfoValue>
           </InfoItem>
         </InfoSection>
 
@@ -418,99 +382,55 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <AnimatePresence mode="wait">
-            {Array.from({ length: TOTAL_TILES }, (_, idx) => (
-              <Tile
-                key={idx}
-                $isLit={phase === 'showing' && litTiles.has(idx)}
-                $isCorrect={correctTiles.has(idx)}
-                $isWrong={wrongTile === idx}
-                onClick={() => handleTileClick(idx)}
-                disabled={phase !== 'waiting' || correctTiles.has(idx) || wrongTile !== null}
-                whileHover={
-                  phase === 'waiting' &&
-                  !correctTiles.has(idx) &&
-                  !litTiles.has(idx) &&
-                  wrongTile === null
-                    ? { scale: 1.05 }
-                    : {}
-                }
-                whileTap={
-                  phase === 'waiting' &&
-                  !correctTiles.has(idx) &&
-                  !litTiles.has(idx) &&
-                  wrongTile === null
-                    ? { scale: 0.95 }
-                    : {}
-                }
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 20,
-                  delay: idx * 0.02,
-                }}
-              />
-            ))}
-          </AnimatePresence>
+          {SIMON_COLORS.map((color, idx) => (
+            <SimonButton
+              key={idx}
+              $color={color}
+              $isActive={activeButton === idx}
+              $isWrong={gameOver}
+              onClick={() => handleButtonClick(idx)}
+              disabled={phase !== 'waiting' || gameOver}
+              aria-label={`${SIMON_LABELS[idx]} button`}
+              whileHover={
+                phase === 'waiting' && !gameOver
+                  ? { opacity: 0.8 }
+                  : {}
+              }
+              whileTap={
+                phase === 'waiting' && !gameOver
+                  ? { scale: 0.95 }
+                  : {}
+              }
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                type: 'spring',
+                stiffness: 200,
+                damping: 20,
+                delay: idx * 0.1,
+              }}
+            />
+          ))}
         </Grid>
 
         <AnimatePresence>
-          {completed && (
+          {(gameOver || completed) && (
             <FeedbackMessage
-              $success={wrongTile === null}
+              $success={completed}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 200 }}
             >
-              <Emoji>{wrongTile === null ? '🎉' : '💥'}</Emoji>
+              <Emoji>{completed ? '🎉' : '💥'}</Emoji>
               <span>
-                {wrongTile === null
-                  ? `Perfect! You remembered all ${TILES_TO_REMEMBER} tiles!`
-                  : 'Oops! You clicked the wrong tile.'}
+                {completed
+                  ? `Perfect! You completed all ${ROUNDS_TO_WIN} rounds!`
+                  : `Game Over! You reached round ${currentRound}.`}
               </span>
             </FeedbackMessage>
           )}
         </AnimatePresence>
-
-        {completed && (
-          <StatsGrid
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, staggerChildren: 0.1 }}
-          >
-            <StatCard
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <StatLabel>Correct Tiles</StatLabel>
-              <StatValue
-                initial={{ scale: 1.2 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                {correctTiles.size}/{TILES_TO_REMEMBER}
-              </StatValue>
-            </StatCard>
-
-            <StatCard
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <StatLabel>Result</StatLabel>
-              <StatValue
-                style={{
-                  color: wrongTile === null ? theme.colors.success : theme.colors.error,
-                }}
-              >
-                {wrongTile === null ? 'WIN' : 'FAIL'}
-              </StatValue>
-            </StatCard>
-          </StatsGrid>
-        )}
       </Container>
     </ChallengeBase>
   );
