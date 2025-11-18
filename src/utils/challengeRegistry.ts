@@ -335,6 +335,22 @@ export const challengeRegistry: Challenge[] = [
     timeLimit: 50,
     maxScore: 300,
   },
+  {
+    id: 41,
+    name: 'Math Sorting',
+    description: 'Sort numbers by different rules',
+    component: (() => null) as any,
+    timeLimit: 60,
+    maxScore: 300,
+  },
+  {
+    id: 49,
+    name: 'IT & Network Knowledge Quiz',
+    description: 'Answer 12 IT and Network questions (need 9/12 correct)',
+    component: (() => null) as any,
+    timeLimit: 90,
+    maxScore: 300,
+  },
   ];
 
 /**
