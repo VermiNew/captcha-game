@@ -142,7 +142,7 @@ const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   const [targets, setTargets] = useState<Target[]>([]);
   const [hits, setHits] = useState(0);
