@@ -179,8 +179,12 @@ const FractionFighterChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [left, setLeft] = useState<Fraction | null>(null);
-  const [right, setRight] = useState<Fraction | null>(null);
+  const [left, setLeft] = useState<Fraction | null>(() =>
+    FRACTIONS[Math.floor(Math.random() * FRACTIONS.length)]
+  );
+  const [right, setRight] = useState<Fraction | null>(() =>
+    FRACTIONS[Math.floor(Math.random() * FRACTIONS.length)]
+  );
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -204,12 +208,7 @@ const FractionFighterChallenge: React.FC<ChallengeProps> = ({
     setIsCorrect(null);
   };
 
-  /**
-   * Initialize first question
-   */
-  useEffect(() => {
-    generateQuestion();
-  }, []);
+
 
   /**
    * Compare fractions
