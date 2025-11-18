@@ -6,9 +6,9 @@ import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
 /**
- * Game phase type
+ * Game state type
  */
-type GamePhase = 'waiting-start' | 'ready' | 'showing-result' | 'complete';
+type GameState = 'waiting' | 'ready' | 'result' | 'complete';
 
 /**
  * Styled container
@@ -21,18 +21,6 @@ const Container = styled.div`
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
 `;
 
 /**
@@ -58,16 +46,14 @@ const AttemptCounter = styled(motion.p)`
 `;
 
 /**
- * Styled reaction box
+ * Styled reaction button
  */
-const ReactionBox = styled(motion.button)<{ $phase: GamePhase }>`
-  width: 200px;
-  height: 200px;
+const ReactionButton = styled(motion.button)<{ $state: GameState }>`
+  width: 180px;
+  height: 180px;
   border: none;
   border-radius: ${theme.borderRadius.xl};
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.xl};
   font-weight: ${theme.fontWeights.bold};
@@ -75,325 +61,261 @@ const ReactionBox = styled(motion.button)<{ $phase: GamePhase }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: all 0.1s ease;
 
   ${(props) => {
-    switch (props.$phase) {
-      case 'waiting-start':
+    switch (props.$state) {
+      case 'waiting':
         return `
           background: ${theme.colors.error};
           box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
-          transform: scale(0.95);
+          cursor: not-allowed;
+          opacity: 0.7;
         `;
       case 'ready':
         return `
           background: ${theme.colors.success};
-          box-shadow: 0 0 30px ${theme.colors.success}, inset 0 0 20px rgba(255, 255, 255, 0.2);
-          transform: scale(1);
-          animation: pulse-reaction 0.5s ease-out;
+          box-shadow: 0 0 30px ${theme.colors.success};
+          cursor: pointer;
+          animation: pulse-btn 0.6s ease-in-out;
         `;
-      case 'showing-result':
+      case 'result':
         return `
           background: ${theme.colors.primary};
           box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-          transform: scale(0.98);
-          pointer-events: none;
+          cursor: not-allowed;
         `;
       default:
         return `
           background: ${theme.colors.surface};
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          transform: scale(0.95);
-          pointer-events: none;
+          cursor: not-allowed;
+          opacity: 0.5;
         `;
     }
   }}
 
-  &:hover:not(:disabled) {
-    transform: scale(1.02);
+  &:hover {
+    ${(props) => (props.$state === 'ready' ? `transform: scale(1.05);` : '')}
   }
 
-  &:active:not(:disabled) {
-    transform: scale(0.98);
+  &:active {
+    ${(props) => (props.$state === 'ready' ? `transform: scale(0.95);` : '')}
   }
 
-  &:disabled {
-    cursor: not-allowed;
-  }
-
-  @keyframes pulse-reaction {
+  @keyframes pulse-btn {
     0% {
-      transform: scale(1);
       box-shadow: 0 0 0 0 ${theme.colors.success};
     }
     50% {
       box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
     }
     100% {
-      transform: scale(1);
       box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
   }
 `;
 
 /**
- * Styled results container
+ * Styled stats container
  */
-const ResultsContainer = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
+const StatsContainer = styled(motion.div)`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: ${theme.spacing.lg};
   width: 100%;
-`;
-
-/**
- * Styled result item
- */
-const ResultItem = styled(motion.div)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
-  border-left: 4px solid ${theme.colors.primary};
-`;
-
-/**
- * Styled result label
- */
-const ResultLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.medium};
-`;
-
-/**
- * Styled result value
- */
-const ResultValue = styled(motion.p)`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
-`;
-
-/**
- * Styled attempt results grid
- */
-const AttemptsGrid = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: ${theme.spacing.md};
-  width: 100%;
-  margin-bottom: ${theme.spacing.lg};
 
   @media (max-width: 500px) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
   }
 `;
 
 /**
- * Styled attempt badge
+ * Styled stat box
  */
-const AttemptBadge = styled(motion.div)<{ $index: number }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.md};
+const StatBox = styled(motion.div)`
+  padding: ${theme.spacing.lg};
   background: ${theme.colors.surface};
   border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.border};
+  border: 1px solid ${theme.colors.border};
+  text-align: center;
 `;
 
 /**
- * Styled attempt number
+ * Styled stat label
  */
-const AttemptNumber = styled.p`
+const StatLabel = styled.p`
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.semibold};
+  margin: 0 0 ${theme.spacing.sm} 0;
 `;
 
 /**
- * Styled attempt time
+ * Styled stat value
  */
-const AttemptTime = styled(motion.p)`
+const StatValue = styled.p`
   font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.primary};
   margin: 0;
 `;
 
 /**
- * Styled message
+ * Styled result message
  */
-const Message = styled(motion.p)<{ $type: 'info' | 'success' | 'error' }>`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.semibold};
+const ResultMessage = styled(motion.div)<{ $success: boolean }>`
+  padding: ${theme.spacing.lg};
+  background: ${(props) =>
+    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  border-radius: ${theme.borderRadius.lg};
   text-align: center;
-  margin: 0;
-  color: ${(props) => {
-    switch (props.$type) {
-      case 'success':
-        return theme.colors.success;
-      case 'error':
-        return theme.colors.error;
-      default:
-        return theme.colors.textSecondary;
-    }
-  }};
+  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  font-weight: ${theme.fontWeights.bold};
+  font-size: ${theme.fontSizes.base};
 `;
+
+const TOTAL_ROUNDS = 5;
+const READY_TIMEOUT = 3000; // Time to click after green
 
 /**
  * Reaction Time Challenge Component
- * User must click as fast as possible when the square turns green
+ * Click the button as fast as possible when it turns green
  */
 const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
   onComplete,
   timeLimit,
   challengeId,
 }) => {
-  const [currentAttempt, setCurrentAttempt] = useState(1);
-  const [reactions, setReactions] = useState<number[]>([]);
-  const [phase, setPhase] = useState<GamePhase>('waiting-start');
-  const [lastReactionTime, setLastReactionTime] = useState<number | null>(null);
+  const [round, setRound] = useState(1);
+  const [state, setState] = useState<GameState>('waiting');
+  const [times, setTimes] = useState<number[]>([]);
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
   const [startTime] = useState(() => Date.now());
 
+  const stateRef = useRef<GameState>('waiting');
+  const readyTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const startTimeRef = useRef<number>(0);
+
+  // Update refs when state changes
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   /**
-   * Generate random delay between 2-5 seconds
+   * Start new round
    */
-  const getRandomDelay = () => Math.floor(Math.random() * 3000) + 2000;
+  const startRound = () => {
+    setCurrentTime(null);
+    setState('waiting');
 
-  /**
-   * Start the next attempt
-   */
-  const startNextAttempt = () => {
-    if (currentAttempt > 5) {
-      // Calculate final stats
-      const avgTime = reactions.reduce((a, b) => a + b, 0) / reactions.length;
-      const success = avgTime < 600;
-      const score = Math.max(0, Math.round(200 - avgTime / 3));
+    // Random delay 1-3 seconds before turning green
+    const delay = Math.random() * 2000 + 1000;
 
-      setPhase('complete');
-      setTimeout(() => {
-        const timeSpent = (Date.now() - startTime) / 1000;
-        onComplete(success, timeSpent, score);
-      }, 1500);
-      return;
-    }
-
-    setPhase('waiting-start');
-    setLastReactionTime(null);
-
-    // Wait random delay, then turn green
-    const delay = getRandomDelay();
     timeoutRef.current = setTimeout(() => {
-      setPhase('ready');
-      startTimeRef.current = performance.now();
+      setState('ready');
+      readyTimeRef.current = performance.now();
+
+      // Auto-timeout if not clicked in 3 seconds
+      timeoutRef.current = setTimeout(() => {
+        if (stateRef.current === 'ready') {
+          setCurrentTime(READY_TIMEOUT);
+          setState('result');
+          finishRound(READY_TIMEOUT);
+        }
+      }, READY_TIMEOUT);
     }, delay);
   };
 
   /**
-   * Handle box click
+   * Handle button click
    */
-  const handleBoxClick = () => {
-    if (phase !== 'ready') return;
+  const handleClick = () => {
+    if (state !== 'ready') return;
 
-    const reactionTime = Math.round(performance.now() - startTimeRef.current);
-    const newReactions = [...reactions, reactionTime];
-
-    setReactions(newReactions);
-    setLastReactionTime(reactionTime);
-    setPhase('showing-result');
-
-    // Show result and start next attempt
-    timeoutRef.current = setTimeout(() => {
-      setCurrentAttempt(currentAttempt + 1);
-      startNextAttempt();
-    }, 1500);
+    const reactionTime = Math.round(performance.now() - readyTimeRef.current);
+    setCurrentTime(reactionTime);
+    setState('result');
+    finishRound(reactionTime);
   };
 
   /**
-   * Initialize first attempt on mount
+   * Finish current round and start next
+   */
+  const finishRound = (reactionTime: number) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    setTimes((prev) => [...prev, reactionTime]);
+
+    // Move to next round after delay
+    timeoutRef.current = setTimeout(() => {
+      if (round < TOTAL_ROUNDS) {
+        setRound(round + 1);
+        startRound();
+      } else {
+        // Game complete
+        setState('complete');
+      }
+    }, 800);
+  };
+
+  /**
+   * Initialize first round
    */
   useEffect(() => {
-    startNextAttempt();
+    startRound();
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
-   * Handle too slow (3 seconds without click)
+   * Calculate stats
+   */
+  const avgTime =
+    times.length > 0
+      ? Math.round(times.filter((t) => t < READY_TIMEOUT).reduce((a, b) => a + b, 0) / times.length)
+      : 0;
+  const bestTime = times.length > 0 ? Math.min(...times.filter((t) => t < READY_TIMEOUT)) : 0;
+  const success = avgTime > 0 && avgTime < 400;
+  const score = Math.max(0, Math.round(300 - avgTime));
+
+  /**
+   * Complete challenge
    */
   useEffect(() => {
-    if (phase !== 'ready') return;
+    if (state === 'complete') {
+      const timeSpent = (Date.now() - startTime) / 1000;
+      timeoutRef.current = setTimeout(() => {
+        onComplete(success, timeSpent, score);
+      }, 1500);
+    }
 
-    const timeoutId = setTimeout(() => {
-      // Player was too slow - record as miss
-      if (phase === 'ready') {
-        const reactionTime = 3000; // Mark as timeout
-        const newReactions = [...reactions, reactionTime];
-
-        setReactions(newReactions);
-        setLastReactionTime(reactionTime);
-        setPhase('showing-result');
-
-        setTimeout(() => {
-          setCurrentAttempt(currentAttempt + 1);
-          startNextAttempt();
-        }, 1500);
-      }
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, [phase, currentAttempt, reactions]);
-
-  // Calculate statistics
-  const avgTime = reactions.length > 0 ? reactions.reduce((a, b) => a + b, 0) / reactions.length : 0;
-  const minTime = reactions.length > 0 ? Math.min(...reactions) : 0;
-  const maxTime = reactions.length > 0 ? Math.max(...reactions) : 0;
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [state, success, score, startTime, onComplete]);
 
   return (
     <ChallengeBase
       title="Reaction Time Challenge"
-      description="Click as fast as possible when the square turns green"
+      description="Click as fast as you can when the button turns green"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Test Your Reflexes!
-        </Title>
-
         <Instruction>
-          {phase === 'waiting-start'
-            ? 'Wait for the square to turn green...'
-            : phase === 'ready'
+          {state === 'waiting'
+            ? 'Wait for the button to turn green...'
+            : state === 'ready'
               ? 'Click NOW!'
-              : phase === 'showing-result'
-                ? `Great! Time recorded.`
-                : 'Measuring reaction times...'}
+              : state === 'result'
+                ? 'Time recorded!'
+                : 'Complete!'}
         </Instruction>
 
         <AttemptCounter
@@ -401,118 +323,74 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          Attempt {currentAttempt}/5
+          Round {round}/{TOTAL_ROUNDS}
         </AttemptCounter>
 
-        <ReactionBox
-          $phase={phase}
-          onClick={handleBoxClick}
-          disabled={phase !== 'ready'}
-          whileTap={phase === 'ready' ? { scale: 0.95 } : {}}
+        <ReactionButton
+          $state={state}
+          onClick={handleClick}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15 }}
         >
-          {phase === 'showing-result' && lastReactionTime !== null && (
+          {state === 'result' && currentTime !== null && (
             <motion.span
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              {lastReactionTime >= 3000 ? 'Too Slow!' : `${lastReactionTime}ms`}
+              {currentTime >= READY_TIMEOUT ? 'Too Slow!' : `${currentTime}ms`}
             </motion.span>
           )}
-        </ReactionBox>
+        </ReactionButton>
 
-        {phase === 'complete' && (
-          <ResultsContainer
+        {state === 'complete' && (
+          <StatsContainer
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <AttemptsGrid
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ staggerChildren: 0.1, delayChildren: 0.1 }}
+            <StatBox
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
-              {reactions.map((time, idx) => (
-                <AttemptBadge
-                  key={idx}
-                  $index={idx}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                >
-                  <AttemptNumber>#{idx + 1}</AttemptNumber>
-                  <AttemptTime
-                    initial={{ scale: 1.2 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    {time >= 3000 ? '-' : `${time}ms`}
-                  </AttemptTime>
-                </AttemptBadge>
-              ))}
-            </AttemptsGrid>
+              <StatLabel>Average</StatLabel>
+              <StatValue>{avgTime}ms</StatValue>
+            </StatBox>
 
-            <ResultsContainer>
-              <ResultItem
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <ResultLabel>Average Time</ResultLabel>
-                <ResultValue
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  {Math.round(avgTime)}ms
-                </ResultValue>
-              </ResultItem>
+            <StatBox
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <StatLabel>Best</StatLabel>
+              <StatValue>{bestTime}ms</StatValue>
+            </StatBox>
 
-              <ResultItem
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <ResultLabel>Fastest</ResultLabel>
-                <ResultValue
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  {minTime}ms
-                </ResultValue>
-              </ResultItem>
+            <StatBox
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <StatLabel>Score</StatLabel>
+              <StatValue>{score}</StatValue>
+            </StatBox>
 
-              <ResultItem
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <ResultLabel>Slowest</ResultLabel>
-                <ResultValue
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  {maxTime >= 3000 ? '-' : `${maxTime}ms`}
-                </ResultValue>
-              </ResultItem>
-            </ResultsContainer>
-
-            <Message
-              $type={avgTime < 600 ? 'success' : 'error'}
+            <ResultMessage
+              $success={success}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
+              style={{ gridColumn: '1 / -1' }}
             >
-              {avgTime < 600
+              {success
                 ? '✓ Excellent reaction time!'
-                : '✗ Good effort, keep training!'}
-            </Message>
-          </ResultsContainer>
+                : avgTime > 0
+                  ? '✗ Good effort, keep training!'
+                  : 'Game complete!'}
+            </ResultMessage>
+          </StatsContainer>
         )}
       </Container>
     </ChallengeBase>
