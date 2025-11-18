@@ -83,7 +83,7 @@ const Header = styled.div`
   align-items: flex-start;
   gap: ${theme.spacing.xl};
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
@@ -117,7 +117,7 @@ const ChallengeArea = styled.div`
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   min-height: 400px;
 `;
