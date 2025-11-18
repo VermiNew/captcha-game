@@ -278,16 +278,36 @@ const CubeRotationChallenge: React.FC<ChallengeProps> = ({
   };
 
   /**
+   * Normalize angle to 0-360 range (handles negative modulo in JavaScript)
+   */
+  const normalizeAngle = (angle: number): number => {
+    return ((angle % 360) + 360) % 360;
+  };
+
+  /**
    * Check if rotations match (within tolerance)
    */
   const checkMatch = () => {
     const tolerance = 15;
-    const xDiff = Math.abs((playerRotateX % 360) - (targetRotateX % 360));
-    const yDiff = Math.abs((playerRotateY % 360) - (targetRotateY % 360));
+    
+    // Normalize angles to 0-360 range
+    const normalizedPlayerX = normalizeAngle(playerRotateX);
+    const normalizedTargetX = normalizeAngle(targetRotateX);
+    const normalizedPlayerY = normalizeAngle(playerRotateY);
+    const normalizedTargetY = normalizeAngle(targetRotateY);
+    
+    // Calculate shortest angular distance (accounting for wraparound)
+    const xDiff = Math.min(
+      Math.abs(normalizedPlayerX - normalizedTargetX),
+      360 - Math.abs(normalizedPlayerX - normalizedTargetX)
+    );
+    const yDiff = Math.min(
+      Math.abs(normalizedPlayerY - normalizedTargetY),
+      360 - Math.abs(normalizedPlayerY - normalizedTargetY)
+    );
 
-    // Consider wraparound (e.g., 350 and 10 are close)
-    const xMatch = Math.min(xDiff, 360 - xDiff) < tolerance;
-    const yMatch = Math.min(yDiff, 360 - yDiff) < tolerance;
+    const xMatch = xDiff < tolerance;
+    const yMatch = yDiff < tolerance;
 
     if (xMatch && yMatch) {
       setFeedback('✓ Perfect match!');
