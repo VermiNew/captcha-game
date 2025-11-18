@@ -162,11 +162,11 @@ const InstructionsCard = styled(motion.div)`
   width: 100%;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  max-height: 250px;
+  max-height: 180px;
   overflow-y: auto;
 
   @media (max-width: 768px) {
-    max-height: 200px;
+    max-height: 140px;
   }
 `;
 
