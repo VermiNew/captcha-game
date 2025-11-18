@@ -65,20 +65,33 @@ const App: React.FC = () => {
       // Block F5
       if (e.key === 'F5') {
         e.preventDefault();
-        alert('⚠️ Refreshing the page will lose your progress!\nYour game will be reset.');
+        const confirmed = confirm(
+          '⚠️ Refreshing the page will lose your progress!\n\nAre you sure you want to refresh the page?'
+        );
+        if (!confirmed) {
+          return;
+        }
+        window.location.reload();
         return;
       }
       // Block Ctrl+R / Cmd+R
       if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
         e.preventDefault();
-        alert('⚠️ Refreshing the page will lose your progress!\nYour game will be reset.');
+        const confirmed = confirm(
+          '⚠️ Refreshing the page will lose your progress!\n\nAre you sure you want to refresh the page?'
+        );
+        if (!confirmed) {
+          return;
+        }
+        window.location.reload();
         return;
       }
     };
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = '⚠️ Refreshing the page will lose your progress! Are you sure you want to leave?';
+      e.returnValue =
+        '⚠️ Refreshing the page will lose your progress! Are you sure you want to leave?';
     };
 
     window.addEventListener('keydown', handleKeyDown);

@@ -23,13 +23,27 @@ const Container = styled.div`
   &::before {
     content: '';
     position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
     top: -50%;
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 50px 50px;
     animation: float 20s linear infinite;
+    pointer-events: none;
   }
 
   @keyframes float {
@@ -48,12 +62,13 @@ const Container = styled.div`
 const Content = styled(motion.div)`
   position: relative;
   z-index: 1;
-  max-width: 600px;
+  max-width: 650px;
   width: 100%;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: ${theme.spacing.lg};
 `;
 
 /**
@@ -80,9 +95,11 @@ const Title = styled(motion.h1)`
 const Subtitle = styled.p`
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.xl};
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 ${theme.spacing['2xl']} 0;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  line-height: 1.8;
+  max-width: 500px;
+  font-weight: ${theme.fontWeights.medium};
 
   @media (max-width: 768px) {
     font-size: ${theme.fontSizes.lg};
@@ -93,7 +110,7 @@ const Subtitle = styled.p`
  * Styled start button container
  */
 const StartButtonContainer = styled.div`
-  margin: ${theme.spacing['2xl']} auto;
+  margin: ${theme.spacing.lg} auto;
   display: flex;
   justify-content: center;
   width: 100%;
@@ -103,19 +120,33 @@ const StartButtonContainer = styled.div`
  * Styled instructions toggle button
  */
 const InstructionsToggle = styled.button`
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  opacity: 0.8;
-  font-size: ${theme.fontSizes.sm};
+  opacity: 0.9;
+  font-size: ${theme.fontSizes.base};
   font-family: ${theme.fonts.primary};
   cursor: pointer;
-  padding: ${theme.spacing.md};
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
   margin-top: ${theme.spacing.lg};
-  transition: opacity 0.2s ease;
+  border-radius: ${theme.borderRadius.lg};
+  transition: all 0.3s ease;
+  font-weight: ${theme.fontWeights.medium};
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  margin-left: auto;
+  margin-right: auto;
 
   &:hover {
     opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -123,13 +154,14 @@ const InstructionsToggle = styled.button`
  * Styled instructions card
  */
 const InstructionsCard = styled(motion.div)`
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.95);
   border-radius: ${theme.borderRadius.lg};
   padding: ${theme.spacing.lg};
   margin-top: ${theme.spacing.md};
-  box-shadow: ${theme.shadows.xl};
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   width: 100%;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 `;
 
 /**
@@ -169,8 +201,8 @@ const InstructionsList = styled.ul`
 const Features = styled(motion.div)`
   display: flex;
   justify-content: center;
-  gap: ${theme.spacing['2xl']};
-  margin-top: ${theme.spacing['3xl']};
+  gap: ${theme.spacing.xl};
+  margin-top: ${theme.spacing['2xl']};
   flex-wrap: wrap;
   width: 100%;
 
@@ -187,11 +219,20 @@ const Feature = styled(motion.div)`
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.lg};
-  background: rgba(255, 255, 255, 0.1);
+  padding: ${theme.spacing.lg} ${theme.spacing.xl};
+  background: rgba(255, 255, 255, 0.12);
   border-radius: ${theme.borderRadius.lg};
-  backdrop-filter: blur(10px);
-  min-width: 120px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 140px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-4px);
+  }
 `;
 
 /**
@@ -200,6 +241,16 @@ const Feature = styled(motion.div)`
 const FeatureIcon = styled.div`
   font-size: ${theme.fontSizes['3xl']};
   line-height: 1;
+  animation: bounce 2s infinite;
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
 `;
 
 /**
@@ -280,9 +331,16 @@ const StartScreen: React.FC = () => {
         </StartButtonContainer>
 
         {/* Instructions Toggle */}
-        <InstructionsToggle onClick={() => setShowInstructions(!showInstructions)}>
-          {showInstructions ? '▼' : '▶'} How to Play
-        </InstructionsToggle>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.4 }}
+        >
+          <InstructionsToggle onClick={() => setShowInstructions(!showInstructions)}>
+            <span>{showInstructions ? '▼' : '▶'}</span>
+            <span>How to Play</span>
+          </InstructionsToggle>
+        </motion.div>
 
         {/* Instructions Card */}
         <AnimatePresence>
