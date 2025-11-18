@@ -64,11 +64,23 @@ const Description = styled.p`
  * Styled timer container
  */
 const TimerContainer = styled.div`
+  position: fixed;
+  top: ${theme.spacing.md};
+  right: ${theme.spacing.md};
+  z-index: 50;
   display: flex;
   justify-content: center;
-  padding: ${theme.spacing.lg} 0;
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
+  align-items: center;
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary});
+  border-radius: ${theme.borderRadius.xl};
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+
+  @media (max-width: 768px) {
+    top: ${theme.spacing.md};
+    right: ${theme.spacing.md};
+    padding: ${theme.spacing.sm} ${theme.spacing.md};
+  }
 `;
 
 /**

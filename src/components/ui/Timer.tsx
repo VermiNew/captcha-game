@@ -28,14 +28,14 @@ const TimerContainer = styled.div`
  * Styled timer text
  */
 const TimerText = styled(motion.div)<{ $isWarning: boolean }>`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['3xl']};
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes.lg};
   font-weight: ${theme.fontWeights.bold};
-  color: ${(props) =>
-    props.$isWarning ? theme.colors.error : theme.colors.primary};
-  line-height: 1;
-  min-width: 120px;
+  color: white;
+  line-height: 1.2;
+  min-width: 70px;
   text-align: center;
+  letter-spacing: 1px;
 `;
 
 /**
