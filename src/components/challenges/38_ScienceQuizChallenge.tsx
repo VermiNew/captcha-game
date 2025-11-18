@@ -342,25 +342,20 @@ const ScienceQuizChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [answered, setAnswered] = useState(false);
-  const [score, setScore] = useState(0);
-
   const totalQuestions = 6;
   const successThreshold = 4;
   const pointsPerQuestion = 40;
 
-  /**
-   * Initialize with random questions
-   */
-  useEffect(() => {
+  const [questions, setQuestions] = useState<Question[]>(() => {
     const shuffled = [...SCIENCE_QUESTIONS]
       .sort(() => Math.random() - 0.5)
       .slice(0, totalQuestions);
-    setQuestions(shuffled);
-  }, []);
+    return shuffled;
+  });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [score, setScore] = useState(0);
 
   /**
    * Handle answer selection
