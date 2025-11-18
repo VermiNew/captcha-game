@@ -28,7 +28,7 @@ import RhythmChallenge from './challenges/16_RhythmChallenge';
 import ClickPrecisionChallenge from './challenges/17_ClickPrecisionChallenge';
 import TowerBuilderChallenge from './challenges/18_TowerBuilderChallenge';
 import OddOneOutChallenge from './challenges/19_OddOneOutChallenge';
-import VisualMemoryChallenge from './challenges/20_VisualMemoryChallenge';
+import SimonSaysChallenge from './challenges/20_SimonSaysChallenge';
 import BalanceGameChallenge from './challenges/21_BalanceGameChallenge';
 import ChessPuzzleChallenge from './challenges/22_ChessPuzzleChallenge';
 import ConnectDotsChallenge from './challenges/23_ConnectDotsChallenge';
@@ -249,7 +249,7 @@ const GameContainer: React.FC = () => {
       case 19:
         return <OddOneOutChallenge {...challengeProps} />;
       case 20:
-        return <VisualMemoryChallenge {...challengeProps} />;
+        return <SimonSaysChallenge {...challengeProps} />;
       case 21:
         return <BalanceGameChallenge {...challengeProps} />;
       case 22:

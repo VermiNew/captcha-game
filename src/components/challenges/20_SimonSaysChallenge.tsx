@@ -198,10 +198,10 @@ const Emoji = styled.span`
 `;
 
 /**
- * Visual Memory Challenge - Simon Says
- * Memorize and click the color sequence
+ * Simon Says Challenge
+ * Memorize and repeat the color sequence
  */
-const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
+const SimonSaysChallenge: React.FC<ChallengeProps> = ({
   onComplete,
   timeLimit,
   challengeId,
@@ -436,4 +436,4 @@ const VisualMemoryChallenge: React.FC<ChallengeProps> = ({
   );
 };
 
-export default VisualMemoryChallenge;
+export default SimonSaysChallenge;
