@@ -344,6 +344,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 45,
+    name: 'JavaScript Code',
+    description: 'Write code that outputs "Hello World!"',
+    component: (() => null) as any,
+    timeLimit: 60,
+    maxScore: 200,
+  },
+  {
     id: 46,
     name: 'Binary Calculator',
     description: 'Convert 4 decimal numbers to binary',
