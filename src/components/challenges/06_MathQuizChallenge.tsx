@@ -5,18 +5,12 @@ import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
-/**
- * Question interface
- */
 interface Question {
   question: string;
   answer: number;
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
-/**
- * Generate easy question (single digit +/-)
- */
 const generateEasyQuestion = (): Question => {
   const num1 = Math.floor(Math.random() * 10) + 1;
   const num2 = Math.floor(Math.random() * 10) + 1;
@@ -26,9 +20,6 @@ const generateEasyQuestion = (): Question => {
   return { question, answer, difficulty: 'easy' };
 };
 
-/**
- * Generate medium question (multiplication)
- */
 const generateMediumQuestion = (): Question => {
   const num1 = Math.floor(Math.random() * 12) + 5;
   const num2 = Math.floor(Math.random() * 8) + 2;
@@ -37,9 +28,6 @@ const generateMediumQuestion = (): Question => {
   return { question, answer, difficulty: 'medium' };
 };
 
-/**
- * Generate hard question (parentheses)
- */
 const generateHardQuestion = (): Question => {
   const num1 = Math.floor(Math.random() * 10) + 10;
   const num2 = Math.floor(Math.random() * 10) + 5;
@@ -56,32 +44,51 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.xl};
+  gap: ${theme.spacing.lg};
   width: 100%;
-  max-width: 500px;
+  max-width: 450px;
   margin: 0 auto;
+  padding: 0 ${theme.spacing.md};
 `;
 
 /**
- * Styled title
+ * Styled progress section
  */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
+const ProgressSection = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.sm};
+  align-items: center;
 `;
 
 /**
- * Styled question progress
+ * Styled progress bar
  */
-const QuestionProgress = styled.p`
+const ProgressBar = styled.div`
+  width: 100%;
+  height: 6px;
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+`;
+
+/**
+ * Styled progress fill
+ */
+const ProgressFill = styled(motion.div)`
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 3px;
+`;
+
+/**
+ * Styled progress text
+ */
+const ProgressText = styled.p`
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
-  text-align: center;
   margin: 0;
 `;
 
@@ -90,7 +97,7 @@ const QuestionProgress = styled.p`
  */
 const DifficultyBadge = styled(motion.span)<{ difficulty: 'easy' | 'medium' | 'hard' }>`
   display: inline-block;
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  padding: ${theme.spacing.xs} ${theme.spacing.sm};
   border-radius: 9999px;
   font-size: ${theme.fontSizes.xs};
   font-weight: ${theme.fontWeights.bold};
@@ -99,7 +106,7 @@ const DifficultyBadge = styled(motion.span)<{ difficulty: 'easy' | 'medium' | 'h
       case 'easy':
         return theme.colors.success;
       case 'medium':
-        return theme.colors.warning;
+        return '#f59e0b';
       case 'hard':
         return theme.colors.error;
       default:
@@ -110,16 +117,27 @@ const DifficultyBadge = styled(motion.span)<{ difficulty: 'easy' | 'medium' | 'h
 `;
 
 /**
+ * Styled question box
+ */
+const QuestionBox = styled(motion.div)`
+  width: 100%;
+  padding: ${theme.spacing.lg};
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: ${theme.borderRadius.lg};
+  text-align: center;
+`;
+
+/**
  * Styled question display
  */
-const QuestionDisplay = styled(motion.div)`
-  font-family: ${theme.fonts.primary};
-  font-size: clamp(2.5rem, 6vw, 4rem);
+const QuestionDisplay = styled.div`
+  font-family: ${theme.fonts.mono};
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.primary};
-  text-align: center;
-  margin: ${theme.spacing.xl} 0;
   line-height: 1.2;
+  margin: 0;
 `;
 
 /**
@@ -127,12 +145,12 @@ const QuestionDisplay = styled(motion.div)`
  */
 const Input = styled(motion.input)<{ $isError: boolean; $isSuccess: boolean }>`
   width: 100%;
-  height: 80px;
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
+  height: 60px;
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes.xl};
   font-weight: ${theme.fontWeights.bold};
   padding: ${theme.spacing.md};
-  border: 2px solid ${theme.colors.primary};
+  border: 2px solid rgba(99, 102, 241, 0.3);
   border-radius: ${theme.borderRadius.lg};
   text-align: center;
   color: ${theme.colors.textPrimary};
@@ -156,7 +174,7 @@ const Input = styled(motion.input)<{ $isError: boolean; $isSuccess: boolean }>`
 
   &:focus {
     outline: none;
-    border-color: ${theme.colors.secondary};
+    border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   }
 
@@ -166,16 +184,9 @@ const Input = styled(motion.input)<{ $isError: boolean; $isSuccess: boolean }>`
   }
 
   @keyframes shake {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-    25% {
-      transform: translateX(-10px);
-    }
-    75% {
-      transform: translateX(10px);
-    }
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
   }
 `;
 
@@ -183,7 +194,8 @@ const Input = styled(motion.input)<{ $isError: boolean; $isSuccess: boolean }>`
  * Styled submit button
  */
 const SubmitButton = styled(motion.button)<{ $isCorrect?: boolean }>`
-  padding: ${theme.spacing.md} ${theme.spacing.xl};
+  width: 100%;
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.base};
   font-weight: ${theme.fontWeights.semibold};
@@ -197,11 +209,15 @@ const SubmitButton = styled(motion.button)<{ $isCorrect?: boolean }>`
     return theme.colors.primary;
   }};
   color: white;
-  box-shadow: ${theme.shadows.md};
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
   &:hover:not(:disabled) {
-    box-shadow: ${theme.shadows.lg};
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   &:disabled {
@@ -213,18 +229,38 @@ const SubmitButton = styled(motion.button)<{ $isCorrect?: boolean }>`
 /**
  * Styled score display
  */
-const ScoreDisplay = styled(motion.p)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  color: ${theme.colors.primary};
+const ScoreDisplay = styled(motion.div)`
+  width: 100%;
+  padding: ${theme.spacing.md};
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: ${theme.borderRadius.lg};
   text-align: center;
-  margin: ${theme.spacing.lg} 0 0 0;
-  font-weight: ${theme.fontWeights.semibold};
+`;
+
+/**
+ * Styled score label
+ */
+const ScoreLabel = styled.p`
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.textSecondary};
+  margin: 0 0 ${theme.spacing.xs} 0;
+`;
+
+/**
+ * Styled score value
+ */
+const ScoreValue = styled.p`
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes.lg};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${theme.colors.primary};
+  margin: 0;
 `;
 
 /**
  * Math Quiz Challenge Component
- * 3 progressively harder math questions
  */
 const MathQuizChallenge: React.FC<ChallengeProps> = ({
   onComplete,
@@ -246,6 +282,7 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
+  const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -259,19 +296,16 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
     setIsCorrect(correct);
 
     if (correct) {
-      const pointPerQuestion = 100;
-      setScore((prev) => prev + pointPerQuestion);
+      setScore((prev) => prev + 100);
     }
 
     setTimeout(() => {
       if (currentQuestionIndex < questions.length - 1) {
-        // Next question
         setCurrentQuestionIndex((prev) => prev + 1);
         setUserAnswer('');
         setIsSubmitted(false);
         setIsCorrect(undefined);
       } else {
-        // Quiz completed
         const timeSpent = (Date.now() - startTime) / 1000;
         const finalScore = score + (correct ? 100 : 0);
         onComplete(true, timeSpent, finalScore);
@@ -287,24 +321,25 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
 
   return (
     <ChallengeBase
-      title="Math Quiz Challenge"
+      title="Math Quiz"
       description="Answer 3 math questions of increasing difficulty"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Math Quiz
-        </Title>
-
-        <QuestionProgress>
-          Question {currentQuestionIndex + 1} / {questions.length}
-        </QuestionProgress>
+        <ProgressSection>
+          <ProgressText>
+            Question <strong>{currentQuestionIndex + 1}</strong> / {questions.length}
+          </ProgressText>
+          <ProgressBar>
+            <ProgressFill
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ duration: 0.4 }}
+            />
+          </ProgressBar>
+        </ProgressSection>
 
         <DifficultyBadge
           difficulty={currentQuestion.difficulty}
@@ -315,14 +350,14 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
           {currentQuestion.difficulty.toUpperCase()}
         </DifficultyBadge>
 
-        <QuestionDisplay
+        <QuestionBox
           key={currentQuestionIndex}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {currentQuestion.question} = ?
-        </QuestionDisplay>
+          <QuestionDisplay>{currentQuestion.question} = ?</QuestionDisplay>
+        </QuestionBox>
 
         <Input
           ref={inputRef}
@@ -330,6 +365,7 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
           value={userAnswer}
           onChange={(e) => setUserAnswer(e.target.value)}
           onKeyPress={handleKeyPress}
+          placeholder="Enter your answer"
           disabled={isSubmitted}
           $isError={isSubmitted && !isCorrect}
           $isSuccess={isCorrect === true}
@@ -344,17 +380,20 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
           $isCorrect={isCorrect}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
         >
-          {isSubmitted ? isCorrect ? '✓ Correct!' : '✗ Wrong' : 'Submit'}
+          {isSubmitted ? (isCorrect ? '✓ Correct!' : '✗ Wrong') : 'Submit'}
         </SubmitButton>
 
         <ScoreDisplay
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
         >
-          Current Score: {score} / 300
+          <ScoreLabel>Score</ScoreLabel>
+          <ScoreValue>
+            {score} / {questions.length * 100}
+          </ScoreValue>
         </ScoreDisplay>
       </Container>
     </ChallengeBase>
