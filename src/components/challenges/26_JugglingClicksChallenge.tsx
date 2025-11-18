@@ -137,7 +137,7 @@ const JugglingClicksChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const gameAreaRef = useRef<HTMLDivElement>(null);
 
   const [fallingBalls, setFallingBalls] = useState<FallingBall[]>([]);
