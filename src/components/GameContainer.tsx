@@ -69,6 +69,7 @@ const Container = styled.div`
   min-height: 100vh;
   width: 100%;
   padding: ${theme.spacing['2xl']};
+  padding-bottom: 120px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   gap: ${theme.spacing['2xl']};
 `;
