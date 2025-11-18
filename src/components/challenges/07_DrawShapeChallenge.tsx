@@ -29,10 +29,12 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.xl};
+  gap: ${theme.spacing.md};
   width: 100%;
   max-width: 700px;
   margin: 0 auto;
+  height: 100%;
+  justify-content: space-between;
 `;
 
 /**
@@ -40,11 +42,12 @@ const Container = styled.div`
  */
 const Title = styled(motion.h2)`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
+  font-size: ${theme.fontSizes.xl};
   font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.textPrimary};
   text-align: center;
   margin: 0;
+  flex-shrink: 0;
 `;
 
 /**
@@ -54,20 +57,20 @@ const ShapeToDrawContainer = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.sm};
-  margin-bottom: ${theme.spacing.lg};
-  padding: ${theme.spacing.lg};
+  gap: ${theme.spacing.xs};
+  padding: ${theme.spacing.md};
   background: linear-gradient(135deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%);
   border-radius: ${theme.borderRadius.xl};
   width: 100%;
   box-shadow: ${theme.shadows.sm};
+  flex-shrink: 0;
 `;
 
 /**
  * Styled shape emoji
  */
 const ShapeEmoji = styled(motion.div)`
-  font-size: 6rem;
+  font-size: 4rem;
   line-height: 1;
 `;
 
@@ -89,11 +92,11 @@ const ShapeName = styled.p`
  */
 const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
+  font-size: ${theme.fontSizes.xs};
   color: ${theme.colors.textSecondary};
   text-align: center;
-  margin-bottom: ${theme.spacing.lg};
-  margin-top: 0;
+  margin: 0;
+  flex-shrink: 0;
 `;
 
 /**
@@ -101,7 +104,8 @@ const Instruction = styled.p`
  */
 const CanvasContainer = styled(motion.div)`
   width: 100%;
-  margin-bottom: ${theme.spacing.lg};
+  flex: 1;
+  min-height: 0;
   border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
   box-shadow: ${theme.shadows.md};
@@ -109,7 +113,7 @@ const CanvasContainer = styled(motion.div)`
   canvas {
     display: block;
     width: 100% !important;
-    height: 400px !important;
+    height: 100% !important;
   }
 `;
 
@@ -118,25 +122,27 @@ const CanvasContainer = styled(motion.div)`
  */
 const ButtonGroup = styled(motion.div)`
   display: flex;
-  gap: ${theme.spacing.md};
+  gap: ${theme.spacing.sm};
   justify-content: center;
   flex-wrap: wrap;
   width: 100%;
+  flex-shrink: 0;
 `;
 
 /**
  * Styled action button
  */
 const ActionButton = styled(motion.button)<{ $variant?: 'primary' | 'secondary' }>`
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.sm};
   font-weight: ${theme.fontWeights.semibold};
   border-radius: ${theme.borderRadius.lg};
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
   box-shadow: ${theme.shadows.md};
+  white-space: nowrap;
 
   ${(props) =>
     props.$variant === 'primary'
