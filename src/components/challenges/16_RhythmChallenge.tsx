@@ -19,6 +19,8 @@ const Container = styled.div`
   align-items: center;
   gap: ${theme.spacing.xl};
   width: 100%;
+  justify-content: center;
+  min-height: 400px;
 `;
 
 /**
@@ -26,116 +28,45 @@ const Container = styled.div`
  */
 const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.lg};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
-  height: 24px;
 `;
 
 /**
- * Styled beats grid
+ * Styled rhythm button
  */
-const BeatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: ${theme.spacing.lg};
-  width: 100%;
-  max-width: 500px;
-  margin: ${theme.spacing.xl} 0;
-`;
-
-/**
- * Styled beat tile
- */
-const BeatTile = styled(motion.div)<{ $active: boolean; $hit?: boolean | null }>`
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${(props) => {
-    if (props.$hit === true) return theme.colors.success;
-    if (props.$hit === false) return theme.colors.error;
-    return props.$active ? theme.colors.primary : theme.colors.surface;
-  }};
-  border: 2px solid ${(props) => {
-    if (props.$hit === true) return theme.colors.success;
-    if (props.$hit === false) return theme.colors.error;
-    return props.$active ? theme.colors.primary : theme.colors.border;
-  }};
-  border-radius: ${theme.borderRadius.lg};
-  font-weight: ${theme.fontWeights.bold};
-  font-size: ${theme.fontSizes.xl};
-  color: ${(props) => (props.$active || props.$hit ? 'white' : theme.colors.textSecondary)};
-  cursor: pointer;
-  transition: all 0.1s ease;
-
-  &:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: ${theme.shadows.md};
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.95);
-  }
-`;
-
-/**
- * Styled tap button
- */
-const TapButton = styled(motion.button)`
-  width: 140px;
-  height: 140px;
+const RhythmButton = styled(motion.button)<{ $isActive: boolean }>`
+  width: 160px;
+  height: 160px;
   border-radius: ${theme.borderRadius.full};
   border: 3px solid ${theme.colors.primary};
-  background: white;
-  color: ${theme.colors.primary};
+  background: ${(props) => (props.$isActive ? theme.colors.primary : 'white')};
+  color: ${(props) => (props.$isActive ? 'white' : theme.colors.primary)};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
+  font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: ${theme.spacing.sm};
-  transition: all 0.2s ease;
+  transition: all 0.1s ease;
+  box-shadow: ${(props) =>
+    props.$isActive ? `0 0 30px ${theme.colors.primary}` : 'none'};
 
   &:hover {
-    box-shadow: 0 0 20px ${theme.colors.primary};
     transform: scale(1.05);
   }
 
   &:active {
     transform: scale(0.95);
-    box-shadow: 0 0 30px ${theme.colors.primary};
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-`;
-
-/**
- * Styled progress bar
- */
-const ProgressBar = styled.div`
-  width: 100%;
-  max-width: 400px;
-  height: 8px;
-  background: ${theme.colors.border};
-  border-radius: ${theme.borderRadius.full};
-  overflow: hidden;
-`;
-
-/**
- * Styled progress fill
- */
-const ProgressFill = styled(motion.div)`
-  height: 100%;
-  background: ${theme.colors.primary};
-  border-radius: ${theme.borderRadius.full};
 `;
 
 /**
@@ -197,6 +128,7 @@ const ResultMessage = styled(motion.div)<{ $success: boolean }>`
   color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
   font-weight: ${theme.fontWeights.bold};
   font-size: ${theme.fontSizes.base};
+  grid-column: 1 / -1;
 `;
 
 /**
@@ -225,7 +157,7 @@ function playBeep(frequency: number = 800, duration: number = 100) {
 
 /**
  * Rhythm Challenge Component
- * Player must follow a rhythm pattern by tapping beats
+ * Click the button when it pulses in rhythm
  */
 const RhythmChallenge: React.FC<ChallengeProps> = ({
   onComplete,
@@ -233,80 +165,86 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [phase, setPhase] = useState<GamePhase>('waiting');
-  const [gameStarted, setGameStarted] = useState(false);
-  const [sequence, setSequence] = useState<number[]>([]);
-  const [currentBeat, setCurrentBeat] = useState(-1);
-  const [userTaps, setUserTaps] = useState<number[]>([]);
-  const [taps, setTaps] = useState<{ beat: number; correct: boolean }[]>([]);
+  const [isButtonActive, setIsButtonActive] = useState(false);
+  const [hits, setHits] = useState(0);
+  const [misses, setMisses] = useState(0);
+  const [totalBeats, setTotalBeats] = useState(0);
 
   const sequenceStartRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout>();
-  const BEAT_INTERVAL = 600; // ms between beats
-  const TOLERANCE = 150; // ms tolerance for hitting beat
+  const activeWindowRef = useRef<{ start: number; end: number } | null>(null);
+  const beatCountRef = useRef(0);
+
+  const BEAT_INTERVAL = 800; // ms between beats
+  const ACTIVE_DURATION = 300; // ms button stays active
+  const TOLERANCE = 150; // ms tolerance for clicking
 
   /**
-   * Start the game and play sequence
+   * Start the game
    */
   const startGame = () => {
-    setGameStarted(true);
     setPhase('playing');
-    setUserTaps([]);
-    setTaps([]);
-
-    // Generate random sequence
-    const beatSequence = Array.from({ length: 5 }, () => Math.floor(Math.random() * 100));
-    setSequence(beatSequence);
-
-    // Play sequence
+    setHits(0);
+    setMisses(0);
+    beatCountRef.current = 0;
     sequenceStartRef.current = Date.now();
-    let beatIdx = 0;
-
-    const playNextBeat = () => {
-      if (beatIdx >= 5) {
-        // Sequence complete, wait for user input
-        setTimeout(() => {
-          setPhase('playing');
-          setCurrentBeat(-1);
-        }, 500);
-        return;
-      }
-
-      setCurrentBeat(beatIdx);
-      playBeep(400 + beatIdx * 100, 100);
-
-      timerRef.current = setTimeout(() => {
-        setCurrentBeat(-1);
-        beatIdx++;
-        timerRef.current = setTimeout(playNextBeat, BEAT_INTERVAL);
-      }, 100);
-    };
 
     playNextBeat();
   };
 
   /**
-   * Handle beat tap/click
+   * Play next beat
    */
-  const handleTap = (beatIdx: number) => {
-    if (phase !== 'playing' || taps.length >= 5) return;
-
-    const tapTime = Date.now() - sequenceStartRef.current;
-    const expectedTime = beatIdx * BEAT_INTERVAL + 500; // 500ms delay before sequence starts
-    const timeDiff = Math.abs(tapTime - expectedTime);
-    const isCorrect = timeDiff <= TOLERANCE;
-
-    const newTaps = [...taps, { beat: beatIdx, correct: isCorrect }];
-    setTaps(newTaps);
-    setUserTaps([...userTaps, beatIdx]);
-
-    playBeep(isCorrect ? 1000 : 300, 80);
-
-    // Check if game complete
-    if (newTaps.length === 5) {
+  const playNextBeat = () => {
+    if (beatCountRef.current >= 8) {
+      // Game complete
       timerRef.current = setTimeout(() => {
         setPhase('complete');
-      }, 800);
+      }, 500);
+      return;
     }
+
+    const beatIdx = beatCountRef.current;
+    const activateTime = Date.now();
+    const windowStart = activateTime;
+    const windowEnd = activateTime + ACTIVE_DURATION + TOLERANCE;
+
+    activeWindowRef.current = { start: windowStart, end: windowEnd };
+    setIsButtonActive(true);
+    playBeep(600, 150);
+    beatCountRef.current++;
+    setTotalBeats(beatCountRef.current);
+
+    timerRef.current = setTimeout(() => {
+      setIsButtonActive(false);
+      // If not clicked in time, it's a miss
+      if (activeWindowRef.current && Date.now() > activeWindowRef.current.end) {
+        setMisses((prev) => prev + 1);
+      }
+      // Schedule next beat
+      timerRef.current = setTimeout(playNextBeat, BEAT_INTERVAL - ACTIVE_DURATION);
+    }, ACTIVE_DURATION);
+  };
+
+  /**
+   * Handle button click
+   */
+  const handleClick = () => {
+    if (phase !== 'playing' || !activeWindowRef.current) return;
+
+    const clickTime = Date.now();
+    const { start, end } = activeWindowRef.current;
+
+    if (clickTime >= start && clickTime <= end) {
+      setHits((prev) => prev + 1);
+      playBeep(1200, 100);
+    } else {
+      setMisses((prev) => prev + 1);
+      playBeep(300, 100);
+    }
+
+    // Disable further clicks for this beat
+    activeWindowRef.current = null;
   };
 
   /**
@@ -316,24 +254,24 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
         e.preventDefault();
-        if (phase === 'waiting' && !gameStarted) {
+        if (phase === 'waiting') {
           startGame();
-        } else if (phase === 'playing' && userTaps.length < 5) {
-          handleTap(userTaps.length);
+        } else if (phase === 'playing') {
+          handleClick();
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [phase, gameStarted, userTaps, taps]);
+  }, [phase]);
 
   /**
    * Calculate score
    */
-  const hits = taps.filter((t) => t.correct).length;
-  const success = hits >= 4;
-  const score = hits * 50;
+  const success = hits >= 6;
+  const score = hits * 60;
+  const accuracy = totalBeats > 0 ? Math.round((hits / totalBeats) * 100) : 0;
 
   /**
    * Complete the challenge
@@ -353,7 +291,7 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
   return (
     <ChallengeBase
       title="Rhythm Challenge"
-      description="Follow the rhythm and tap each beat in sync"
+      description="Click the button when it pulses"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
@@ -361,58 +299,31 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
       <Container>
         <Instruction>
           {phase === 'waiting'
-            ? 'Watch the rhythm, then tap each beat'
+            ? 'Click the button in rhythm with the beat'
             : phase === 'playing'
-              ? 'Tap the beats in order!'
+              ? 'Click when it glows!'
               : 'Complete!'}
         </Instruction>
 
-        <BeatsGrid>
-          {[0, 1, 2, 3, 4].map((idx) => {
-            const hit = taps[idx];
-            return (
-              <BeatTile
-                key={idx}
-                $active={currentBeat === idx}
-                $hit={hit ? hit.correct : null}
-                onClick={() => handleTap(idx)}
-                animate={
-                  currentBeat === idx
-                    ? { scale: 1.15, boxShadow: '0 0 20px rgba(99, 102, 241, 0.5)' }
-                    : { scale: 1, boxShadow: 'none' }
+        <RhythmButton
+          $isActive={isButtonActive}
+          onClick={handleClick}
+          disabled={phase !== 'playing'}
+          animate={
+            isButtonActive
+              ? {
+                  scale: 1.1,
+                  boxShadow: `0 0 40px ${theme.colors.primary}`,
                 }
-                transition={{ duration: 0.1 }}
-              >
-                {idx + 1}
-              </BeatTile>
-            );
-          })}
-        </BeatsGrid>
-
-        {phase === 'waiting' && !gameStarted && (
-          <TapButton
-            onClick={startGame}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span>START</span>
-            <span style={{ fontSize: theme.fontSizes.sm, fontWeight: 'normal' }}>
-              or SPACE
-            </span>
-          </TapButton>
-        )}
-
-        {phase === 'playing' && gameStarted && (
-          <>
-            <ProgressBar>
-              <ProgressFill
-                animate={{ width: `${(taps.length / 5) * 100}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </ProgressBar>
-            <Instruction>{taps.length}/5 taps</Instruction>
-          </>
-        )}
+              : {
+                  scale: 1,
+                  boxShadow: 'none',
+                }
+          }
+          transition={{ duration: 0.1 }}
+        >
+          {phase === 'waiting' ? 'START' : phase === 'playing' ? '●' : '✓'}
+        </RhythmButton>
 
         {phase === 'complete' && (
           <Stats
@@ -421,22 +332,25 @@ const RhythmChallenge: React.FC<ChallengeProps> = ({
             transition={{ delay: 0.3 }}
           >
             <StatBox>
-              <StatLabel>Accuracy</StatLabel>
-              <StatValue>{hits}/5</StatValue>
+              <StatLabel>Hits</StatLabel>
+              <StatValue>{hits}/8</StatValue>
             </StatBox>
             <StatBox>
-              <StatLabel>Score</StatLabel>
-              <StatValue>{score}</StatValue>
+              <StatLabel>Accuracy</StatLabel>
+              <StatValue>{accuracy}%</StatValue>
             </StatBox>
 
             <ResultMessage
               $success={success}
-              style={{ gridColumn: '1 / -1' }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
             >
-              {success ? (hits === 5 ? 'Perfect! Flawless rhythm!' : 'Great! You got it!') : 'Keep practicing!'}
+              {success
+                ? hits === 8
+                  ? 'Perfect! Flawless rhythm!'
+                  : 'Great! You got it!'
+                : 'Keep practicing!'}
             </ResultMessage>
           </Stats>
         )}
