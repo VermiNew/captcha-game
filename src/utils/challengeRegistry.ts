@@ -344,6 +344,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 43,
+    name: 'Rapid Sort',
+    description: 'Sort 4 sets of numbers with different rules',
+    component: (() => null) as any,
+    timeLimit: 60,
+    maxScore: 300,
+  },
+  {
     id: 45,
     name: 'JavaScript Code',
     description: 'Write code that outputs "Hello World!"',
