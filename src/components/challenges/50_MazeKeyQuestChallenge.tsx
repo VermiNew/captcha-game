@@ -189,16 +189,16 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
       setPlayerPos((prev) => {
         const newPos = { ...prev };
 
-        if (keysPressed.current['arrowup'] || keysPressed.current['w']) {
+        if (keysPressed.current['w']) {
           if (maze[prev.y - 1]?.[prev.x] === 0) newPos.y -= 1;
         }
-        if (keysPressed.current['arrowdown'] || keysPressed.current['s']) {
+        if (keysPressed.current['s']) {
           if (maze[prev.y + 1]?.[prev.x] === 0) newPos.y += 1;
         }
-        if (keysPressed.current['arrowleft'] || keysPressed.current['a']) {
+        if (keysPressed.current['a']) {
           if (maze[prev.y]?.[prev.x - 1] === 0) newPos.x -= 1;
         }
-        if (keysPressed.current['arrowright'] || keysPressed.current['d']) {
+        if (keysPressed.current['d']) {
           if (maze[prev.y]?.[prev.x + 1] === 0) newPos.x += 1;
         }
 
@@ -306,7 +306,7 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
         </Title>
 
         <Instruction>
-          Use Arrow Keys or WASD to move. Find the key (yellow), then reach the exit (cyan).
+          Use WASD to move. Find the key (yellow), then reach the exit (cyan).
         </Instruction>
 
         <GameCanvas
