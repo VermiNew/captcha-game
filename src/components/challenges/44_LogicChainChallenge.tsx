@@ -308,14 +308,14 @@ const LogicChainChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [puzzle] = useState<LogicPuzzle>(
+  const [puzzle] = useState<LogicPuzzle>(() =>
     LOGIC_PUZZLES[Math.floor(Math.random() * LOGIC_PUZZLES.length)]
   );
 
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [feedback, setFeedback] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   /**
    * Handle cell click

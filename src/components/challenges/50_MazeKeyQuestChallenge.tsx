@@ -149,13 +149,13 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [maze] = useState<number[][]>(() => generateMaze(MAZE_WIDTH, MAZE_HEIGHT));
   const [playerPos, setPlayerPos] = useState({ x: 1, y: 1 });
-  const [keyPos] = useState({
+  const [keyPos] = useState(() => ({
     x: Math.floor(Math.random() * (MAZE_WIDTH - 4)) + 2,
     y: Math.floor(Math.random() * (MAZE_HEIGHT - 4)) + 2,
-  });
+  }));
   const [hasKey, setHasKey] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const keysPressed = useRef<{ [key: string]: boolean }>({});
 
   /**

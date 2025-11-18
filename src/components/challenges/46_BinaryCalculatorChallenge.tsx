@@ -197,7 +197,7 @@ const BinaryCalculatorChallenge: React.FC<ChallengeProps> = ({
   const [feedback, setFeedback] = useState<string>('');
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   const currentNumber = numbers[currentIndex];
   const currentBinary = currentNumber.toString(2);

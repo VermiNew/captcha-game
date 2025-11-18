@@ -153,7 +153,7 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
 
   const [roundsWon, setRoundsWon] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [hasCompleted, setHasCompleted] = useState(false);
   const keysPressed = useRef<{ [key: string]: boolean }>({});
   const roundCompleteTimeoutRef = useRef<NodeJS.Timeout>();

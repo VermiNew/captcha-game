@@ -208,7 +208,7 @@ const JavaScriptCodeChallenge: React.FC<ChallengeProps> = ({
   const [error, setError] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   /**
    * Execute the code

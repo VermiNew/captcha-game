@@ -144,7 +144,7 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
   const [score, setScore] = useState(0);
   const [lines, setLines] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [speed, setSpeed] = useState(600);
   const [hasCompleted, setHasCompleted] = useState(false);
   const gameLoopRef = useRef<NodeJS.Timeout>();

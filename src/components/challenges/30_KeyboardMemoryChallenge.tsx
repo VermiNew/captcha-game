@@ -157,7 +157,7 @@ const KeyboardMemoryChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Generate 3 sequences at start

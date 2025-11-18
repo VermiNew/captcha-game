@@ -208,8 +208,8 @@ const CubeRotationChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   // Target rotation angles
-  const [targetRotateX] = useState(Math.random() * 360);
-  const [targetRotateY] = useState(Math.random() * 360);
+  const [targetRotateX] = useState(() => Math.random() * 360);
+  const [targetRotateY] = useState(() => Math.random() * 360);
 
   // Player rotation angles
   const [playerRotateX, setPlayerRotateX] = useState(0);
@@ -217,7 +217,7 @@ const CubeRotationChallenge: React.FC<ChallengeProps> = ({
 
   const [feedback, setFeedback] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const dragRef = useRef<{ startX: number; startY: number } | null>(null);
 
   /**
