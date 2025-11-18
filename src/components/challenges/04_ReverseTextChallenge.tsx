@@ -113,10 +113,14 @@ const ReverseTextChallenge: React.FC<ChallengeProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reversedText = useMemo(() => {
-    // Reverse text but preserve newlines
+    // Reverse text but preserve newlines with spaces
     const lines = targetText.split('\n');
-    const reversedLines = lines.map((line) => line.split('').reverse().join(''));
-    return reversedLines.reverse().join('\n');
+    const reversedLines = lines.map((line) => {
+      // Remove leading space if present
+      const trimmedLine = line.startsWith(' ') ? line.slice(1) : line;
+      return trimmedLine.split('').reverse().join('');
+    });
+    return reversedLines.reverse().join('\n ');
   }, [targetText]);
 
   useEffect(() => {

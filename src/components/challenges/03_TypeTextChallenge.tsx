@@ -202,6 +202,10 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
 
       if (char === '\n') {
         chars.push(<br key={i} />);
+        // Skip space after newline
+        if (i + 1 < targetText.length && targetText[i + 1] === ' ') {
+          i++;
+        }
       } else {
         let charColor: CharColor = 'pending';
 
