@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -213,16 +213,13 @@ const LightningRoundChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   // Randomly select 15 questions from all 30
-  const questions = useMemo(
-    () => {
-      const shuffled = [...ALL_QUESTIONS].sort(() => Math.random() - 0.5);
-      return shuffled.slice(0, 15);
-    },
-    []
-  );
+  const [questions] = useState(() => {
+    const shuffled = [...ALL_QUESTIONS].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 15);
+  });
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
