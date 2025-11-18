@@ -179,8 +179,12 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
 
       <TimerContainer
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 3, duration: 1.5, ease: 'easeIn' }}
+        animate={{ opacity: isActive ? 1 : 0 }}
+        transition={{
+          delay: isActive ? 3 : 0,
+          duration: isActive ? 1.5 : 0.4,
+          ease: isActive ? 'easeIn' : 'easeOut',
+        }}
       >
         <Timer
           timeLeft={timeLeft}
