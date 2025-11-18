@@ -180,6 +180,8 @@ const GameContainer: React.FC = () => {
   } = useGameStore();
 
   const [showTimer, setShowTimer] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [timerActive, setTimerActive] = useState(true);
 
   const challenges = getChallenges();
   const totalChallenges = getTotalChallenges();
@@ -196,11 +198,32 @@ const GameContainer: React.FC = () => {
   }, [currentChallengeIndex, totalChallenges, setGameState]);
 
   /**
-   * Reset timer visibility when challenge changes
+   * Reset timer when challenge changes
    */
   useEffect(() => {
     setShowTimer(true);
-  }, [currentChallengeIndex]);
+    setTimeLeft(currentChallenge.timeLimit);
+    setTimerActive(true);
+  }, [currentChallengeIndex, currentChallenge.timeLimit]);
+
+  /**
+   * Timer countdown effect
+   */
+  useEffect(() => {
+    if (!timerActive || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setTimerActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timerActive, timeLeft]);
 
   /**
    * Only render during playing state
@@ -370,24 +393,26 @@ const GameContainer: React.FC = () => {
         </ScoreSection>
       </Header>
 
-      {showTimer && (
-        <TimerContainer
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            delay: 3,
-            duration: 1.5,
-            ease: 'easeIn',
-          }}
-        >
-          <Timer
-            timeLeft={Math.round(currentChallenge.timeLimit / 1000)}
-            totalTime={Math.round(currentChallenge.timeLimit / 1000)}
-            onTimeUp={() => setShowTimer(false)}
-          />
-        </TimerContainer>
-      )}
+      <AnimatePresence>
+        {showTimer && (
+          <TimerContainer
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              delay: 3,
+              duration: 1.5,
+              ease: 'easeIn',
+            }}
+          >
+            <Timer
+              timeLeft={timeLeft}
+              totalTime={currentChallenge.timeLimit}
+              onTimeUp={() => setShowTimer(false)}
+            />
+          </TimerContainer>
+        )}
+      </AnimatePresence>
 
       <ChallengeArea>
         <AnimatePresence mode="wait">
