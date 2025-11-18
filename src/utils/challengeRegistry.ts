@@ -20,7 +20,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Captcha',
     description: 'Prove you are not a robot',
     component: (() => null) as any, // Placeholder - will be replaced
-    timeLimit: 10,
+    timeLimit: 20,
     maxScore: 100,
   },
   {
@@ -28,7 +28,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Simple Math',
     description: 'Solve a simple math problem',
     component: (() => null) as any,
-    timeLimit: 15,
+    timeLimit: 25,
     maxScore: 100,
   },
   {
@@ -36,7 +36,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Type Text',
     description: 'Type the text correctly',
     component: (() => null) as any,
-    timeLimit: 30,
+    timeLimit: 40,
     maxScore: 150,
   },
   {
@@ -44,7 +44,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Reverse Text',
     description: 'Read backwards and type normally',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 60,
     maxScore: 200,
   },
   {
@@ -52,7 +52,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Build Sentence',
     description: 'Drag words to build a sentence',
     component: (() => null) as any,
-    timeLimit: 30,
+    timeLimit: 40,
     maxScore: 150,
   },
   {
@@ -60,7 +60,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Math Quiz',
     description: 'Answer 3 math questions',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 70,
     maxScore: 300,
   },
   {
@@ -68,7 +68,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Draw Shape',
     description: 'Draw the requested shape',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 60,
     maxScore: 200,
   },
   {
@@ -76,7 +76,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Draw Circle',
     description: 'Draw a perfect circle (90% accuracy)',
     component: (() => null) as any,
-    timeLimit: 30,
+    timeLimit: 50,
     maxScore: 250,
   },
   {
@@ -84,7 +84,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Geography Quiz',
     description: 'Answer geography questions',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 55,
     maxScore: 200,
   },
   {
@@ -92,7 +92,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Find Emoji',
     description: 'Find the requested emoji',
     component: (() => null) as any,
-    timeLimit: 20,
+    timeLimit: 25,
     maxScore: 100,
   },
   {
@@ -100,7 +100,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Color Memory',
     description: 'Remember and click the sequence',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 80,
     maxScore: 300,
   },
   {
@@ -108,7 +108,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Pattern Recognition',
     description: 'Identify the pattern',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 55,
     maxScore: 200,
   },
   {
@@ -116,7 +116,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Reaction Time',
     description: 'React as fast as you can',
     component: (() => null) as any,
-    timeLimit: 10,
+    timeLimit: 15,
     maxScore: 100,
   },
   {
@@ -124,7 +124,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Sliding Puzzle',
     description: 'Solve the sliding puzzle',
     component: (() => null) as any,
-    timeLimit: 120,
+    timeLimit: 150,
     maxScore: 500,
   },
   {
@@ -132,7 +132,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Tic Tac Toe',
     description: 'Beat the AI at Tic Tac Toe',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 55,
     maxScore: 200,
   },
   {
@@ -140,39 +140,39 @@ export const challengeRegistry: Challenge[] = [
     name: 'Rhythm Challenge',
     description: 'Follow the rhythm pattern',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 250,
   },
   {
-     id: 17,
-     name: 'Click Precision',
-     description: 'Click targets with precision',
-     component: (() => null) as any,
-     timeLimit: 30,
-     maxScore: 200,
-   },
-   {
-     id: 18,
-     name: 'Tower Builder',
-     description: 'Stack blocks perfectly to build the tallest tower',
-     component: (() => null) as any,
-     timeLimit: 60,
-     maxScore: 300,
-   },
-   {
-     id: 19,
-     name: 'Odd One Out',
-     description: 'Find the odd one out',
-     component: (() => null) as any,
-     timeLimit: 30,
-     maxScore: 150,
-   },
+      id: 17,
+      name: 'Click Precision',
+      description: 'Click targets with precision',
+      component: (() => null) as any,
+      timeLimit: 35,
+      maxScore: 200,
+    },
+    {
+      id: 18,
+      name: 'Tower Builder',
+      description: 'Stack blocks perfectly to build the tallest tower',
+      component: (() => null) as any,
+      timeLimit: 80,
+      maxScore: 300,
+    },
+    {
+      id: 19,
+      name: 'Odd One Out',
+      description: 'Find the odd one out',
+      component: (() => null) as any,
+      timeLimit: 40,
+      maxScore: 150,
+    },
   {
     id: 20,
     name: 'Visual Memory',
     description: 'Remember the grid pattern',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 300,
   },
   {
@@ -180,7 +180,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Balance Game',
     description: 'Balance the scale',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 250,
   },
   {
@@ -188,7 +188,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Chess Puzzle',
     description: 'Find the checkmate in one move',
     component: (() => null) as any,
-    timeLimit: 90,
+    timeLimit: 120,
     maxScore: 250,
   },
   {
@@ -196,7 +196,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Connect Dots',
     description: 'Connect all dots without crossing lines',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 200,
   },
   {
@@ -204,7 +204,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Mouse Maze',
     description: 'Navigate the maze without hitting walls',
     component: (() => null) as any,
-    timeLimit: 90,
+    timeLimit: 110,
     maxScore: 300,
   },
   {
@@ -212,7 +212,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Pong Reflex',
     description: 'Beat the AI at Pong',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 70,
     maxScore: 200,
   },
   {
@@ -220,7 +220,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Juggling Clicks',
     description: 'Catch the falling balls',
     component: (() => null) as any,
-    timeLimit: 25,
+    timeLimit: 35,
     maxScore: 200,
   },
   {
@@ -228,7 +228,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Lightning Round',
     description: 'Answer 15 yes/no questions quickly',
     component: (() => null) as any,
-    timeLimit: 30,
+    timeLimit: 45,
     maxScore: 195,
   },
   {
@@ -236,7 +236,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Whack A Mole',
     description: 'Click on the moles before they hide',
     component: (() => null) as any,
-    timeLimit: 30,
+    timeLimit: 40,
     maxScore: 250,
   },
   {
@@ -244,7 +244,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Target Practice',
     description: 'Click on the targets before time runs out',
     component: (() => null) as any,
-    timeLimit: 35,
+    timeLimit: 40,
     maxScore: 300,
   },
   {
@@ -252,7 +252,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Keyboard Memory',
     description: 'Remember and type the letter sequences',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 300,
   },
   {
@@ -260,7 +260,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Color Blind Test',
     description: 'Identify the hidden numbers in the colored patterns',
     component: (() => null) as any,
-    timeLimit: 50,
+    timeLimit: 65,
     maxScore: 250,
   },
   {
@@ -268,7 +268,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Dice Probability',
     description: 'Predict the sum of two dice',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 55,
     maxScore: 300,
   },
   {
@@ -276,7 +276,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Car Driving',
     description: 'Avoid obstacles and stay on the road for 30 seconds',
     component: (() => null) as any,
-    timeLimit: 35,
+    timeLimit: 50,
     maxScore: 300,
   },
   {
@@ -284,7 +284,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Shutdown Computer',
     description: 'Navigate through the OS and shut down the computer',
     component: (() => null) as any,
-    timeLimit: 45,
+    timeLimit: 55,
     maxScore: 130,
   },
   {
@@ -292,7 +292,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Fraction Fighter',
     description: 'Compare fractions and select the larger one',
     component: (() => null) as any,
-    timeLimit: 40,
+    timeLimit: 50,
     maxScore: 240,
   },
   {
@@ -300,7 +300,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Flag Match',
     description: 'Match flags to their country names',
     component: (() => null) as any,
-    timeLimit: 50,
+    timeLimit: 60,
     maxScore: 210,
   },
   {
@@ -308,7 +308,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Music Notes',
     description: 'Listen and repeat the musical sequence',
     component: (() => null) as any,
-    timeLimit: 40,
+    timeLimit: 55,
     maxScore: 200,
   },
   {
@@ -316,7 +316,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Science Quiz',
     description: 'Answer 6 science questions correctly',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 70,
     maxScore: 240,
   },
   {
@@ -324,7 +324,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Space Shooter',
     description: 'Destroy asteroids and survive for 60 seconds',
     component: (() => null) as any,
-    timeLimit: 65,
+    timeLimit: 75,
     maxScore: 400,
   },
   {
@@ -332,7 +332,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Pixel Art Memory',
     description: 'Memorize and draw the pixel art pattern',
     component: (() => null) as any,
-    timeLimit: 50,
+    timeLimit: 65,
     maxScore: 300,
   },
   {
@@ -340,7 +340,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Math Sorting',
     description: 'Sort numbers by different rules',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 300,
   },
   {
@@ -348,7 +348,7 @@ export const challengeRegistry: Challenge[] = [
     name: '3D Cube Rotation',
     description: 'Rotate the cube to match the target orientation',
     component: (() => null) as any,
-    timeLimit: 90,
+    timeLimit: 120,
     maxScore: 250,
   },
   {
@@ -356,7 +356,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Rapid Sort',
     description: 'Sort 4 sets of numbers with different rules',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 80,
     maxScore: 300,
   },
   {
@@ -364,7 +364,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Logic Chain Solver',
     description: 'Use clues to solve a 4x4 logic puzzle',
     component: (() => null) as any,
-    timeLimit: 120,
+    timeLimit: 150,
     maxScore: 300,
   },
   {
@@ -372,7 +372,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'JavaScript Code',
     description: 'Write code that outputs "Hello World!"',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 90,
     maxScore: 200,
   },
   {
@@ -380,7 +380,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Binary Calculator',
     description: 'Convert 4 decimal numbers to binary',
     component: (() => null) as any,
-    timeLimit: 60,
+    timeLimit: 75,
     maxScore: 300,
   },
   {
@@ -388,7 +388,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Pong Arcade',
     description: 'Win 3 rounds of Pong against AI (first to 11 points)',
     component: (() => null) as any,
-    timeLimit: 120,
+    timeLimit: 150,
     maxScore: 300,
   },
   {
@@ -404,7 +404,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'IT & Network Knowledge Quiz',
     description: 'Answer 12 IT and Network questions (need 9/12 correct)',
     component: (() => null) as any,
-    timeLimit: 90,
+    timeLimit: 110,
     maxScore: 300,
   },
   {
@@ -412,7 +412,7 @@ export const challengeRegistry: Challenge[] = [
     name: 'Maze Key Quest',
     description: 'Navigate the maze, find the key, and reach the exit',
     component: (() => null) as any,
-    timeLimit: 120,
+    timeLimit: 150,
     maxScore: 250,
   },
   ];
