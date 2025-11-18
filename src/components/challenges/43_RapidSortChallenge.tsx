@@ -247,7 +247,7 @@ const RapidSortChallenge: React.FC<ChallengeProps> = ({
 
   const [sortedSets, setSortedSets] = useState<number[][]>(() => Array.from({ length: 4 }, () => []));
   const [correctCount, setCorrectCount] = useState(0);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   /**

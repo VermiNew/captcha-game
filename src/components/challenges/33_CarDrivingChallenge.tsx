@@ -400,7 +400,7 @@ const CarDrivingChallenge: React.FC<ChallengeProps> = ({
         ) {
             setGameOver(true);
         }
-    }, [carX, obstacles, gameStarted, gameOver, roadStartX, roadEndX]);
+    }, [carX, obstacles, gameStarted, gameOver, roadStartX, roadEndX, setGameOver]);
 
     /**
      * Timer countdown
@@ -437,13 +437,22 @@ const CarDrivingChallenge: React.FC<ChallengeProps> = ({
      * Handle game completion
      */
     useEffect(() => {
-        if (gameStarted && timeLeft === 0) {
+        if (gameStarted && timeLeft === 0 && !gameOver) {
             setGameOver(true);
-            setTimeout(() => {
+        }
+    }, [timeLeft, gameStarted, gameOver]);
+
+    /**
+     * Call onComplete when game is over and time is 0
+     */
+    useEffect(() => {
+        if (gameStarted && timeLeft === 0 && gameOver) {
+            const timer = setTimeout(() => {
                 onComplete(true, GAME_DURATION, score);
             }, 1500);
+            return () => clearTimeout(timer);
         }
-    }, [timeLeft, gameStarted, score, onComplete]);
+    }, [timeLeft, gameStarted, gameOver, score, onComplete]);
 
     /**
      * Start game on mount - use initializer instead

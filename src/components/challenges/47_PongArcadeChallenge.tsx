@@ -316,36 +316,39 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
   useEffect(() => {
     const maxScore = 11;
     if (gameState.playerScore >= maxScore) {
-      const newRoundsWon = roundsWon + 1;
-      setRoundsWon(newRoundsWon);
+      setRoundsWon((prev) => {
+        const newRoundsWon = prev + 1;
 
-      if (newRoundsWon >= 3) {
-        if (!hasCompleted) {
-          setIsGameOver(true);
-          setHasCompleted(true);
+        if (newRoundsWon >= 3) {
+          if (!hasCompleted) {
+            setIsGameOver(true);
+            setHasCompleted(true);
 
-          const timer = setTimeout(() => {
-            const timeSpent = (Date.now() - startTime) / 1000;
-            onComplete(true, timeSpent, 300);
-          }, 2000);
+            const timer = setTimeout(() => {
+              const timeSpent = (Date.now() - startTime) / 1000;
+              onComplete(true, timeSpent, 300);
+            }, 2000);
 
-          roundCompleteTimeoutRef.current = timer;
+            roundCompleteTimeoutRef.current = timer;
+          }
+        } else {
+          // Reset for next round
+          setGameState({
+            playerY: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
+            aiY: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
+            ballX: CANVAS_WIDTH / 2,
+            ballY: CANVAS_HEIGHT / 2,
+            ballDX: BALL_SPEED,
+            ballDY: BALL_SPEED,
+            playerScore: 0,
+            aiScore: 0,
+          });
         }
-      } else {
-        // Reset for next round
-        setGameState({
-          playerY: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
-          aiY: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
-          ballX: CANVAS_WIDTH / 2,
-          ballY: CANVAS_HEIGHT / 2,
-          ballDX: BALL_SPEED,
-          ballDY: BALL_SPEED,
-          playerScore: 0,
-          aiScore: 0,
-        });
-      }
+
+        return newRoundsWon;
+      });
     }
-  }, [gameState.playerScore, roundsWon, hasCompleted, startTime, onComplete]);
+  }, [gameState.playerScore, hasCompleted, startTime, onComplete]);
 
   /**
    * Cleanup on unmount

@@ -188,7 +188,7 @@ const DrawShapeChallenge: React.FC<ChallengeProps> = ({
   const [shape] = useState(() =>
     shapes[Math.floor(Math.random() * shapes.length)],
   );
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
 

@@ -242,7 +242,7 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
   const [score, setScore] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | undefined>();
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentQuestion = questions[currentQuestionIndex];

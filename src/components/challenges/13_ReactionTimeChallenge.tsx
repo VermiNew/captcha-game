@@ -266,7 +266,7 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
   const [reactions, setReactions] = useState<number[]>([]);
   const [phase, setPhase] = useState<GamePhase>('waiting-start');
   const [lastReactionTime, setLastReactionTime] = useState<number | null>(null);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   const timeoutRef = useRef<NodeJS.Timeout>();
   const startTimeRef = useRef<number>(0);

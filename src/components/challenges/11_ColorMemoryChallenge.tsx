@@ -227,7 +227,7 @@ const ColorMemoryChallenge: React.FC<ChallengeProps> = ({
   const [userSequence, setUserSequence] = useState<ColorKey[]>([]);
   const [phase, setPhase] = useState<GamePhase>('playing-sequence');
   const [activeColor, setActiveColor] = useState<ColorKey | null>(null);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [gameStarted, setGameStarted] = useState(false);
   const sequenceTimeoutRef = useRef<NodeJS.Timeout>();
   const phaseTimeoutRef = useRef<NodeJS.Timeout>();

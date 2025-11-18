@@ -352,15 +352,23 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
     if (score >= 5000 || lines >= 10) {
       setIsGameOver(true);
       setHasCompleted(true);
+    }
+  }, [score, lines, hasCompleted, isGameOver, setIsGameOver, setHasCompleted]);
 
+  /**
+   * Call onComplete when game is over
+   */
+  useEffect(() => {
+    if (hasCompleted && isGameOver) {
       const timer = setTimeout(() => {
         const timeSpent = (Date.now() - startTime) / 1000;
         onComplete(true, timeSpent, Math.floor(score));
       }, 2000);
 
       completionTimeoutRef.current = timer;
+      return () => clearTimeout(timer);
     }
-  }, [score, lines, hasCompleted, isGameOver, startTime, onComplete]);
+  }, [hasCompleted, isGameOver, startTime, score, onComplete]);
 
   /**
    * Cleanup on unmount

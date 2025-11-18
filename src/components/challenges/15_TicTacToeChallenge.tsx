@@ -312,7 +312,7 @@ const TicTacToeChallenge: React.FC<ChallengeProps> = ({
   const [board, setBoard] = useState<CellValue[]>(INITIAL_BOARD);
   const [gameStatus, setGameStatus] = useState<GameStatus>('playing');
   const [winningCells, setWinningCells] = useState<number[]>([]);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const aiMovePendingRef = useRef(false);
 
   /**

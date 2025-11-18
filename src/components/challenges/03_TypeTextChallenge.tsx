@@ -161,7 +161,7 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
 }) => {
   const [targetText] = useState(() => getRandomSentence());
   const [userInput, setUserInput] = useState('');
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [isCompleted, setIsCompleted] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

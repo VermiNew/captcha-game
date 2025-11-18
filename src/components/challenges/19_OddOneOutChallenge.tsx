@@ -287,7 +287,7 @@ const OddOneOutChallenge: React.FC<ChallengeProps> = ({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<'success' | 'error' | null>(null);
   const [completed, setCompleted] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   /**
    * Handle emoji click

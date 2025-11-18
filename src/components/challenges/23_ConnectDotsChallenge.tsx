@@ -237,7 +237,7 @@ const ConnectDotsChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const points = useMemo(() => generatePoints(), []);
 
   const [drawnLines, setDrawnLines] = useState<Line[]>([]);

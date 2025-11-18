@@ -293,15 +293,20 @@ const ResultScreen: React.FC = () => {
    * Handle confetti on mount if score is high enough
    */
   useEffect(() => {
-    setDimensions({
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
-
     if (scorePercentage >= 80) {
       setShowConfetti(true);
     }
   }, [scorePercentage]);
+
+  /**
+   * Set dimensions on mount
+   */
+  useEffect(() => {
+    setDimensions({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  }, []);
 
   const rating = getRating();
 

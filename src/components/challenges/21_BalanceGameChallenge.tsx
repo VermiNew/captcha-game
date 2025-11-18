@@ -393,7 +393,7 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
   const [available, setAvailable] = useState<Weight[]>(WEIGHT_POOL);
   const [rightWeights, setRightWeights] = useState<Weight[]>([]);
   const [completed, setCompleted] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   const rightTotal = rightWeights.reduce((sum, w) => sum + w.value, 0);
   const difference = Math.abs(leftWeight - rightTotal);

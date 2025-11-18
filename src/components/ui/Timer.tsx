@@ -54,20 +54,12 @@ const formatTime = (seconds: number): string => {
 const Timer = React.forwardRef<HTMLDivElement, TimerProps>(
   ({ timeLeft, totalTime, onTimeUp }, ref) => {
     const isWarning = timeLeft < 10;
-    const [, setTrigger] = useState(0);
 
     useEffect(() => {
       if (timeLeft === 0 && onTimeUp) {
         onTimeUp();
       }
     }, [timeLeft, onTimeUp]);
-
-    // Force re-render on time change
-    useEffect(() => {
-      setTrigger((prev) => prev + 1);
-    }, [timeLeft]);
-
-    const progressPercentage = (timeLeft / totalTime) * 100;
 
     return (
       <TimerContainer ref={ref}>

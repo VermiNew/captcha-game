@@ -174,7 +174,7 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({
   timeLimit,
   challengeId,
 }) => {
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const puzzle = useMemo(() => PUZZLES[Math.floor(Math.random() * PUZZLES.length)], []);
 
   const [game, setGame] = useState(() => new Chess(puzzle.fen));

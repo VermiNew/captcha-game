@@ -108,7 +108,7 @@ const ReverseTextChallenge: React.FC<ChallengeProps> = ({
 }) => {
   const [targetText] = useState(() => getRandomSentence());
   const [userInput, setUserInput] = useState('');
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reversedText = useMemo(

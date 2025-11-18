@@ -289,7 +289,7 @@ const SlidingPuzzleChallenge: React.FC<ChallengeProps> = ({
 }) => {
   const [grid, setGrid] = useState<TileValue[][]>(() => generateSolvablePuzzle());
   const [moves, setMoves] = useState(0);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [completed, setCompleted] = useState(false);
   const [lastMovedTile, setLastMovedTile] = useState<TileValue | null>(null);
 

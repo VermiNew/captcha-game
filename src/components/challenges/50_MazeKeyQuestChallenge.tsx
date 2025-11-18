@@ -328,7 +328,7 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
           </div>
           <div>
             <p>Time</p>
-            <p>{((Date.now() - startTime) / 1000).toFixed(1)}s</p>
+            <p>{((startTime !== null ? Date.now() - startTime : 0) / 1000).toFixed(1)}s</p>
           </div>
         </Status>
 

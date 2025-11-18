@@ -344,7 +344,7 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   const [phase, setPhase] = useState<GamePhase>('active');
   const [missIndicator, setMissIndicator] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(1);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationStartRef = useRef<number>(0);

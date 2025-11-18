@@ -327,7 +327,7 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   const [answers, setAnswers] = useState<(number | null)[]>([null, null, null]);
   const [feedback, setFeedback] = useState<(boolean | null)[]>([null, null, null]);
   const [inputValue, setInputValue] = useState('');
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentQuestion = questions[currentQuestionIndex];

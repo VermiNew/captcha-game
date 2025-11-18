@@ -217,7 +217,7 @@ const SimonSaysChallenge: React.FC<ChallengeProps> = ({
   const [currentRound, setCurrentRound] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   const sequenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const buttonFlashRef = useRef<NodeJS.Timeout | null>(null);

@@ -303,7 +303,7 @@ const FindEmojiChallenge: React.FC<ChallengeProps> = ({
   });
 
   const [clickedIndices, setClickedIndices] = useState<Set<number>>(new Set());
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [found, setFound] = useState(false);
 
   /**

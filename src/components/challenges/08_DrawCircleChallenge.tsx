@@ -294,7 +294,7 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
   const [points, setPoints] = useState<Point[]>([]);
   const [accuracy, setAccuracy] = useState(0);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const [successTriggered, setSuccessTriggered] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
