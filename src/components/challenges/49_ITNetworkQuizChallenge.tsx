@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -312,6 +312,7 @@ const ITNetworkQuizChallenge: React.FC<ChallengeProps> = ({
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [startTime] = useState(Date.now());
+  const pendingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -327,27 +328,27 @@ const ITNetworkQuizChallenge: React.FC<ChallengeProps> = ({
   /**
    * Handle submit answer
    */
-  const handleSubmit = () => {
-    if (selectedAnswer === null) return;
-
-    setIsAnswered(true);
+  const handleSubmit = useCallback(() => {
+    if (selectedAnswer === null || isAnswered) return;
 
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    const newScore = score + (isCorrect ? 25 : 0);
+    const newCorrectCount = correctCount + (isCorrect ? 1 : 0);
+
+    setIsAnswered(true);
     if (isCorrect) {
-      setScore((prev) => prev + 25); // 25 points per question
-      setCorrectCount((prev) => prev + 1);
+      setScore(newScore);
+      setCorrectCount(newCorrectCount);
     }
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       if (isLastQuestion) {
         // Quiz completed
         const timeSpent = (Date.now() - startTime) / 1000;
-        const finalScore = score + (isCorrect ? 25 : 0);
-        const finalCorrectCount = correctCount + (isCorrect ? 1 : 0);
         
         // Success if 9/12 or more correct
-        const success = finalCorrectCount >= 9;
-        onComplete(success, timeSpent, success ? finalScore : 0);
+        const success = newCorrectCount >= 9;
+        onComplete(success, timeSpent, success ? newScore : 0);
       } else {
         // Next question
         setCurrentQuestionIndex((prev) => prev + 1);
@@ -355,7 +356,20 @@ const ITNetworkQuizChallenge: React.FC<ChallengeProps> = ({
         setIsAnswered(false);
       }
     }, 1500);
-  };
+
+    pendingTimeoutRef.current = timer;
+  }, [selectedAnswer, isAnswered, currentQuestion, score, correctCount, isLastQuestion, startTime, onComplete]);
+
+  /**
+   * Cleanup pending timeout on unmount
+   */
+  React.useEffect(() => {
+    return () => {
+      if (pendingTimeoutRef.current) {
+        clearTimeout(pendingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   /**
    * Get option style variant based on state

@@ -154,7 +154,9 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
   const [roundsWon, setRoundsWon] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [startTime] = useState(Date.now());
+  const [hasCompleted, setHasCompleted] = useState(false);
   const keysPressed = useRef<{ [key: string]: boolean }>({});
+  const roundCompleteTimeoutRef = useRef<NodeJS.Timeout>();
 
   /**
    * Handle keyboard events
@@ -318,11 +320,17 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
       setRoundsWon(newRoundsWon);
 
       if (newRoundsWon >= 3) {
-        setIsGameOver(true);
-        setTimeout(() => {
-          const timeSpent = (Date.now() - startTime) / 1000;
-          onComplete(true, timeSpent, 300);
-        }, 2000);
+        if (!hasCompleted) {
+          setIsGameOver(true);
+          setHasCompleted(true);
+
+          const timer = setTimeout(() => {
+            const timeSpent = (Date.now() - startTime) / 1000;
+            onComplete(true, timeSpent, 300);
+          }, 2000);
+
+          roundCompleteTimeoutRef.current = timer;
+        }
       } else {
         // Reset for next round
         setGameState({
@@ -337,7 +345,18 @@ const PongArcadeChallenge: React.FC<ChallengeProps> = ({
         });
       }
     }
-  }, [gameState.playerScore, roundsWon, startTime, onComplete]);
+  }, [gameState.playerScore, roundsWon, hasCompleted, startTime, onComplete]);
+
+  /**
+   * Cleanup on unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (roundCompleteTimeoutRef.current) {
+        clearTimeout(roundCompleteTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <ChallengeBase

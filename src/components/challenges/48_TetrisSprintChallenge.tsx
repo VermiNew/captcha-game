@@ -146,7 +146,9 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
   const [isGameOver, setIsGameOver] = useState(false);
   const [startTime] = useState(Date.now());
   const [speed, setSpeed] = useState(600);
+  const [hasCompleted, setHasCompleted] = useState(false);
   const gameLoopRef = useRef<NodeJS.Timeout>();
+  const completionTimeoutRef = useRef<NodeJS.Timeout>();
 
   /**
    * Get piece shape
@@ -345,14 +347,30 @@ const TetrisSprintChallenge: React.FC<ChallengeProps> = ({
    * Check win condition
    */
   useEffect(() => {
+    if (hasCompleted || isGameOver) return;
+
     if (score >= 5000 || lines >= 10) {
       setIsGameOver(true);
-      setTimeout(() => {
+      setHasCompleted(true);
+
+      const timer = setTimeout(() => {
         const timeSpent = (Date.now() - startTime) / 1000;
         onComplete(true, timeSpent, Math.floor(score));
       }, 2000);
+
+      completionTimeoutRef.current = timer;
     }
-  }, [score, lines, startTime, onComplete]);
+  }, [score, lines, hasCompleted, isGameOver, startTime, onComplete]);
+
+  /**
+   * Cleanup on unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <ChallengeBase

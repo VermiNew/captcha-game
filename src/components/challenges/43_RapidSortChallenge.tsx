@@ -234,7 +234,7 @@ const RapidSortChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   // Generate 4 sets of 7 random numbers
-  const [sets] = useState<{ numbers: NumberItem[]; rule: SortRule }[]>(() => {
+  const [sets, setSets] = useState<{ numbers: NumberItem[]; rule: SortRule }[]>(() => {
     const rules: SortRule[] = ['ascending', 'descending', 'even-odd', 'divisible-3'];
     return rules.map((rule) => {
       const numbers: NumberItem[] = Array.from({ length: 7 }, (_, i) => ({
@@ -245,7 +245,7 @@ const RapidSortChallenge: React.FC<ChallengeProps> = ({
     });
   });
 
-  const [sortedSets, setSortedSets] = useState<number[][]>(sets.map(() => []));
+  const [sortedSets, setSortedSets] = useState<number[][]>(() => Array.from({ length: 4 }, () => []));
   const [correctCount, setCorrectCount] = useState(0);
   const [startTime] = useState(Date.now());
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -276,10 +276,19 @@ const RapidSortChallenge: React.FC<ChallengeProps> = ({
       newSortedSets[setIndex].push(data.value);
 
       // Remove from available
-      sets[setIndex].numbers = sets[setIndex].numbers.filter(
-        (_, idx) => idx !== data.numIndex || sets[setIndex].numbers[idx].value !== data.value
-      );
+      const newSets = sets.map((set, idx) => {
+        if (idx === setIndex) {
+          return {
+            ...set,
+            numbers: set.numbers.filter(
+              (_, numIdx) => numIdx !== data.numIndex || set.numbers[numIdx].value !== data.value
+            ),
+          };
+        }
+        return set;
+      });
 
+      setSets(newSets);
       setSortedSets(newSortedSets);
     }
   };
@@ -297,7 +306,18 @@ const RapidSortChallenge: React.FC<ChallengeProps> = ({
         value: removedValue,
         id: `${sets[setIndex].rule}-undo-${Date.now()}`,
       };
-      sets[setIndex].numbers.push(newItem);
+
+      const newSets = sets.map((set, idx) => {
+        if (idx === setIndex) {
+          return {
+            ...set,
+            numbers: [...set.numbers, newItem],
+          };
+        }
+        return set;
+      });
+
+      setSets(newSets);
       setSortedSets(newSortedSets);
     }
   };

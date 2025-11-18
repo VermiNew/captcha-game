@@ -279,10 +279,12 @@ const MazeKeyQuestChallenge: React.FC<ChallengeProps> = ({
    */
   useEffect(() => {
     if (isComplete) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         const timeSpent = (Date.now() - startTime) / 1000;
         onComplete(true, timeSpent, 250);
       }, 1500);
+      
+      return () => clearTimeout(timer);
     }
   }, [isComplete, startTime, onComplete]);
 

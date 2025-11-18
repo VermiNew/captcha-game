@@ -49,6 +49,16 @@ import MusicNotesChallenge from './challenges/37_MusicNotesChallenge';
 import ScienceQuizChallenge from './challenges/38_ScienceQuizChallenge';
 import SpaceShooterChallenge from './challenges/39_SpaceShooterChallenge';
 import PixelArtMemoryChallenge from './challenges/40_PixelArtMemoryChallenge';
+import MathSortingChallenge from './challenges/41_MathSortingChallenge';
+import CubeRotationChallenge from './challenges/42_CubeRotationChallenge';
+import RapidSortChallenge from './challenges/43_RapidSortChallenge';
+import LogicChainChallenge from './challenges/44_LogicChainChallenge';
+import JavaScriptCodeChallenge from './challenges/45_JavaScriptCodeChallenge';
+import BinaryCalculatorChallenge from './challenges/46_BinaryCalculatorChallenge';
+import PongArcadeChallenge from './challenges/47_PongArcadeChallenge';
+import TetrisSprintChallenge from './challenges/48_TetrisSprintChallenge';
+import ITNetworkQuizChallenge from './challenges/49_ITNetworkQuizChallenge';
+import MazeKeyQuestChallenge from './challenges/50_MazeKeyQuestChallenge';
 
 /**
  * Styled main container
@@ -280,6 +290,26 @@ const GameContainer: React.FC = () => {
         return <SpaceShooterChallenge {...challengeProps} />;
       case 40:
         return <PixelArtMemoryChallenge {...challengeProps} />;
+      case 41:
+        return <MathSortingChallenge {...challengeProps} />;
+      case 42:
+        return <CubeRotationChallenge {...challengeProps} />;
+      case 43:
+        return <RapidSortChallenge {...challengeProps} />;
+      case 44:
+        return <LogicChainChallenge {...challengeProps} />;
+      case 45:
+        return <JavaScriptCodeChallenge {...challengeProps} />;
+      case 46:
+        return <BinaryCalculatorChallenge {...challengeProps} />;
+      case 47:
+        return <PongArcadeChallenge {...challengeProps} />;
+      case 48:
+        return <TetrisSprintChallenge {...challengeProps} />;
+      case 49:
+        return <ITNetworkQuizChallenge {...challengeProps} />;
+      case 50:
+        return <MazeKeyQuestChallenge {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>

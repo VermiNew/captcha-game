@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -123,35 +123,35 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
   /**
    * Handle time up event
    */
-  const handleTimeUp = () => {
+  const handleTimeUp = useCallback(() => {
     setIsActive(false);
     console.debug(`Challenge ${challengeId} timed out`);
     onComplete(false, timeLimit, 0);
-  };
+  }, [challengeId, timeLimit, onComplete, setIsActive]);
 
   /**
    * Handle successful completion
    */
-  const handleSuccess = (score: number) => {
+  const handleSuccess = useCallback((score: number) => {
     setIsActive(false);
     const timeSpent = timeLimit - timeLeft;
     onComplete(true, timeSpent, score);
-  };
+  }, [timeLimit, timeLeft, onComplete, setIsActive]);
 
   /**
    * Handle failure
    */
-  const handleFailure = () => {
+  const handleFailure = useCallback(() => {
     setIsActive(false);
     const timeSpent = timeLimit - timeLeft;
     onComplete(false, timeSpent, 0);
-  };
+  }, [timeLimit, timeLeft, onComplete, setIsActive]);
 
   useEffect(() => {
     if (timeLeft === 0) {
       handleTimeUp();
     }
-  }, [timeLeft, challengeId]);
+  }, [timeLeft, handleTimeUp]);
 
   // Expose handlers through context or direct calls
   return (
