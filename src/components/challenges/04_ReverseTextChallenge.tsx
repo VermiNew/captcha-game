@@ -13,9 +13,9 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.xl};
+  gap: ${theme.spacing.lg};
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
 `;
 
@@ -46,18 +46,24 @@ const Instruction = styled.p`
  * Styled reversed text display
  */
 const ReversedTextDisplay = styled(motion.div)`
-  font-family: 'Courier New', monospace;
-  font-size: ${theme.fontSizes.xl};
-  background: ${theme.colors.surface};
-  padding: ${theme.spacing.lg};
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.lg};
+  background: linear-gradient(135deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%);
+  padding: ${theme.spacing.xl};
   border-radius: ${theme.borderRadius.lg};
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: ${theme.colors.primary};
   text-align: center;
   width: 100%;
-  word-break: break-word;
-  white-space: pre-wrap;
+  word-break: normal;
+  white-space: normal;
   user-select: text;
+  border: 2px solid ${theme.colors.primary};
+  box-shadow: ${theme.shadows.md};
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 /**
@@ -67,7 +73,7 @@ const Input = styled(motion.input)`
   width: 100%;
   height: 60px;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
+  font-size: ${theme.fontSizes.base};
   padding: ${theme.spacing.md};
   border: 2px solid ${theme.colors.primary};
   border-radius: ${theme.borderRadius.lg};
@@ -75,11 +81,12 @@ const Input = styled(motion.input)`
   color: ${theme.colors.textPrimary};
   background: ${theme.colors.background};
   transition: all 0.2s ease;
+  box-shadow: ${theme.shadows.sm};
 
   &:focus {
     outline: none;
     border-color: ${theme.colors.secondary};
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
   }
 
   &::placeholder {
@@ -96,6 +103,10 @@ const ProgressInfo = styled.p`
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
+  padding: ${theme.spacing.md};
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border-radius: ${theme.borderRadius.lg};
+  width: 100%;
 `;
 
 /**

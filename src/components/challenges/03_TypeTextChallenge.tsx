@@ -18,8 +18,10 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.xl};
+  gap: ${theme.spacing.lg};
   width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
 `;
 
 /**
@@ -27,18 +29,20 @@ const Container = styled.div`
  */
 const TargetTextContainer = styled(motion.div)`
   width: 100%;
-  background-color: ${theme.colors.surface};
+  background: linear-gradient(135deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%);
   border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.lg};
-  line-height: 1.8;
-  word-break: break-all;
-  white-space: pre-wrap;
-  border: 1px solid ${theme.colors.border};
-  min-height: 100px;
+  padding: ${theme.spacing.xl};
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.base};
+  line-height: 1.6;
+  letter-spacing: 0px;
+  border: 2px solid ${theme.colors.primary};
+  min-height: 80px;
   display: block;
-  gap: 2px;
+  word-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
+  box-shadow: ${theme.shadows.md};
 `;
 
 /**
@@ -54,17 +58,19 @@ const Char = styled.span<{ $color: CharColor }>`
         return theme.colors.error;
       case 'pending':
       default:
-        return theme.colors.textTertiary;
+        return theme.colors.textPrimary;
     }
   }};
   font-weight: ${(props) =>
-    props.$color !== 'pending' ? theme.fontWeights.semibold : theme.fontWeights.normal};
+    props.$color !== 'pending' ? theme.fontWeights.bold : theme.fontWeights.normal};
   background-color: ${(props) => {
-    if (props.$color === 'error') return 'rgba(239, 68, 68, 0.1)';
+    if (props.$color === 'error') return 'rgba(239, 68, 68, 0.15)';
+    if (props.$color === 'success') return 'rgba(16, 185, 129, 0.15)';
     return 'transparent';
   }};
-  padding: 2px 4px;
+  padding: 1px 2px;
   border-radius: ${theme.borderRadius.sm};
+  white-space: pre-wrap;
 `;
 
 /**
@@ -72,8 +78,8 @@ const Char = styled.span<{ $color: CharColor }>`
  */
 const Textarea = styled.textarea`
   width: 100%;
-  height: 120px;
-  font-family: ${theme.fonts.mono};
+  height: 100px;
+  font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.base};
   padding: ${theme.spacing.md};
   border: 2px solid ${theme.colors.primary};
@@ -82,14 +88,16 @@ const Textarea = styled.textarea`
   color: ${theme.colors.textPrimary};
   resize: none;
   transition: all 0.2s ease;
+  box-shadow: ${theme.shadows.sm};
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: ${theme.colors.secondary};
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
   }
 
   &::placeholder {
-    color: ${theme.colors.textTertiary};
+    color: ${theme.colors.textSecondary};
   }
 `;
 
@@ -99,9 +107,13 @@ const Textarea = styled.textarea`
 const Stats = styled.div`
   display: flex;
   justify-content: center;
-  gap: ${theme.spacing.xl};
+  gap: ${theme.spacing.lg};
   width: 100%;
   flex-wrap: wrap;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  padding: ${theme.spacing.lg};
+  border-radius: ${theme.borderRadius.lg};
+  margin-top: ${theme.spacing.md};
 `;
 
 /**
