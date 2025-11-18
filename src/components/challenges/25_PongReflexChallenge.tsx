@@ -111,7 +111,7 @@ const PongReflexChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
   const gameStateRef = useRef<GameState>({
     ballX: 200,
     ballY: 150,
