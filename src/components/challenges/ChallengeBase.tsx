@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
-import Timer from '../ui/Timer';
 import { theme } from '../../styles/theme';
 
 /**
@@ -58,29 +57,6 @@ const Description = styled.p`
   font-size: ${theme.fontSizes.base};
   color: ${theme.colors.textSecondary};
   margin: 0;
-`;
-
-/**
- * Styled timer container
- */
-const TimerContainer = styled(motion.div)`
-  position: fixed;
-  top: ${theme.spacing.md};
-  right: ${theme.spacing.md};
-  z-index: 50;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary});
-  border-radius: ${theme.borderRadius.xl};
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-
-  @media (max-width: 768px) {
-    top: ${theme.spacing.md};
-    right: ${theme.spacing.md};
-    padding: ${theme.spacing.sm} ${theme.spacing.md};
-  }
 `;
 
 /**
@@ -176,22 +152,6 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
         <Title>{title}</Title>
         <Description>{description}</Description>
       </Header>
-
-      <TimerContainer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isActive ? 1 : 0 }}
-        transition={{
-          delay: isActive ? 3 : 0,
-          duration: isActive ? 1.5 : 0.4,
-          ease: isActive ? 'easeIn' : 'easeOut',
-        }}
-      >
-        <Timer
-          timeLeft={timeLeft}
-          totalTime={timeLimit}
-          onTimeUp={handleTimeUp}
-        />
-      </TimerContainer>
 
       <Content>
         {React.isValidElement(children)

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
@@ -6,6 +6,7 @@ import { getChallenges, getTotalChallenges } from '../utils/challengeRegistry';
 import { GameState } from '../types';
 import ProgressBar from './ui/ProgressBar';
 import ScoreDisplay from './ui/ScoreDisplay';
+import Timer from './ui/Timer';
 import { theme } from '../styles/theme';
 
 // Import challenges
@@ -123,6 +124,29 @@ const ChallengeArea = styled.div`
 `;
 
 /**
+ * Styled timer container - fixed position outside challenge flow
+ */
+const TimerContainer = styled(motion.div)`
+  position: fixed;
+  top: ${theme.spacing.md};
+  right: ${theme.spacing.md};
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary});
+  border-radius: ${theme.borderRadius.xl};
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+
+  @media (max-width: 768px) {
+    top: ${theme.spacing.md};
+    right: ${theme.spacing.md};
+    padding: ${theme.spacing.sm} ${theme.spacing.md};
+  }
+`;
+
+/**
  * Placeholder component for unimplemented challenges
  */
 const PlaceholderChallenge = styled.div`
@@ -155,8 +179,11 @@ const GameContainer: React.FC = () => {
     setGameState,
   } = useGameStore();
 
+  const [showTimer, setShowTimer] = useState(false);
+
   const challenges = getChallenges();
   const totalChallenges = getTotalChallenges();
+  const currentChallenge = challenges[currentChallengeIndex];
 
   /**
    * Check if game is completed
@@ -164,8 +191,16 @@ const GameContainer: React.FC = () => {
   useEffect(() => {
     if (currentChallengeIndex >= totalChallenges) {
       setGameState('completed' as GameState);
+      setShowTimer(false);
     }
   }, [currentChallengeIndex, totalChallenges, setGameState]);
+
+  /**
+   * Reset timer visibility when challenge changes
+   */
+  useEffect(() => {
+    setShowTimer(true);
+  }, [currentChallengeIndex]);
 
   /**
    * Only render during playing state
@@ -181,8 +216,6 @@ const GameContainer: React.FC = () => {
     return null;
   }
 
-  const currentChallenge = challenges[currentChallengeIndex];
-
   /**
    * Handle challenge completion
    */
@@ -191,6 +224,7 @@ const GameContainer: React.FC = () => {
     timeSpent: number,
     score: number,
   ) => {
+    setShowTimer(false);
     completeChallenge({
       challengeId: currentChallenge.id,
       success,
@@ -335,6 +369,25 @@ const GameContainer: React.FC = () => {
           <ScoreDisplay score={totalScore} animated />
         </ScoreSection>
       </Header>
+
+      {showTimer && (
+        <TimerContainer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            delay: 3,
+            duration: 1.5,
+            ease: 'easeIn',
+          }}
+        >
+          <Timer
+            timeLeft={Math.round(currentChallenge.timeLimit / 1000)}
+            totalTime={Math.round(currentChallenge.timeLimit / 1000)}
+            onTimeUp={() => setShowTimer(false)}
+          />
+        </TimerContainer>
+      )}
 
       <ChallengeArea>
         <AnimatePresence mode="wait">
