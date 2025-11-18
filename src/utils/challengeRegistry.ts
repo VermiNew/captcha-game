@@ -344,6 +344,14 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 46,
+    name: 'Binary Calculator',
+    description: 'Convert 4 decimal numbers to binary',
+    component: (() => null) as any,
+    timeLimit: 60,
+    maxScore: 300,
+  },
+  {
     id: 49,
     name: 'IT & Network Knowledge Quiz',
     description: 'Answer 12 IT and Network questions (need 9/12 correct)',
