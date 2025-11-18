@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -208,10 +208,10 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [startTime] = useState(Date.now());
+  const [startTime] = useState(() => Date.now());
 
   // Randomly select a maze
-  const maze = useMemo(() => MAZES[Math.floor(Math.random() * MAZES.length)], []);
+  const [maze] = useState(() => MAZES[Math.floor(Math.random() * MAZES.length)]);
 
   const [cursorPos, setCursorPos] = useState<Point>(maze.start);
   const [cursorTrail, setCursorTrail] = useState<Point[]>([maze.start]);
