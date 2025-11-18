@@ -344,11 +344,27 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
+    id: 42,
+    name: '3D Cube Rotation',
+    description: 'Rotate the cube to match the target orientation',
+    component: (() => null) as any,
+    timeLimit: 90,
+    maxScore: 250,
+  },
+  {
     id: 43,
     name: 'Rapid Sort',
     description: 'Sort 4 sets of numbers with different rules',
     component: (() => null) as any,
     timeLimit: 60,
+    maxScore: 300,
+  },
+  {
+    id: 44,
+    name: 'Logic Chain Solver',
+    description: 'Use clues to solve a 4x4 logic puzzle',
+    component: (() => null) as any,
+    timeLimit: 120,
     maxScore: 300,
   },
   {
