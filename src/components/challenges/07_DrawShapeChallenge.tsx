@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
 import type { ChallengeProps } from '../../types';
 import isDebugMode from '../../utils/debug';
+import logger from '../../utils/logger';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
@@ -229,8 +230,8 @@ const DrawShapeChallenge: React.FC<ChallengeProps> = ({
       setTimeout(() => {
         onComplete(true, timeSpent, score);
       }, 500);
-    } catch (error) {
-      console.error('Error submitting drawing:', error);
+      } catch (error) {
+      logger.error('Error submitting drawing:', error);
       alert('Error submitting drawing. Please try again.');
       setIsSubmitting(false);
     }
@@ -296,8 +297,8 @@ const DrawShapeChallenge: React.FC<ChallengeProps> = ({
             width="100%"
             height="400px"
             onStroke={(stroke) => {
-              // Optional: handle stroke events (only log in debug mode)
-              if (isDebugMode()) console.log('Stroke:', stroke);
+              // Optional: handle stroke events (use logger wrapper)
+              logger.log('Stroke:', stroke);
             }}
           />
         </CanvasContainer>

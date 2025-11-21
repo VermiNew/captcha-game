@@ -8,6 +8,7 @@ import GameContainer from './components/GameContainer';
 import ResultScreen from './components/ResultScreen';
 import DebugPanel from './components/DebugPanel';
 import { getTotalChallenges } from './utils/challengeRegistry';
+import logger from './utils/logger';
 
 /**
  * Main App Component
@@ -34,7 +35,7 @@ const App: React.FC = () => {
       // even after App removes the query param from the URL
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__VIBE_DEBUG__ = true;
-      console.debug('Debug mode enabled');
+      logger.debug('Debug mode enabled');
     }
 
     // Handle level jumping
@@ -47,9 +48,9 @@ const App: React.FC = () => {
         // Set to playing state and jump to specific level
         setGameState('playing');
         setCurrentChallengeIndex(levelIndex);
-        console.debug(`Debug: Jumped to level ${levelIndex}`);
+        logger.debug(`Debug: Jumped to level ${levelIndex}`);
       } else {
-        console.warn(
+        logger.warn(
           `Debug: Invalid level ${levelIndex}. Valid range: 0-${totalChallenges - 1}`
         );
       }

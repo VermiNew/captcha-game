@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
+import logger from '../../utils/logger';
 import { theme } from '../../styles/theme';
 
 /**
@@ -113,7 +114,7 @@ export const ChallengeBase: React.FC<ChallengeBaseProps> = ({
    */
   const handleTimeUp = useCallback(() => {
     setIsActive(false);
-    console.debug(`Challenge ${challengeId} timed out`);
+    logger.debug(`Challenge ${challengeId} timed out`);
     onComplete(false, timeLimit, 0);
   }, [challengeId, timeLimit, onComplete, setIsActive]);
 

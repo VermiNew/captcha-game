@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
+import logger from '../../utils/logger';
 
 /**
  * Game phase type
@@ -151,7 +152,7 @@ function playBeep(frequency: number = 800, duration: number = 100) {
     osc.start(now);
     osc.stop(now + duration / 1000);
   } catch {
-    console.debug('Audio context not available');
+    logger.debug('Audio context not available');
   }
 }
 
