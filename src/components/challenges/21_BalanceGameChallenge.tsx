@@ -88,15 +88,20 @@ const WeightsList = styled.div`
  * Styled weight button
  */
 const WeightButton = styled(motion.button)`
-  padding: ${theme.spacing.md};
+  width: 100%;
+  padding: ${theme.spacing.lg};
   background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%);
   color: white;
   border: none;
   border-radius: ${theme.borderRadius.md};
   font-weight: ${theme.fontWeights.bold};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.lg};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.16s ease;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     transform: translateY(-2px);
@@ -105,6 +110,11 @@ const WeightButton = styled(motion.button)`
 
   &:active {
     transform: scale(0.98);
+  }
+
+  &:focus {
+    outline: 3px solid ${theme.colors.primary};
+    outline-offset: 2px;
   }
 `;
 
@@ -360,25 +370,45 @@ const WEIGHT_POOL = [
  * Generate target weight achievable with available weights
  */
 function generateTargetWeight(): number {
-  const possibleWeights = new Set<number>();
-  
-  // Generate all possible sums from WEIGHT_POOL
-  const weights = WEIGHT_POOL.map(w => w.value);
-  
-  for (let i = 0; i < Math.pow(2, weights.length); i++) {
+  // Build all subset sums and track minimal number of items needed for each sum
+  const weights = WEIGHT_POOL.map((w) => w.value);
+  const map = new Map<number, number>(); // sum -> min count
+
+  const totalComb = 1 << weights.length;
+  for (let mask = 1; mask < totalComb; mask++) {
     let sum = 0;
+    let count = 0;
     for (let j = 0; j < weights.length; j++) {
-      if (i & (1 << j)) {
+      if (mask & (1 << j)) {
         sum += weights[j];
+        count++;
       }
     }
     if (sum > 0 && sum < 300) {
-      possibleWeights.add(sum);
+      const prev = map.get(sum);
+      if (prev === undefined || count < prev) map.set(sum, count);
     }
   }
-  
-  const arr = Array.from(possibleWeights).sort((a, b) => a - b);
-  return arr[Math.floor(Math.random() * arr.length)] || 75;
+
+  // Prefer sums achievable with few weights (easier puzzles)
+  const easy: number[] = [];
+  const medium: number[] = [];
+  const hard: number[] = [];
+
+  for (const [s, cnt] of map.entries()) {
+    if (cnt <= 3) easy.push(s);
+    else if (cnt <= 5) medium.push(s);
+    else hard.push(s);
+  }
+
+  const pickFrom = easy.length ? easy : medium.length ? medium : hard;
+  if (pickFrom.length === 0) return 75;
+
+  // bias towards smaller sums within the chosen difficulty
+  pickFrom.sort((a, b) => a - b);
+  const cutoff = Math.max(1, Math.floor(pickFrom.length * 0.6));
+  const candidate = pickFrom.slice(0, cutoff);
+  return candidate[Math.floor(Math.random() * candidate.length)];
 }
 
 /**
@@ -397,15 +427,17 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
 
   const rightTotal = rightWeights.reduce((sum, w) => sum + w.value, 0);
   const difference = Math.abs(leftWeight - rightTotal);
-  const balanced = difference <= 5;
-  const rotation = ((rightTotal - leftWeight) / 150) * 20; // Max 20 degrees
+  const BALANCE_TOLERANCE = 3; // tighten tolerance for greater challenge
+  const balanced = difference <= BALANCE_TOLERANCE && rightWeights.length > 0;
+  const rotation = Math.max(-20, Math.min(20, ((rightTotal - leftWeight) / Math.max(1, leftWeight)) * 20));
 
   /**
    * Add weight to right pan
    */
   const addWeight = (weight: Weight) => {
-    setAvailable(available.filter((w) => w.id !== weight.id));
-    setRightWeights([...rightWeights, weight]);
+    // use functional updates to avoid stale closures
+    setAvailable((prev) => prev.filter((w) => w.id !== weight.id));
+    setRightWeights((prev) => [...prev, weight]);
   };
 
   /**
@@ -414,8 +446,16 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
   const removeWeight = (weightId: string) => {
     const weight = rightWeights.find((w) => w.id === weightId);
     if (weight) {
-      setRightWeights(rightWeights.filter((w) => w.id !== weightId));
-      setAvailable([...available, weight]);
+      setRightWeights((prev) => prev.filter((w) => w.id !== weightId));
+      // Re-insert into available and keep original WEIGHT_POOL order
+      setAvailable((prev) => {
+        const next = [...prev, weight];
+        return next.sort((a, b) => {
+          const ia = WEIGHT_POOL.findIndex((x) => x.id === a.id);
+          const ib = WEIGHT_POOL.findIndex((x) => x.id === b.id);
+          return ia - ib;
+        });
+      });
     }
   };
 
@@ -426,13 +466,22 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
     if (balanced && rightWeights.length > 0 && !completed) {
       setCompleted(true);
       const timeSpent = (Date.now() - startTime) / 1000;
-      const score = Math.max(100, 200 - Math.floor(rightWeights.length * 5) - Math.floor(timeSpent / 2));
+
+      // Scoring: base points with penalties for more weights and time
+      const base = 200;
+      const weightPenalty = rightWeights.length * 10; // each weight reduces score
+      const timePenalty = Math.floor(timeSpent * 0.5); // half point per second
+      let score = Math.max(0, Math.round(base - weightPenalty - timePenalty));
+
+      // Bonus for very precise balancing
+      if (difference <= 1) score += 30;
+      else if (difference <= BALANCE_TOLERANCE) score += 10;
 
       setTimeout(() => {
         onComplete(true, timeSpent, score);
       }, 1500);
     }
-  }, [balanced, rightWeights.length, completed, startTime, onComplete]);
+  }, [balanced, rightWeights.length, completed, startTime, onComplete, difference]);
 
   /**
    * Reset game
