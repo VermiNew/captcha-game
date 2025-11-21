@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
 import type { ChallengeProps } from '../../types';
+import isDebugMode from '../../utils/debug';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
@@ -295,8 +296,8 @@ const DrawShapeChallenge: React.FC<ChallengeProps> = ({
             width="100%"
             height="400px"
             onStroke={(stroke) => {
-              // Optional: handle stroke events
-              console.log('Stroke:', stroke);
+              // Optional: handle stroke events (only log in debug mode)
+              if (isDebugMode()) console.log('Stroke:', stroke);
             }}
           />
         </CanvasContainer>

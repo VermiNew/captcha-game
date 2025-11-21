@@ -30,6 +30,10 @@ const App: React.FC = () => {
     // Enable debug mode if ?debug is present
     if (debug !== null) {
       setIsDebugMode(true);
+      // set a global flag so other components can detect debug mode
+      // even after App removes the query param from the URL
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__VIBE_DEBUG__ = true;
       console.debug('Debug mode enabled');
     }
 
