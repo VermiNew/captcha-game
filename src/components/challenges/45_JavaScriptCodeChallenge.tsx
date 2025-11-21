@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
+import runUserCode from '../../utils/safeRunner';
 
 /**
  * Styled container
@@ -217,37 +218,32 @@ const JavaScriptCodeChallenge: React.FC<ChallengeProps> = ({
     setError('');
     setOutput('');
     setIsRunning(true);
+    (async () => {
+      try {
+        const res = await runUserCode(code, 2000);
+        if (res.error) {
+          setError(res.error);
+        }
 
-    try {
-      // Create a custom console to capture output
-      const outputs: string[] = [];
-      const customConsole = {
-        log: (...args: unknown[]) => {
-          outputs.push(args.map((arg) => String(arg)).join(' '));
-        },
-      };
+        const result = (res.outputs || []).join('\n');
+        setOutput(result);
 
-      // Execute code in a sandboxed function
-      const func = new Function('console', code);
-      func(customConsole);
-
-      const result = outputs.join('\n');
-      setOutput(result);
-
-      // Check if output is "Hello World!"
-      if (result.trim() === 'Hello World!') {
-        setIsSuccess(true);
-        setTimeout(() => {
-          const timeSpent = (Date.now() - startTime) / 1000;
-          onComplete(true, timeSpent, 200);
-        }, 1000);
+        if (!res.timedOut && result.trim() === 'Hello World!') {
+          setIsSuccess(true);
+          setTimeout(() => {
+            const timeSpent = (Date.now() - startTime) / 1000;
+            onComplete(true, timeSpent, 200);
+          }, 1000);
+        }
+        if (res.timedOut) {
+          setError('Execution timed out');
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setIsRunning(false);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(errorMessage);
-    }
-
-    setIsRunning(false);
+    })();
   };
 
   /**
