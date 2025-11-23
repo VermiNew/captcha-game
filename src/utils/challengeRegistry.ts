@@ -48,7 +48,7 @@ export const challengeRegistry: Challenge[] = [
   },
   {
     id: 5,
-    name: 'Build Sentence',
+    name: 'Drag & Drop Sentence',
     description: 'Drag words to build a sentence',
     component: PlaceholderChallenge,
     timeLimit: 40,
@@ -63,7 +63,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-     id: 8,
+    id: 7,
     name: 'Draw Circle',
     description: 'Draw a perfect circle (90% accuracy)',
     component: PlaceholderChallenge,
@@ -71,7 +71,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-    id: 9,
+    id: 8,
     name: 'Geography Quiz',
     description: 'Answer geography questions',
     component: PlaceholderChallenge,
@@ -79,7 +79,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 09,
+    id: 9,
     name: 'Find Emoji',
     description: 'Find the requested emoji',
     component: PlaceholderChallenge,
@@ -87,7 +87,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 100,
   },
   {
-     id: 10,
+    id: 10,
     name: 'Pattern Recognition',
     description: 'Identify the pattern',
     component: PlaceholderChallenge,
@@ -103,7 +103,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 100,
   },
   {
-    id: 10,
+    id: 12,
     name: 'Sliding Puzzle',
     description: 'Solve the sliding puzzle',
     component: PlaceholderChallenge,
@@ -119,29 +119,29 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-       id: 14,
-      name: 'Click Precision',
-      description: 'Click targets with precision',
-      component: PlaceholderChallenge,
-      timeLimit: 35,
-      maxScore: 200,
-    },
-    {
-      id: 13,
-      name: 'Tower Builder',
-      description: 'Stack blocks perfectly to build the tallest tower',
-      component: PlaceholderChallenge,
-      timeLimit: 80,
-      maxScore: 300,
-    },
-    {
-      id: 16,
-      name: 'Odd One Out',
-      description: 'Find the odd one out',
-      component: PlaceholderChallenge,
-      timeLimit: 40,
-      maxScore: 150,
-    },
+    id: 14,
+    name: 'Click Precision',
+    description: 'Click targets with precision',
+    component: PlaceholderChallenge,
+    timeLimit: 35,
+    maxScore: 200,
+  },
+  {
+    id: 15,
+    name: 'Tower Builder',
+    description: 'Stack blocks perfectly to build the tallest tower',
+    component: PlaceholderChallenge,
+    timeLimit: 80,
+    maxScore: 300,
+  },
+  {
+    id: 16,
+    name: 'Odd One Out',
+    description: 'Find the odd one out',
+    component: PlaceholderChallenge,
+    timeLimit: 40,
+    maxScore: 150,
+  },
   {
     id: 14,
     name: 'Visual Memory',
@@ -183,7 +183,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-     id: 22,
+    id: 22,
     name: 'Whack A Mole',
     description: 'Click on the moles before they hide',
     component: PlaceholderChallenge,
@@ -215,7 +215,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-     id: 26,
+    id: 26,
     name: 'Shutdown Computer',
     description: 'Navigate through the OS and shut down the computer',
     component: PlaceholderChallenge,
@@ -239,7 +239,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 210,
   },
   {
-     id: 23,
+    id: 23,
     name: 'Science Quiz',
     description: 'Answer 6 science questions correctly',
     component: PlaceholderChallenge,
@@ -279,7 +279,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-     id: 26,
+    id: 26,
     name: 'Logic Chain Solver',
     description: 'Use clues to solve a 4x4 logic puzzle',
     component: PlaceholderChallenge,
@@ -334,7 +334,15 @@ export const challengeRegistry: Challenge[] = [
     timeLimit: 150,
     maxScore: 250,
   },
-  ];
+  {
+    id: 41,
+    name: 'Highway Racer',
+    description: 'Navigate through traffic for 30 seconds',
+    component: PlaceholderChallenge,
+    timeLimit: 35,
+    maxScore: 400,
+  },
+];
 
 /**
  * Get all challenges

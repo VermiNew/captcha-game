@@ -10,46 +10,47 @@ import Timer from './ui/Timer';
 import { theme } from '../styles/theme';
 
 // Import challenges
-import CaptchaChallenge from './challenges/';
-import SimpleMathChallenge from './challenges/';
-import TypeTextChallenge from './challenges/';
-import ReverseTextChallenge from './challenges/';
-import DragDropSentenceChallenge from './challenges/';
-import MathQuizChallenge from './challenges/';
-import DrawCircleChallenge from './challenges/';
-import GeographyQuizChallenge from './challenges/';
-import FindEmojiChallenge from './challenges/';
-import PatternRecognitionChallenge from './challenges/';
-import ReactionTimeChallenge from './challenges/';
-import SlidingPuzzleChallenge from './challenges/';
-import TicTacToeChallenge from './challenges/';
-import ClickPrecisionChallenge from './challenges/';
-import TowerBuilderChallenge from './challenges/';
-import OddOneOutChallenge from './challenges/';
-import SimonSaysChallenge from './challenges/';
-import BalanceGameChallenge from './challenges/';
-import ChessPuzzleChallenge from './challenges/';
-import ConnectDotsChallenge from './challenges/';
-import MouseMazeChallenge from './challenges/';
-import WhackAMoleChallenge from './challenges/';
-import TargetPracticeChallenge from './challenges/';
-import KeyboardMemoryChallenge from './challenges/';
-import ColorBlindTestChallenge from './challenges/';
-import ShutdownComputerChallenge from './challenges/';
-import FractionFighterChallenge from './challenges/';
-import FlagMatchChallenge from './challenges/';
-import ScienceQuizChallenge from './challenges/';
-import SpaceShooterChallenge from './challenges/';
-import PixelArtMemoryChallenge from './challenges/';
-import MathSortingChallenge from './challenges/';
-import CubeRotationChallenge from './challenges/';
-import LogicChainChallenge from './challenges/';
-import JavaScriptCodeChallenge from './challenges/';
-import BinaryCalculatorChallenge from './challenges/';
-import PongArcadeChallenge from './challenges/';
-import TetrisSprintChallenge from './challenges/';
-import ITNetworkQuizChallenge from './challenges/';
-import MazeKeyQuestChallenge from './challenges/';
+import Captcha from './challenges/01_Captcha';
+import SimpleMath from './challenges/02_SimpleMath';
+import TypeText from './challenges/03_TypeText';
+import ReverseText from './challenges/04_ReverseText';
+import DragDropSentence from './challenges/05_DragDropSentence';
+import MathQuiz from './challenges/06_MathQuiz';
+import DrawCircle from './challenges/07_DrawCircle';
+import GeographyQuiz from './challenges/08_GeographyQuiz';
+import FindEmoji from './challenges/09_FindEmoji';
+import PatternRecognition from './challenges/10_PatternRecognition';
+import ReactionTime from './challenges/11_ReactionTime';
+import SlidingPuzzle from './challenges/12_SlidingPuzzle';
+import TicTacToe from './challenges/13_TicTacToe';
+import ClickPrecision from './challenges/14_ClickPrecision';
+import TowerBuilder from './challenges/15_TowerBuilder';
+import OddOneOut from './challenges/16_OddOneOut';
+import SimonSays from './challenges/17_SimonSays';
+import BalanceGame from './challenges/18_BalanceGame';
+import ChessPuzzle from './challenges/19_ChessPuzzle';
+import ConnectDots from './challenges/20_ConnectDots';
+import MouseMaze from './challenges/21_MouseMaze';
+import WhackAMole from './challenges/22_WhackAMole';
+import TargetPractice from './challenges/23_TargetPractice';
+import KeyboardMemory from './challenges/24_KeyboardMemory';
+import ColorBlindTest from './challenges/25_ColorBlindTest';
+import ShutdownComputer from './challenges/26_ShutdownComputer';
+import FractionFighter from './challenges/27_FractionFighter';
+import FlagMatch from './challenges/28_FlagMatch';
+import ScienceQuiz from './challenges/29_ScienceQuiz';
+import SpaceShooter from './challenges/30_SpaceShooter';
+import PixelArtMemory from './challenges/31_PixelArtMemory';
+import MathSorting from './challenges/32_MathSorting';
+import CubeRotation from './challenges/33_CubeRotation';
+import LogicChain from './challenges/34_LogicChain';
+import JavaScriptCode from './challenges/35_JavaScriptCode';
+import BinaryCalculator from './challenges/36_BinaryCalculator';
+import PongArcade from './challenges/37_PongArcade';
+import TetrisSprint from './challenges/38_TetrisSprint';
+import ITNetworkQuiz from './challenges/39_ITNetworkQuiz';
+import MazeKeyQuest from './challenges/40_MazeKeyQuest';
+import CarDriving from './challenges/41_CarDriving';
 
 /**
  * Styled main container
@@ -338,6 +339,8 @@ const GameContainer: React.FC = () => {
         return <ITNetworkQuiz {...challengeProps} />;
       case 40:
         return <MazeKeyQuest {...challengeProps} />;
+      case 41:
+        return <CarDriving {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>
@@ -345,8 +348,8 @@ const GameContainer: React.FC = () => {
             <p>This challenge has not been implemented yet.</p>
           </PlaceholderChallenge>
         );
-    }
-  };
+      }
+      };
 
   return (
     <Container>
