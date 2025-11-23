@@ -79,7 +79,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 10,
+    id: 09,
     name: 'Find Emoji',
     description: 'Find the requested emoji',
     component: PlaceholderChallenge,
@@ -87,7 +87,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 100,
   },
   {
-     id: 12,
+     id: 10,
     name: 'Pattern Recognition',
     description: 'Identify the pattern',
     component: PlaceholderChallenge,
@@ -95,7 +95,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 13,
+    id: 11,
     name: 'Reaction Time',
     description: 'React as fast as you can',
     component: PlaceholderChallenge,
@@ -103,7 +103,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 100,
   },
   {
-    id: 14,
+    id: 10,
     name: 'Sliding Puzzle',
     description: 'Solve the sliding puzzle',
     component: PlaceholderChallenge,
@@ -111,7 +111,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 500,
   },
   {
-    id: 15,
+    id: 13,
     name: 'Tic Tac Toe',
     description: 'Beat the AI at Tic Tac Toe',
     component: PlaceholderChallenge,
@@ -119,7 +119,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-       id: 17,
+       id: 14,
       name: 'Click Precision',
       description: 'Click targets with precision',
       component: PlaceholderChallenge,
@@ -127,7 +127,7 @@ export const challengeRegistry: Challenge[] = [
       maxScore: 200,
     },
     {
-      id: 18,
+      id: 13,
       name: 'Tower Builder',
       description: 'Stack blocks perfectly to build the tallest tower',
       component: PlaceholderChallenge,
@@ -135,7 +135,7 @@ export const challengeRegistry: Challenge[] = [
       maxScore: 300,
     },
     {
-      id: 19,
+      id: 16,
       name: 'Odd One Out',
       description: 'Find the odd one out',
       component: PlaceholderChallenge,
@@ -143,7 +143,7 @@ export const challengeRegistry: Challenge[] = [
       maxScore: 150,
     },
   {
-    id: 20,
+    id: 14,
     name: 'Visual Memory',
     description: 'Remember the grid pattern',
     component: PlaceholderChallenge,
@@ -151,7 +151,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 21,
+    id: 18,
     name: 'Balance Game',
     description: 'Balance the scale',
     component: PlaceholderChallenge,
@@ -159,7 +159,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-    id: 22,
+    id: 19,
     name: 'Chess Puzzle',
     description: 'Find the checkmate in one move',
     component: PlaceholderChallenge,
@@ -167,7 +167,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-    id: 23,
+    id: 20,
     name: 'Connect Dots',
     description: 'Connect all dots without crossing lines',
     component: PlaceholderChallenge,
@@ -175,7 +175,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 24,
+    id: 18,
     name: 'Mouse Maze',
     description: 'Navigate the maze without hitting walls',
     component: PlaceholderChallenge,
@@ -183,7 +183,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-     id: 28,
+     id: 22,
     name: 'Whack A Mole',
     description: 'Click on the moles before they hide',
     component: PlaceholderChallenge,
@@ -191,7 +191,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-    id: 29,
+    id: 23,
     name: 'Target Practice',
     description: 'Click on the targets before time runs out',
     component: PlaceholderChallenge,
@@ -199,7 +199,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 30,
+    id: 18,
     name: 'Keyboard Memory',
     description: 'Remember and type the letter sequences',
     component: PlaceholderChallenge,
@@ -207,7 +207,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 31,
+    id: 25,
     name: 'Color Blind Test',
     description: 'Identify the hidden numbers in the colored patterns',
     component: PlaceholderChallenge,
@@ -215,7 +215,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-     id: 34,
+     id: 26,
     name: 'Shutdown Computer',
     description: 'Navigate through the OS and shut down the computer',
     component: PlaceholderChallenge,
@@ -223,7 +223,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 130,
   },
   {
-    id: 35,
+    id: 27,
     name: 'Fraction Fighter',
     description: 'Compare fractions and select the larger one',
     component: PlaceholderChallenge,
@@ -231,7 +231,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 240,
   },
   {
-    id: 36,
+    id: 22,
     name: 'Flag Match',
     description: 'Match flags to their country names',
     component: PlaceholderChallenge,
@@ -239,7 +239,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 210,
   },
   {
-     id: 38,
+     id: 23,
     name: 'Science Quiz',
     description: 'Answer 6 science questions correctly',
     component: PlaceholderChallenge,
@@ -247,7 +247,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 240,
   },
   {
-    id: 39,
+    id: 30,
     name: 'Space Shooter',
     description: 'Destroy asteroids and survive for 60 seconds',
     component: PlaceholderChallenge,
@@ -255,7 +255,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 400,
   },
   {
-    id: 40,
+    id: 31,
     name: 'Pixel Art Memory',
     description: 'Memorize and draw the pixel art pattern',
     component: PlaceholderChallenge,
@@ -263,7 +263,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 41,
+    id: 32,
     name: 'Math Sorting',
     description: 'Sort numbers by different rules',
     component: PlaceholderChallenge,
@@ -271,7 +271,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 42,
+    id: 33,
     name: '3D Cube Rotation',
     description: 'Rotate the cube to match the target orientation',
     component: PlaceholderChallenge,
@@ -279,7 +279,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-     id: 44,
+     id: 26,
     name: 'Logic Chain Solver',
     description: 'Use clues to solve a 4x4 logic puzzle',
     component: PlaceholderChallenge,
@@ -287,7 +287,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 45,
+    id: 35,
     name: 'JavaScript Code',
     description: 'Write code that outputs "Hello World!"',
     component: PlaceholderChallenge,
@@ -295,7 +295,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 46,
+    id: 22,
     name: 'Binary Calculator',
     description: 'Convert 4 decimal numbers to binary',
     component: PlaceholderChallenge,
@@ -303,7 +303,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 47,
+    id: 37,
     name: 'Pong Arcade',
     description: 'Win 3 rounds of Pong against AI (first to 11 points)',
     component: PlaceholderChallenge,
@@ -311,7 +311,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 48,
+    id: 38,
     name: 'Tetris Sprint',
     description: 'Clear lines and score 5000 points or clear 10 lines',
     component: PlaceholderChallenge,
@@ -319,7 +319,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 500,
   },
   {
-    id: 49,
+    id: 30,
     name: 'IT & Network Knowledge Quiz',
     description: 'Answer 12 IT and Network questions (need 9/12 correct)',
     component: PlaceholderChallenge,
@@ -327,7 +327,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 50,
+    id: 40,
     name: 'Maze Key Quest',
     description: 'Navigate the maze, find the key, and reach the exit',
     component: PlaceholderChallenge,
@@ -371,3 +371,4 @@ export const registerChallenge = (
     challenge.component = component;
   }
 };
+
