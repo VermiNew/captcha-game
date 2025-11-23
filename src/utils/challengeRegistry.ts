@@ -143,9 +143,9 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 150,
   },
   {
-    id: 14,
-    name: 'Visual Memory',
-    description: 'Remember the grid pattern',
+    id: 17,
+    name: 'Simon Says',
+    description: 'Repeat the color sequences',
     component: PlaceholderChallenge,
     timeLimit: 75,
     maxScore: 300,
@@ -175,7 +175,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 18,
+    id: 21,
     name: 'Mouse Maze',
     description: 'Navigate the maze without hitting walls',
     component: PlaceholderChallenge,
@@ -199,7 +199,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 300,
   },
   {
-    id: 18,
+    id: 24,
     name: 'Keyboard Memory',
     description: 'Remember and type the letter sequences',
     component: PlaceholderChallenge,
@@ -231,7 +231,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 240,
   },
   {
-    id: 22,
+    id: 28,
     name: 'Flag Match',
     description: 'Match flags to their country names',
     component: PlaceholderChallenge,
@@ -239,7 +239,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 210,
   },
   {
-    id: 23,
+    id: 29,
     name: 'Science Quiz',
     description: 'Answer 6 science questions correctly',
     component: PlaceholderChallenge,
@@ -279,7 +279,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 250,
   },
   {
-    id: 26,
+    id: 34,
     name: 'Logic Chain Solver',
     description: 'Use clues to solve a 4x4 logic puzzle',
     component: PlaceholderChallenge,
@@ -295,7 +295,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 200,
   },
   {
-    id: 22,
+    id: 36,
     name: 'Binary Calculator',
     description: 'Convert 4 decimal numbers to binary',
     component: PlaceholderChallenge,
@@ -319,7 +319,7 @@ export const challengeRegistry: Challenge[] = [
     maxScore: 500,
   },
   {
-    id: 30,
+    id: 39,
     name: 'IT & Network Knowledge Quiz',
     description: 'Answer 12 IT and Network questions (need 9/12 correct)',
     component: PlaceholderChallenge,
