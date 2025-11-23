@@ -16,16 +16,13 @@ import TypeTextChallenge from './challenges/03_TypeTextChallenge';
 import ReverseTextChallenge from './challenges/04_ReverseTextChallenge';
 import DragDropSentenceChallenge from './challenges/05_DragDropSentenceChallenge';
 import MathQuizChallenge from './challenges/06_MathQuizChallenge';
-import DrawShapeChallenge from './challenges/07_DrawShapeChallenge';
 import DrawCircleChallenge from './challenges/08_DrawCircleChallenge';
 import GeographyQuizChallenge from './challenges/09_GeographyQuizChallenge';
 import FindEmojiChallenge from './challenges/10_FindEmojiChallenge';
-import ColorMemoryChallenge from './challenges/11_ColorMemoryChallenge';
 import PatternRecognitionChallenge from './challenges/12_PatternRecognitionChallenge';
 import ReactionTimeChallenge from './challenges/13_ReactionTimeChallenge';
 import SlidingPuzzleChallenge from './challenges/14_SlidingPuzzleChallenge';
 import TicTacToeChallenge from './challenges/15_TicTacToeChallenge';
-import RhythmChallenge from './challenges/16_RhythmChallenge';
 import ClickPrecisionChallenge from './challenges/17_ClickPrecisionChallenge';
 import TowerBuilderChallenge from './challenges/18_TowerBuilderChallenge';
 import OddOneOutChallenge from './challenges/19_OddOneOutChallenge';
@@ -34,25 +31,18 @@ import BalanceGameChallenge from './challenges/21_BalanceGameChallenge';
 import ChessPuzzleChallenge from './challenges/22_ChessPuzzleChallenge';
 import ConnectDotsChallenge from './challenges/23_ConnectDotsChallenge';
 import MouseMazeChallenge from './challenges/24_MouseMazeChallenge';
-import PongReflexChallenge from './challenges/25_PongReflexChallenge';
-import JugglingClicksChallenge from './challenges/26_JugglingClicksChallenge';
-import LightningRoundChallenge from './challenges/27_LightningRoundChallenge';
 import WhackAMoleChallenge from './challenges/28_WhackAMoleChallenge';
 import TargetPracticeChallenge from './challenges/29_TargetPracticeChallenge';
 import KeyboardMemoryChallenge from './challenges/30_KeyboardMemoryChallenge';
 import ColorBlindTestChallenge from './challenges/31_ColorBlindTestChallenge';
-import DiceProbabilityChallenge from './challenges/32_DiceProbabilityChallenge';
-import CarDrivingChallenge from './challenges/33_CarDrivingChallenge';
 import ShutdownComputerChallenge from './challenges/34_ShutdownComputerChallenge';
 import FractionFighterChallenge from './challenges/35_FractionFighterChallenge';
 import FlagMatchChallenge from './challenges/36_FlagMatchChallenge';
-import MusicNotesChallenge from './challenges/37_MusicNotesChallenge';
 import ScienceQuizChallenge from './challenges/38_ScienceQuizChallenge';
 import SpaceShooterChallenge from './challenges/39_SpaceShooterChallenge';
 import PixelArtMemoryChallenge from './challenges/40_PixelArtMemoryChallenge';
 import MathSortingChallenge from './challenges/41_MathSortingChallenge';
 import CubeRotationChallenge from './challenges/42_CubeRotationChallenge';
-import RapidSortChallenge from './challenges/43_RapidSortChallenge';
 import LogicChainChallenge from './challenges/44_LogicChainChallenge';
 import JavaScriptCodeChallenge from './challenges/45_JavaScriptCodeChallenge';
 import BinaryCalculatorChallenge from './challenges/46_BinaryCalculatorChallenge';
@@ -279,28 +269,22 @@ const GameContainer: React.FC = () => {
       case 5:
         return <DragDropSentenceChallenge {...challengeProps} />;
       case 6:
-        return <MathQuizChallenge {...challengeProps} />;
-      case 7:
-        return <DrawShapeChallenge {...challengeProps} />;
-      case 8:
+         return <MathQuizChallenge {...challengeProps} />;
+       case 8:
         return <DrawCircleChallenge {...challengeProps} />;
       case 9:
         return <GeographyQuizChallenge {...challengeProps} />;
       case 10:
-        return <FindEmojiChallenge {...challengeProps} />;
-      case 11:
-        return <ColorMemoryChallenge {...challengeProps} />;
-      case 12:
+         return <FindEmojiChallenge {...challengeProps} />;
+       case 12:
         return <PatternRecognitionChallenge {...challengeProps} />;
       case 13:
         return <ReactionTimeChallenge {...challengeProps} />;
       case 14:
         return <SlidingPuzzleChallenge {...challengeProps} />;
       case 15:
-        return <TicTacToeChallenge {...challengeProps} />;
-      case 16:
-        return <RhythmChallenge {...challengeProps} />;
-      case 17:
+         return <TicTacToeChallenge {...challengeProps} />;
+       case 17:
         return <ClickPrecisionChallenge {...challengeProps} />;
       case 18:
         return <TowerBuilderChallenge {...challengeProps} />;
@@ -315,34 +299,22 @@ const GameContainer: React.FC = () => {
       case 23:
         return <ConnectDotsChallenge {...challengeProps} />;
       case 24:
-        return <MouseMazeChallenge {...challengeProps} />;
-      case 25:
-        return <PongReflexChallenge {...challengeProps} />;
-      case 26:
-        return <JugglingClicksChallenge {...challengeProps} />;
-      case 27:
-        return <LightningRoundChallenge {...challengeProps} />;
-      case 28:
+         return <MouseMazeChallenge {...challengeProps} />;
+       case 28:
         return <WhackAMoleChallenge {...challengeProps} />;
       case 29:
         return <TargetPracticeChallenge {...challengeProps} />;
       case 30:
         return <KeyboardMemoryChallenge {...challengeProps} />;
       case 31:
-        return <ColorBlindTestChallenge {...challengeProps} />;
-      case 32:
-        return <DiceProbabilityChallenge {...challengeProps} />;
-      case 33:
-        return <CarDrivingChallenge {...challengeProps} />;
-      case 34:
+         return <ColorBlindTestChallenge {...challengeProps} />;
+       case 34:
         return <ShutdownComputerChallenge {...challengeProps} />;
       case 35:
         return <FractionFighterChallenge {...challengeProps} />;
       case 36:
-        return <FlagMatchChallenge {...challengeProps} />;
-      case 37:
-        return <MusicNotesChallenge {...challengeProps} />;
-      case 38:
+         return <FlagMatchChallenge {...challengeProps} />;
+       case 38:
         return <ScienceQuizChallenge {...challengeProps} />;
       case 39:
         return <SpaceShooterChallenge {...challengeProps} />;
@@ -351,10 +323,8 @@ const GameContainer: React.FC = () => {
       case 41:
         return <MathSortingChallenge {...challengeProps} />;
       case 42:
-        return <CubeRotationChallenge {...challengeProps} />;
-      case 43:
-        return <RapidSortChallenge {...challengeProps} />;
-      case 44:
+         return <CubeRotationChallenge {...challengeProps} />;
+       case 44:
         return <LogicChainChallenge {...challengeProps} />;
       case 45:
         return <JavaScriptCodeChallenge {...challengeProps} />;
