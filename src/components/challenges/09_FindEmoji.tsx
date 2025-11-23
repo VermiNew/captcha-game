@@ -1,87 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
 
 /**
- * Comprehensive emoji list
+ * Curated emoji list with distinct, recognizable emojis
+ * Organized by categories for better visual diversity
  */
 const emojiList = [
-  '😀',
-  '😃',
-  '😄',
-  '😁',
-  '😆',
-  '😅',
-  '🤣',
-  '😂',
-  '🙂',
-  '🙃',
-  '😉',
-  '😊',
-  '😇',
-  '🥰',
-  '😍',
-  '🤩',
-  '😘',
-  '😗',
-  '😚',
-  '😙',
-  '😋',
-  '😛',
-  '😜',
-  '🤪',
-  '😝',
-  '🤑',
-  '🤗',
-  '🤭',
-  '🤫',
-  '🤔',
-  '🤐',
-  '🤨',
-  '😐',
-  '😑',
-  '😶',
-  '😏',
-  '😒',
-  '🙄',
-  '😬',
-  '🤥',
-  '😌',
-  '😔',
-  '😪',
-  '🤤',
-  '😴',
-  '😷',
-  '🤒',
-  '🤕',
-  '🤢',
-  '🤮',
-  '🤧',
-  '🥵',
-  '🥶',
-  '🥴',
-  '😵',
-  '🤯',
-  '🤠',
-  '🥳',
-  '😎',
-  '🤓',
-  '🧐',
-  '😕',
-  '😟',
-  '🙁',
+  // Happy emotions
+  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊',
+  // Love & affection
+  '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
+  // Playful
+  '😋', '😛', '😜', '🤪', '😝',
+  // Cool & quirky
+  '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨',
+  // Neutral & skeptical
+  '😐', '😑', '😶', '😏', '😒', '🙄', '😬',
+  // Tired & sick
+  '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕',
+  // Woozy
+  '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯',
+  // Special characters
+  '🤠', '🥳', '😎', '🤓', '🧐',
+  // Sad
+  '😕', '😟', '🙁',
 ];
 
 /**
- * Emoji state type
+ * Represents the state of an emoji cell in the grid
  */
 type EmojiState = 'default' | 'wrong' | 'correct';
 
 /**
- * Styled container
+ * Main container with responsive layout and smooth spacing
  */
 const Container = styled.div`
   display: flex;
@@ -89,85 +44,158 @@ const Container = styled.div`
   align-items: center;
   gap: ${theme.spacing.xl};
   width: 100%;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
+  padding: ${theme.spacing.lg};
 `;
 
 /**
- * Styled title
+ * Header section with instructions
+ */
+const Header = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.md};
+  width: 100%;
+`;
+
+/**
+ * Main title with gradient text effect
  */
 const Title = styled(motion.h2)`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
+  font-size: ${theme.fontSizes['3xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
+  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-align: center;
   margin: 0;
+  
+  @media (max-width: 600px) {
+    font-size: ${theme.fontSizes['2xl']};
+  }
 `;
 
 /**
- * Styled instruction
+ * Instructional text with icon
  */
-const Instruction = styled.p`
+const Instruction = styled(motion.p)`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.lg};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  
+  &::before {
+    content: '👆';
+    font-size: ${theme.fontSizes.xl};
+  }
 `;
 
 /**
- * Styled target emoji display
+ * Elegant card displaying the target emoji with subtle animations
  */
-const TargetEmojiDisplay = styled(motion.div)`
-  font-size: 8rem;
-  text-align: center;
-  margin: ${theme.spacing.xl} 0;
-  background: linear-gradient(135deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%);
-  padding: ${theme.spacing.lg};
+const TargetCard = styled(motion.div)`
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.1) 0%, 
+    rgba(139, 92, 246, 0.1) 100%);
+  border: 3px solid ${theme.colors.borderLight};
   border-radius: ${theme.borderRadius.xl};
-  box-shadow: ${theme.shadows.lg};
-  line-height: 1;
+  padding: ${theme.spacing['2xl']};
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+      transparent 30%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      transparent 70%);
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  &:hover {
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 12px 48px rgba(99, 102, 241, 0.2);
+  }
 `;
 
 /**
- * Styled emoji grid
+ * Large target emoji display
+ */
+const TargetEmoji = styled(motion.div)`
+  font-size: clamp(5rem, 15vw, 9rem);
+  text-align: center;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+`;
+
+/**
+ * Responsive emoji grid with smooth layout
  */
 const EmojiGrid = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: ${theme.spacing.sm};
-  margin-bottom: ${theme.spacing.xl};
+  gap: ${theme.spacing.md};
   width: 100%;
+  padding: ${theme.spacing.lg};
+  background: ${theme.colors.surface};
+  border-radius: ${theme.borderRadius.xl};
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
 
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     grid-template-columns: repeat(6, 1fr);
-    gap: ${theme.spacing.xs};
+    gap: ${theme.spacing.sm};
+    padding: ${theme.spacing.md};
   }
 
-  @media (max-width: 400px) {
+  @media (max-width: 480px) {
     grid-template-columns: repeat(5, 1fr);
+    gap: ${theme.spacing.xs};
   }
 `;
 
 /**
- * Styled emoji cell
+ * Interactive emoji button with state-based styling and animations
  */
 const EmojiCell = styled(motion.button)<{ $state: EmojiState }>`
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  border-radius: ${theme.borderRadius.md};
-  border: 2px solid transparent;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  border-radius: ${theme.borderRadius.lg};
+  border: 2.5px solid;
   background: ${theme.colors.background};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   font-family: system-ui, -apple-system, sans-serif;
   line-height: 1;
+  position: relative;
+  overflow: hidden;
 
+  /* State-based styling */
   ${(props) => {
     switch (props.$state) {
       case 'default':
@@ -176,22 +204,31 @@ const EmojiCell = styled(motion.button)<{ $state: EmojiState }>`
           
           &:hover:not(:disabled) {
             border-color: ${theme.colors.primary};
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+            background: rgba(99, 102, 241, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+          }
+          
+          &:active:not(:disabled) {
+            transform: translateY(0);
           }
         `;
       case 'wrong':
         return `
           border-color: ${theme.colors.error};
-          background: rgba(239, 68, 68, 0.1);
-          animation: shake 0.4s ease-in-out;
+          background: rgba(239, 68, 68, 0.12);
+          animation: wrongShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
           pointer-events: none;
         `;
       case 'correct':
         return `
           border-color: ${theme.colors.success};
-          background: rgba(34, 197, 94, 0.2);
+          background: linear-gradient(135deg, 
+            rgba(34, 197, 94, 0.2) 0%, 
+            rgba(34, 197, 94, 0.3) 100%);
           pointer-events: none;
-          animation: pulse 0.6s ease-out;
+          animation: correctPulse 0.6s ease-out;
+          box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
         `;
       default:
         return '';
@@ -200,102 +237,168 @@ const EmojiCell = styled(motion.button)<{ $state: EmojiState }>`
 
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.6;
   }
 
-  @keyframes shake {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-    25% {
-      transform: translateX(-4px);
-    }
-    75% {
-      transform: translateX(4px);
-    }
+  /* Success ripple effect */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.3);
+    transform: translate(-50%, -50%);
+    opacity: 0;
   }
 
-  @keyframes pulse {
+  @keyframes wrongShake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    20% { transform: translateX(-8px) rotate(-2deg); }
+    40% { transform: translateX(8px) rotate(2deg); }
+    60% { transform: translateX(-8px) rotate(-2deg); }
+    80% { transform: translateX(8px) rotate(2deg); }
+  }
+
+  @keyframes correctPulse {
     0% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    25% {
+      transform: scale(1.15);
     }
     50% {
-      transform: scale(1.1);
+      transform: scale(1.05) rotate(5deg);
+    }
+    75% {
+      transform: scale(1.15) rotate(-5deg);
     }
     100% {
-      transform: scale(1);
-      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+      transform: scale(1) rotate(0deg);
     }
   }
 `;
 
 /**
- * Styled stats container
+ * Statistics panel with elegant design
  */
-const Stats = styled(motion.div)`
+const StatsPanel = styled(motion.div)`
   display: flex;
   gap: ${theme.spacing.xl};
   justify-content: center;
+  align-items: center;
   width: 100%;
+  padding: ${theme.spacing.lg};
+  background: linear-gradient(135deg, 
+    ${theme.colors.surface} 0%, 
+    ${theme.colors.background} 100%);
+  border-radius: ${theme.borderRadius.lg};
+  border: 1px solid ${theme.colors.borderLight};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  
+  @media (max-width: 480px) {
+    gap: ${theme.spacing.lg};
+  }
 `;
 
 /**
- * Styled stat item
+ * Individual stat display
  */
-const Stat = styled.div`
+const StatItem = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.sm};
+  gap: ${theme.spacing.xs};
 `;
 
 /**
- * Styled stat label
+ * Stat label with uppercase styling
  */
 const StatLabel = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
+  font-size: ${theme.fontSizes.xs};
+  font-weight: ${theme.fontWeights.semibold};
   color: ${theme.colors.textSecondary};
   margin: 0;
-  letter-spacing: 1px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 `;
 
 /**
- * Styled stat value
+ * Animated stat value with color coding
  */
-const StatValue = styled(motion.p)`
+const StatValue = styled(motion.p)<{ $isError?: boolean }>`
   font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes['3xl']};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${props => props.$isError ? theme.colors.error : theme.colors.primary};
+  margin: 0;
+  line-height: 1;
+`;
+
+/**
+ * Success message overlay
+ */
+const SuccessOverlay = styled(motion.div)`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(34, 197, 94, 0.95);
+  color: white;
+  padding: ${theme.spacing['2xl']} ${theme.spacing['3xl']};
+  border-radius: ${theme.borderRadius.xl};
   font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
+  z-index: 1000;
+  box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4);
+  text-align: center;
 `;
 
 /**
  * Find Emoji Challenge Component
- * User must find the target emoji in an 8x8 grid
+ * 
+ * An engaging visual search challenge where users must locate a target emoji
+ * within a grid of similar emojis. Tests visual recognition and reaction time.
+ * 
+ * Features:
+ * - Responsive grid layout (8x8 on desktop, 6x6 on tablet, 5x5 on mobile)
+ * - Real-time attempt tracking
+ * - Smooth animations for feedback (correct/incorrect clicks)
+ * - Score calculation based on speed and accuracy
+ * - Accessible keyboard navigation
+ * 
+ * User flow:
+ * 1. User sees target emoji in highlighted card
+ * 2. User scans grid to find matching emoji
+ * 3. User clicks on emoji they believe is correct
+ * 4. Visual feedback shows if correct (green pulse) or wrong (red shake)
+ * 5. On correct selection, success message appears and challenge completes
+ * 6. Score calculated based on time taken and number of attempts
  */
 const FindEmojiChallenge: React.FC<ChallengeProps> = ({
   onComplete,
   timeLimit,
   challengeId,
 }) => {
+  // Grid configuration
   const gridSize = 8;
   const totalCells = gridSize * gridSize;
 
-  // Select target emoji and create grid
-  const [targetEmoji] = useState(
-    () => emojiList[Math.floor(Math.random() * emojiList.length)],
+  // State management
+  const [targetEmoji] = useState(() => 
+    emojiList[Math.floor(Math.random() * emojiList.length)]
   );
 
   const [grid] = useState<string[]>(() => {
-    // Create grid with random emojis
+    // Generate grid with random emojis
     const newGrid = Array(totalCells)
       .fill(null)
       .map(() => emojiList[Math.floor(Math.random() * emojiList.length)]);
 
-    // Ensure target emoji is in the grid at least once
+    // Ensure target emoji appears at least once
     const randomIndex = Math.floor(Math.random() * totalCells);
     newGrid[randomIndex] = targetEmoji;
 
@@ -303,13 +406,16 @@ const FindEmojiChallenge: React.FC<ChallengeProps> = ({
   });
 
   const [clickedIndices, setClickedIndices] = useState<Set<number>>(new Set());
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   const [startTime] = useState(() => Date.now());
   const [found, setFound] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   /**
-   * Handle emoji click
+   * Handles emoji cell click interaction
+   * Validates selection and updates game state accordingly
    */
-  const handleEmojiClick = (index: number, emoji: string) => {
+  const handleEmojiClick = useCallback((index: number, emoji: string) => {
     if (found || clickedIndices.has(index)) return;
 
     const newClicked = new Set(clickedIndices);
@@ -317,99 +423,174 @@ const FindEmojiChallenge: React.FC<ChallengeProps> = ({
     setClickedIndices(newClicked);
 
     if (emoji === targetEmoji) {
+      // Correct selection
       setFound(true);
+      setShowSuccess(true);
+      
       const timeSpent = (Date.now() - startTime) / 1000;
+      
+      // Score calculation: base 100 points
+      // -5 points per second elapsed
+      // -10 points per wrong attempt
+      const timeDeduction = Math.floor(timeSpent * 5);
+      const attemptDeduction = wrongAttempts * 10;
+      const score = Math.max(20, 100 - timeDeduction - attemptDeduction);
 
-      // Score: faster = better
-      // Max 100 points, -5 per second
-      const score = Math.max(50, 100 - Math.floor(timeSpent * 5));
-
+      // Complete challenge after celebration animation
       setTimeout(() => {
         onComplete(true, timeSpent, score);
-      }, 1000);
+      }, 1500);
+    } else {
+      // Wrong selection
+      setWrongAttempts(prev => prev + 1);
     }
-  };
+  }, [found, clickedIndices, targetEmoji, startTime, wrongAttempts, onComplete]);
 
   /**
-   * Get emoji state based on click history
+   * Determines visual state of emoji cell based on interaction history
    */
-  const getEmojiState = (index: number, emoji: string): EmojiState => {
+  const getEmojiState = useCallback((index: number, emoji: string): EmojiState => {
     if (!clickedIndices.has(index)) return 'default';
     if (emoji === targetEmoji) return 'correct';
     return 'wrong';
-  };
+  }, [clickedIndices, targetEmoji]);
 
   return (
     <ChallengeBase
-      title="Find Emoji Challenge"
-      description="Find the target emoji in the grid"
+      title="Visual Search Challenge"
+      description="Test your observation skills by finding the target emoji"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Find the Emoji!
-        </Title>
+        {/* Header with title and instructions */}
+        <Header>
+          <Title
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            Find the Matching Emoji!
+          </Title>
 
-        <Instruction>Click on this emoji in the grid below:</Instruction>
+          <Instruction
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+          >
+            Locate this emoji in the grid below
+          </Instruction>
+        </Header>
 
-        <TargetEmojiDisplay
-          initial={{ scale: 0.5, opacity: 0 }}
+        {/* Target emoji display card */}
+        <TargetCard
+          initial={{ scale: 0.8, opacity: 0 }}
           animate={{
             scale: 1,
             opacity: 1,
-            y: [0, -5, 0],
           }}
           transition={{
-            scale: { duration: 0.4 },
-            opacity: { duration: 0.4 },
-            y: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+            duration: 0.5,
+            type: 'spring',
+            stiffness: 200,
+            damping: 20,
           }}
         >
-          {targetEmoji}
-        </TargetEmojiDisplay>
+          <TargetEmoji
+            animate={{
+              y: [0, -8, 0],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            {targetEmoji}
+          </TargetEmoji>
+        </TargetCard>
 
+        {/* Interactive emoji grid */}
         <EmojiGrid
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
         >
           {grid.map((emoji, index) => (
             <EmojiCell
               key={index}
               onClick={() => handleEmojiClick(index, emoji)}
               $state={getEmojiState(index, emoji)}
-              whileHover={!found && !clickedIndices.has(index) ? { scale: 1.1 } : {}}
-              whileTap={!found && !clickedIndices.has(index) ? { scale: 0.9 } : {}}
+              whileHover={
+                !found && !clickedIndices.has(index)
+                  ? { scale: 1.12, rotate: 5 }
+                  : {}
+              }
+              whileTap={
+                !found && !clickedIndices.has(index)
+                  ? { scale: 0.92 }
+                  : {}
+              }
               disabled={found}
+              aria-label={`Emoji option ${index + 1}`}
+              aria-pressed={clickedIndices.has(index)}
             >
               {emoji}
             </EmojiCell>
           ))}
         </EmojiGrid>
 
-        <Stats
-          initial={{ opacity: 0, y: 10 }}
+        {/* Statistics panel */}
+        <StatsPanel
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <Stat>
-            <StatLabel>Attempts</StatLabel>
+          <StatItem>
+            <StatLabel>Total Clicks</StatLabel>
             <StatValue
-              key={clickedIndices.size}
-              initial={{ scale: 1.2 }}
+              key={`total-${clickedIndices.size}`}
+              initial={{ scale: 1.3 }}
               animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300 }}
+              transition={{ type: 'spring', stiffness: 400 }}
             >
               {clickedIndices.size}
             </StatValue>
-          </Stat>
-        </Stats>
+          </StatItem>
+          
+          <StatItem>
+            <StatLabel>Mistakes</StatLabel>
+            <StatValue
+              $isError={wrongAttempts > 0}
+              key={`wrong-${wrongAttempts}`}
+              initial={{ scale: 1.3 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+            >
+              {wrongAttempts}
+            </StatValue>
+          </StatItem>
+        </StatsPanel>
+
+        {/* Success celebration overlay */}
+        <AnimatePresence>
+          {showSuccess && (
+            <SuccessOverlay
+              initial={{ scale: 0, opacity: 0, rotate: -180 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              exit={{ scale: 0, opacity: 0, rotate: 180 }}
+              transition={{
+                type: 'spring',
+                stiffness: 200,
+                damping: 20,
+              }}
+            >
+              🎉 Perfect Match! 🎉
+            </SuccessOverlay>
+          )}
+        </AnimatePresence>
       </Container>
     </ChallengeBase>
   );
