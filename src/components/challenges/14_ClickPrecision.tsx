@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { ChallengeProps } from '../../types';
+import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 
 /**
  * Game phase type
@@ -14,15 +17,6 @@ interface AttemptResult {
   x: number;
   y: number;
   accuracy: number;
-}
-
-/**
- * Challenge props interface
- */
-interface ChallengeProps {
-  onComplete: (success: boolean, timeSpent: number, score: number) => void;
-  timeLimit?: number;
-  challengeId: string;
 }
 
 /**
@@ -53,6 +47,8 @@ const getQualityColor = (quality: 'excellent' | 'good' | 'fair' | 'poor'): strin
  */
 const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   onComplete,
+  timeLimit = 90,
+  challengeId,
 }) => {
   const [currentAttempt, setCurrentAttempt] = useState(1);
   const [results, setResults] = useState<AttemptResult[]>([]);
@@ -238,16 +234,25 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   }, [results]);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '2rem',
-      width: '100%',
-      maxWidth: '600px',
-      margin: '0 auto',
-      padding: '1rem',
-    }}>
+    <ChallengeBase
+      title="Click Precision"
+      description="Click the center of the shrinking circle"
+      timeLimit={timeLimit}
+      challengeId={challengeId}
+      onComplete={onComplete}
+      hideTimer
+    >
+      <Timer timeLimit={timeLimit} />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '2rem',
+        width: '100%',
+        maxWidth: '600px',
+        margin: '0 auto',
+        padding: '1rem',
+      }}>
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -657,13 +662,14 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
             textAlign: 'center',
             margin: 0,
             fontStyle: 'italic',
-          }}
-        >
-          💡 Tip: Aim for the white dot in the center. The circle shrinks over time!
-        </motion.p>
-      )}
-    </div>
-  );
-};
+            }}
+            >
+            💡 Tip: Aim for the white dot in the center. The circle shrinks over time!
+            </motion.p>
+            )}
+            </div>
+            </ChallengeBase>
+            );
+            };
 
-export default ClickPrecisionChallenge;
+            export default ClickPrecisionChallenge;

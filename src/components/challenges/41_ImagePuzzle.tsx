@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import styled from 'styled-components';
+import type { ChallengeProps } from '../../types';
+import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
+import { theme } from '../../styles/theme';
 
 /**
  * Game phase type
@@ -19,13 +24,17 @@ interface Tile {
 }
 
 /**
- * Challenge props interface
+ * Container styled component
  */
-interface ChallengeProps {
-  onComplete: (success: boolean, timeSpent: number, score: number) => void;
-  timeLimit?: number;
-  challengeId: string;
-}
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.lg};
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+`;
 
 /**
  * Image Puzzle Challenge Component
@@ -251,16 +260,16 @@ const ImagePuzzleChallenge: React.FC<ChallengeProps> = ({
   }, [tiles]);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '2rem',
-      width: '100%',
-      maxWidth: '700px',
-      margin: '0 auto',
-      padding: '1rem',
-    }}>
+    <ChallengeBase
+      title="Image Puzzle"
+      description="Upload 9 images and solve the puzzle"
+      timeLimit={timeLimit}
+      challengeId={challengeId}
+      onComplete={onComplete}
+      hideTimer
+    >
+      <Timer timeLimit={timeLimit} />
+      <Container>
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -667,8 +676,9 @@ const ImagePuzzleChallenge: React.FC<ChallengeProps> = ({
         >
           💡 Tip: Use the preview to see the correct arrangement. Green borders = correct!
         </motion.p>
-      )}
-    </div>
+        )}
+      </Container>
+    </ChallengeBase>
   );
 };
 

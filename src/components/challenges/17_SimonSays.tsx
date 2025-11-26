@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import styled from 'styled-components';
+import type { ChallengeProps } from '../../types';
+import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
+import { theme } from '../../styles/theme';
 
 /**
  * Game phase type
@@ -13,20 +18,24 @@ const SIMON_COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3'];
 const SIMON_LABELS = ['Red', 'Cyan', 'Yellow', 'Green'];
 
 /**
- * Challenge props interface
- */
-interface ChallengeProps {
-  onComplete: (success: boolean, timeSpent: number, score: number) => void;
-  timeLimit?: number;
-  challengeId: string;
-}
-
-/**
  * Simon Says Challenge
  * Memorize and repeat the color sequence
  */
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.xl};
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: ${theme.spacing.lg};
+`;
+
 const SimonSaysChallenge: React.FC<ChallengeProps> = ({
   onComplete,
+  timeLimit = 120,
+  challengeId,
 }) => {
   const ROUNDS_TO_WIN = 8;
   const SHOW_DURATION = 500; // ms per button flash
@@ -218,16 +227,16 @@ const SimonSaysChallenge: React.FC<ChallengeProps> = ({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '2rem',
-      width: '100%',
-      maxWidth: '600px',
-      margin: '0 auto',
-      padding: '1rem',
-    }}>
+    <ChallengeBase
+      title="Simon Says"
+      description="Memorize and repeat the color sequence"
+      timeLimit={timeLimit}
+      challengeId={challengeId}
+      onComplete={onComplete}
+      hideTimer
+    >
+      <Timer timeLimit={timeLimit} />
+      <Container>
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -463,15 +472,16 @@ const SimonSaysChallenge: React.FC<ChallengeProps> = ({
         </motion.p>
       )}
 
-      {/* CSS for shake animation */}
-      <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-10px); }
-          75% { transform: translateX(10px); }
-        }
-      `}</style>
-    </div>
+        {/* CSS for shake animation */}
+        <style>{`
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+          }
+        `}</style>
+      </Container>
+    </ChallengeBase>
   );
 };
 

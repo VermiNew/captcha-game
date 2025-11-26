@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { ChallengeProps } from '../../types';
+import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 
 /**
  * Question type definition
@@ -14,14 +17,7 @@ interface Question {
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
-/**
- * Challenge props interface
- */
-interface ChallengeProps {
-  onComplete: (success: boolean, timeSpent: number, score: number) => void;
-  timeLimit?: number;
-  challengeId: string;
-}
+
 
 /**
  * Generate arithmetic progression question
@@ -319,16 +315,25 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '2rem',
-      width: '100%',
-      maxWidth: '700px',
-      margin: '0 auto',
-      padding: '1rem',
-    }}>
+    <ChallengeBase
+      title="Pattern Recognition"
+      description="Identify the pattern and find the next number"
+      timeLimit={timeLimit}
+      challengeId={challengeId}
+      onComplete={onComplete}
+      hideTimer
+    >
+      <Timer timeLimit={timeLimit} />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '2rem',
+        width: '100%',
+        maxWidth: '700px',
+        margin: '0 auto',
+        padding: '1rem',
+      }}>
       {/* Progress Indicator */}
       <div style={{
         display: 'flex',
@@ -735,7 +740,8 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
           Attempt {attempts[currentQuestionIndex]} {attempts[currentQuestionIndex] >= 1 && '• Hint available after 1 attempt'}
         </motion.p>
       )}
-    </div>
+      </div>
+    </ChallengeBase>
   );
 };
 

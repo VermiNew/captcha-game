@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import { theme } from '../../styles/theme';
 import runUserCode from '../../utils/safeRunner';
 
@@ -263,7 +264,9 @@ const JavaScriptCodeChallenge: React.FC<ChallengeProps> = ({
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
+      hideTimer
     >
+      <Timer timeLimit={timeLimit} />
       <Container>
         <Title
           initial={{ opacity: 0, y: -20 }}
