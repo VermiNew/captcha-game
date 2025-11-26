@@ -134,13 +134,16 @@ const SimonSaysChallenge: React.FC<ChallengeProps> = ({
   useEffect(() => {
     if (phase !== 'playing' || gameOver || completed) return;
 
-    const newSequence = [...sequence, Math.floor(Math.random() * 4)];
-    setSequence(newSequence);
-    setCurrentRound(newSequence.length);
+    setSequence((prevSeq) => {
+      const newSequence = [...prevSeq, Math.floor(Math.random() * 4)];
+      setCurrentRound(newSequence.length);
 
-    sequenceTimeoutRef.current = setTimeout(() => {
-      showSequence(newSequence);
-    }, ROUND_DELAY);
+      sequenceTimeoutRef.current = setTimeout(() => {
+        showSequence(newSequence);
+      }, ROUND_DELAY);
+
+      return newSequence;
+    });
 
     return () => {
       if (sequenceTimeoutRef.current) {
