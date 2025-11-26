@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 type TileValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -286,7 +287,9 @@ const SlidingPuzzleChallenge: React.FC<ChallengeProps> = ({
             timeLimit={timeLimit}
             challengeId={challengeId}
             onComplete={onComplete}
+            hideTimer
         >
+            <Timer timeLimit={timeLimit} />
             <Container>
                 <Instruction>Kliknij kafelki obok pustego pola, aby je przesunąć</Instruction>
 
