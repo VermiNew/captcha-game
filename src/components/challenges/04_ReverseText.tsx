@@ -20,29 +20,6 @@ const Container = styled.div`
 `;
 
 /**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
- * Styled instruction
- */
-const Instruction = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
  * Styled reversed text display
  */
 const ReversedTextDisplay = styled(motion.div)`
@@ -73,7 +50,7 @@ const Input = styled(motion.input)<{ $accuracy: number }>`
   width: 100%;
   height: 60px;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   padding: ${theme.spacing.md};
   border: 2px solid ${props => {
     if (props.$accuracy === 100) return theme.colors.success;
@@ -199,16 +176,16 @@ const getFeedback = (accuracy: number, length: number, targetLength: number): st
   if (length === 0) return null;
   
   if (accuracy === 100 && length === targetLength) {
-    return '🎉 Perfect! Challenge complete!';
-  }
-  if (accuracy >= 80) {
-    return '👍 You\'re on the right track!';
+    return 'Perfect! Challenge complete!';
   }
   if (accuracy >= 50) {
-    return '⚠️ Check your spelling carefully';
+    return 'You\'re on the right track!';
+  }
+  if (accuracy >= 10) {
+    return 'Check your spelling carefully';
   }
   if (accuracy > 0) {
-    return '❌ Something\'s not quite right';
+    return 'Keep trying, you can do it!';
   }
   return null;
 };
@@ -285,18 +262,6 @@ const ReverseTextChallenge: React.FC<ChallengeProps> = ({
       onComplete={onComplete}
     >
       <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Read Backwards, Type Forward!
-        </Title>
-
-        <Instruction>
-          This text is written backwards. Type it normally:
-        </Instruction>
-
         <ReversedTextDisplay
           initial={{ opacity: 0, rotateX: -20 }}
           animate={{ opacity: 1, rotateX: 0 }}

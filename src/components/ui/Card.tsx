@@ -26,7 +26,7 @@ const StyledCard = styled(motion.div)<{
   $shadow: boolean;
 }>`
   background: ${(props) =>
-    props.$gradient ? theme.gradients.candy : theme.colors.cardBg};
+    props.$gradient ? theme.gradients.secondary : theme.colors.cardBg};
   border-radius: ${theme.borderRadius.xl};
   border: ${(props) =>
     props.$gradient ? 'none' : `1px solid ${theme.colors.border}`};

@@ -163,9 +163,12 @@ export const useGameStore = create<GameStoreState & GameStoreActions>()(
     {
       name: 'game-store', // localStorage key
       partialize: (state) => ({
+        gameState: state.gameState,
+        currentChallengeIndex: state.currentChallengeIndex,
         challengeResults: state.challengeResults,
         playerStats: state.playerStats,
         totalScore: state.totalScore,
+        startTime: state.startTime,
       }),
     },
   ),

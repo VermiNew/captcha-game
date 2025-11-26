@@ -164,7 +164,7 @@ const Stats = styled.div`
   border-radius: ${theme.borderRadius.lg};
   text-align: center;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
 `;
 

@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import type { ChallengeProps } from '../../types';
-import ChallengeBase from './ChallengeBase';
-import { theme } from '../../styles/theme';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Game phase type
  */
-type GamePhase = 'active' | 'showing-result' | 'complete';
+type GamePhase = 'ready' | 'active' | 'showing-result' | 'complete';
 
 /**
  * Result item
@@ -17,308 +13,17 @@ interface AttemptResult {
   distance: number;
   x: number;
   y: number;
+  accuracy: number;
 }
 
 /**
- * Styled container
+ * Challenge props interface
  */
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.xl};
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
- * Styled instruction
- */
-const Instruction = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
- * Styled attempt counter
- */
-const AttemptCounter = styled(motion.p)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.semibold};
-  color: ${theme.colors.primary};
-  margin: 0;
-`;
-
-/**
- * Styled game area
- */
-const GameArea = styled(motion.div)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 400px;
-  background: linear-gradient(135deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%);
-  border-radius: ${theme.borderRadius.lg};
-  border: 3px solid ${theme.colors.primary};
-  position: relative;
-  overflow: hidden;
-  cursor: crosshair;
-`;
-
-/**
- * Styled target circle
- */
-const TargetCircle = styled(motion.div)<{ $phase: GamePhase }>`
-  position: absolute;
-  border-radius: ${theme.borderRadius.full};
-  background: linear-gradient(135deg, ${theme.colors.secondary} 0%, ${theme.colors.accent} 100%);
-  box-shadow: 0 0 20px ${theme.colors.secondary}, inset 0 0 10px rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  color: white;
-
-  ${(props) =>
-    props.$phase === 'showing-result'
-      ? `
-    pointer-events: none;
-    opacity: 0.5;
-  `
-      : ''}
-
-  &::before {
-    content: '';
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: white;
-    border-radius: 50%;
-    z-index: 10;
-  }
-`;
-
-/**
- * Styled miss indicator
- */
-const MissIndicator = styled(motion.div)`
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 3px solid ${theme.colors.error};
-  border-radius: ${theme.borderRadius.full};
-  pointer-events: none;
-`;
-
-/**
- * Styled result display
- */
-const ResultDisplay = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.md};
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.primary};
-  width: 100%;
-  text-align: center;
-`;
-
-/**
- * Styled result label
- */
-const ResultLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.medium};
-`;
-
-/**
- * Styled result value
- */
-const ResultValue = styled(motion.p)<{ $quality: 'excellent' | 'good' | 'fair' | 'poor' }>`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  margin: 0;
-  color: ${(props) => {
-    switch (props.$quality) {
-      case 'excellent':
-        return theme.colors.success;
-      case 'good':
-        return theme.colors.info;
-      case 'fair':
-        return theme.colors.accent;
-      case 'poor':
-        return theme.colors.error;
-    }
-  }};
-`;
-
-/**
- * Styled attempts summary
- */
-const AttemptsSummary = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${theme.spacing.md};
-  width: 100%;
-`;
-
-/**
- * Styled attempt item
- */
-const AttemptItem = styled(motion.div)<{ $quality: 'excellent' | 'good' | 'fair' | 'poor' }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.md};
-  border-radius: ${theme.borderRadius.lg};
-  background: ${(props) => {
-    switch (props.$quality) {
-      case 'excellent':
-        return 'rgba(16, 185, 129, 0.1)';
-      case 'good':
-        return 'rgba(59, 130, 246, 0.1)';
-      case 'fair':
-        return 'rgba(245, 158, 11, 0.1)';
-      case 'poor':
-        return 'rgba(239, 68, 68, 0.1)';
-    }
-  }};
-  border: 2px solid
-    ${(props) => {
-      switch (props.$quality) {
-        case 'excellent':
-          return theme.colors.success;
-        case 'good':
-          return theme.colors.info;
-        case 'fair':
-          return theme.colors.accent;
-        case 'poor':
-          return theme.colors.error;
-      }
-    }};
-`;
-
-/**
- * Styled attempt number
- */
-const AttemptNumber = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.semibold};
-`;
-
-/**
- * Styled attempt distance
- */
-const AttemptDistance = styled(motion.p)`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  margin: 0;
-`;
-
-/**
- * Styled stats section
- */
-const StatsSection = styled(motion.div)`
-  display: flex;
-  gap: ${theme.spacing.lg};
-  justify-content: center;
-  flex-wrap: wrap;
-  width: 100%;
-`;
-
-/**
- * Styled stat item
- */
-const StatItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-`;
-
-/**
- * Styled stat label
- */
-const StatLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.medium};
-`;
-
-/**
- * Styled stat value
- */
-const StatValue = styled(motion.p)`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.xl};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
-`;
-
-/**
- * Styled completion message
- */
-const CompletionMessage = styled(motion.div)<{ $success: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.md};
-  padding: ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  background: ${(props) =>
-    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  font-family: ${theme.fonts.primary};
-  font-weight: ${theme.fontWeights.bold};
-  text-align: center;
-  width: 100%;
-`;
-
-/**
- * Styled emoji
- */
-const Emoji = styled.span`
-  font-size: ${theme.fontSizes['3xl']};
-  line-height: 1;
-`;
+interface ChallengeProps {
+  onComplete: (success: boolean, timeSpent: number, score: number) => void;
+  timeLimit?: number;
+  challengeId: string;
+}
 
 /**
  * Get quality level based on distance
@@ -331,39 +36,76 @@ const getQuality = (distance: number): 'excellent' | 'good' | 'fair' | 'poor' =>
 };
 
 /**
+ * Get quality color
+ */
+const getQualityColor = (quality: 'excellent' | 'good' | 'fair' | 'poor'): string => {
+  switch (quality) {
+    case 'excellent': return '#10b981';
+    case 'good': return '#3b82f6';
+    case 'fair': return '#f59e0b';
+    case 'poor': return '#ef4444';
+  }
+};
+
+/**
  * Click Precision Challenge Component
  * User must click the center of a shrinking circle
  */
 const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [currentAttempt, setCurrentAttempt] = useState(1);
   const [results, setResults] = useState<AttemptResult[]>([]);
-  const [phase, setPhase] = useState<GamePhase>('active');
+  const [phase, setPhase] = useState<GamePhase>('ready');
   const [missIndicator, setMissIndicator] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(1);
+  const [countdown, setCountdown] = useState(3);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationStartRef = useRef<number>(0);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const TOTAL_ATTEMPTS = 3;
   const CIRCLE_SIZE = 200; // px
   const ANIMATION_DURATION = 3000; // ms
   const MIN_CIRCLE_SIZE = 20; // px
+  const CENTER_THRESHOLD = 20; // px - considered "miss" if outside this
 
   /**
    * Calculate distance from center
    */
-  const calculateDistance = (clickX: number, clickY: number, centerX: number, centerY: number): number => {
+  const calculateDistance = useCallback((clickX: number, clickY: number, centerX: number, centerY: number): number => {
     return Math.sqrt((clickX - centerX) ** 2 + (clickY - centerY) ** 2);
-  };
+  }, []);
 
   /**
-   * Handle circle click
+   * Start countdown before game
    */
-  const handleCircleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const startCountdown = useCallback(() => {
+    setPhase('ready');
+    setCountdown(3);
+    let count = 3;
+    
+    const runCountdown = () => {
+      if (count > 0) {
+        setCountdown(count);
+        count--;
+        countdownTimerRef.current = setTimeout(runCountdown, 1000);
+      } else {
+        setPhase('active');
+        startTimeRef.current = Date.now();
+      }
+    };
+    
+    runCountdown();
+  }, []);
+
+  /**
+   * Handle click on game area
+   */
+  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (phase !== 'active' || !gameAreaRef.current) return;
 
     const rect = gameAreaRef.current.getBoundingClientRect();
@@ -374,40 +116,48 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
     const clickY = e.clientY - rect.top;
 
     const distance = calculateDistance(clickX, clickY, centerX, centerY);
+    const currentCircleRadius = (CIRCLE_SIZE * scale) / 2;
+    const accuracy = Math.max(0, 100 - (distance / currentCircleRadius) * 100);
 
-    // Show miss indicator if miss
-    if (distance > 20) {
+    // Show miss indicator if click is outside center threshold
+    if (distance > CENTER_THRESHOLD) {
       setMissIndicator({ x: clickX, y: clickY });
-      setTimeout(() => setMissIndicator(null), 500);
+      setTimeout(() => setMissIndicator(null), 600);
     }
 
     // Record result
-    const newResults = [...results, { distance, x: clickX, y: clickY }];
+    const newResults = [...results, { distance, x: clickX, y: clickY, accuracy }];
     setResults(newResults);
 
     // Show result phase
     setPhase('showing-result');
 
     // Next attempt or complete
-    if (currentAttempt < 3) {
+    if (currentAttempt < TOTAL_ATTEMPTS) {
       setTimeout(() => {
         setCurrentAttempt(currentAttempt + 1);
         setScale(1);
         setPhase('active');
-      }, 1500);
+      }, 1800);
     } else {
       // Challenge complete
       setTimeout(() => {
         setPhase('complete');
-      }, 1500);
+      }, 1800);
     }
-  };
+  }, [phase, currentAttempt, results, scale, calculateDistance]);
 
   /**
    * Animate circle shrinking
    */
   useEffect(() => {
-    if (phase !== 'active') return;
+    if (phase !== 'active') {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      return;
+    }
 
     animationStartRef.current = Date.now();
 
@@ -431,174 +181,488 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
     };
-  }, [phase]);
+  }, [phase, currentAttempt]);
 
-  // Calculate statistics
-  const avgDistance = results.length > 0 ? results.reduce((a, b) => a + b.distance, 0) / results.length : 0;
-  const success = avgDistance < 30;
-  const score = Math.max(0, Math.round(200 - avgDistance * 3));
+  /**
+   * Start countdown on mount
+   */
+  useEffect(() => {
+    startCountdown();
+    
+    return () => {
+      if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [startCountdown]);
+
+  /**
+   * Complete challenge
+   */
+  useEffect(() => {
+    if (phase === 'complete' && results.length === TOTAL_ATTEMPTS) {
+      const timeSpent = (Date.now() - startTimeRef.current) / 1000;
+      
+      setTimeout(() => {
+        onComplete(stats.success, timeSpent, stats.score);
+      }, 2500);
+    }
+  }, [phase, results]);
+
+  /**
+   * Calculate statistics
+   */
+  const stats = useMemo(() => {
+    if (results.length === 0) {
+      return { avgDistance: 0, avgAccuracy: 0, bestDistance: 0, success: false, score: 0 };
+    }
+
+    const avgDistance = results.reduce((a, b) => a + b.distance, 0) / results.length;
+    const avgAccuracy = results.reduce((a, b) => a + b.accuracy, 0) / results.length;
+    const bestDistance = Math.min(...results.map(r => r.distance));
+    
+    // Success if average distance < 30px
+    const success = avgDistance < 30;
+    
+    // Scoring: Base 200 points - distance penalty + bonus for consistency
+    const baseScore = 200;
+    const distancePenalty = avgDistance * 3;
+    const consistencyBonus = results.every(r => r.distance < 30) ? 50 : 0;
+    const perfectBonus = results.filter(r => r.distance <= 15).length * 30;
+    
+    const score = Math.max(0, Math.round(baseScore - distancePenalty + consistencyBonus + perfectBonus));
+
+    return { avgDistance, avgAccuracy, bestDistance, success, score };
+  }, [results]);
 
   return (
-    <ChallengeBase
-      title="Click Precision Challenge"
-      description="Click the center of the shrinking circle"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-    >
-      <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Hit the Target!
-        </Title>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2rem',
+      width: '100%',
+      maxWidth: '600px',
+      margin: '0 auto',
+      padding: '1rem',
+    }}>
+      <motion.h2
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          textAlign: 'center',
+          margin: 0,
+        }}
+      >
+        Hit the Target!
+      </motion.h2>
 
-        <Instruction>
-          {phase === 'active'
-            ? 'Click the center of the circle before it disappears'
-            : phase === 'showing-result'
-              ? 'Recording result...'
-              : 'Challenge complete!'}
-        </Instruction>
+      <p style={{
+        fontSize: '1rem',
+        color: '#6b7280',
+        textAlign: 'center',
+        margin: 0,
+      }}>
+        {phase === 'ready' && '🎯 Get ready...'}
+        {phase === 'active' && '⚡ Click the center before it disappears!'}
+        {phase === 'showing-result' && '📊 Recording result...'}
+        {phase === 'complete' && '✨ Challenge complete!'}
+      </p>
 
-        {phase !== 'complete' && (
-          <AttemptCounter
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            Attempt {currentAttempt}/3
-          </AttemptCounter>
-        )}
-
-        {phase !== 'complete' && (
-          <GameArea
-            ref={gameAreaRef}
-            onClick={handleCircleClick}
-            initial={{ opacity: 0, scale: 0.9 }}
+      {/* Countdown Display */}
+      <AnimatePresence>
+        {phase === 'ready' && (
+          <motion.div
+            key={countdown}
+            initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
+            exit={{ opacity: 0, scale: 1.5 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              fontSize: '6rem',
+              fontWeight: 'bold',
+              color: '#6366f1',
+              textShadow: '0 0 20px rgba(99, 102, 241, 0.5)',
+            }}
           >
-            <TargetCircle
-              $phase={phase}
+            {countdown}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {phase !== 'complete' && phase !== 'ready' && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            fontSize: '1.125rem',
+            fontWeight: '600',
+            color: '#6366f1',
+            margin: 0,
+          }}
+        >
+          Attempt {currentAttempt}/{TOTAL_ATTEMPTS}
+        </motion.p>
+      )}
+
+      {/* Game Area */}
+      {phase !== 'complete' && phase !== 'ready' && (
+        <motion.div
+          ref={gameAreaRef}
+          onClick={handleClick}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            aspectRatio: '1',
+            maxWidth: '400px',
+            background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+            borderRadius: '1rem',
+            border: '3px solid #6366f1',
+            position: 'relative',
+            overflow: 'hidden',
+            cursor: phase === 'active' ? 'crosshair' : 'default',
+            touchAction: 'none',
+          }}
+        >
+          {/* Target Circle */}
+          {phase === 'active' && (
+            <motion.div
               animate={{
                 width: CIRCLE_SIZE * scale,
                 height: CIRCLE_SIZE * scale,
               }}
-              transition={{ type: 'tween', duration: ANIMATION_DURATION / 1000 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCircleClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+              transition={{ duration: 0.1 }}
+              style={{
+                position: 'absolute',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                boxShadow: '0 0 20px #a855f7, inset 0 0 10px rgba(255, 255, 255, 0.3)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.125rem',
+                fontWeight: 'bold',
+                color: 'white',
               }}
-            />
+            >
+              {/* Center dot */}
+              <div style={{
+                position: 'absolute',
+                width: '4px',
+                height: '4px',
+                background: 'white',
+                borderRadius: '50%',
+                zIndex: 10,
+              }} />
+            </motion.div>
+          )}
 
+          {/* Miss Indicator */}
+          <AnimatePresence>
             {missIndicator && (
-              <MissIndicator
+              <motion.div
                 initial={{ opacity: 1, scale: 1 }}
                 animate={{ opacity: 0, scale: 1.5 }}
-                transition={{ duration: 0.4 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
                 style={{
+                  position: 'absolute',
                   left: missIndicator.x - 10,
                   top: missIndicator.y - 10,
+                  width: '20px',
+                  height: '20px',
+                  border: '3px solid #ef4444',
+                  borderRadius: '50%',
+                  pointerEvents: 'none',
                 }}
               />
             )}
-          </GameArea>
-        )}
+          </AnimatePresence>
+        </motion.div>
+      )}
 
+      {/* Individual Result Display */}
+      <AnimatePresence>
         {phase === 'showing-result' && results.length > 0 && (
-          <ResultDisplay
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 200 }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+              padding: '1.5rem',
+              background: '#f9fafb',
+              borderRadius: '1rem',
+              border: '2px solid #6366f1',
+              width: '100%',
+              textAlign: 'center',
+            }}
           >
-            <ResultLabel>Attempt {currentAttempt} Result</ResultLabel>
-            <ResultValue
-              $quality={getQuality(results[results.length - 1].distance)}
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#6b7280',
+              margin: 0,
+              fontWeight: '500',
+            }}>
+              Attempt {currentAttempt} Result
+            </p>
+            <motion.p
               initial={{ scale: 1.2 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 300 }}
+              style={{
+                fontFamily: 'monospace',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                margin: 0,
+                color: getQualityColor(getQuality(results[results.length - 1].distance)),
+              }}
             >
-              {Math.round(results[results.length - 1].distance)}px
-            </ResultValue>
-          </ResultDisplay>
+              {Math.round(results[results.length - 1].distance)}px from center
+            </motion.p>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#6b7280',
+              margin: 0,
+            }}>
+              {getQuality(results[results.length - 1].distance) === 'excellent' && '🎯 Excellent!'}
+              {getQuality(results[results.length - 1].distance) === 'good' && '👍 Good shot!'}
+              {getQuality(results[results.length - 1].distance) === 'fair' && '📍 Not bad!'}
+              {getQuality(results[results.length - 1].distance) === 'poor' && '🎲 Keep trying!'}
+            </p>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {phase === 'complete' && (
-          <>
-            <AttemptsSummary
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, staggerChildren: 0.1 }}
-            >
-              {results.map((result, idx) => (
-                <AttemptItem
+      {/* Final Results */}
+      {phase === 'complete' && (
+        <>
+          {/* Attempts Summary */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '1rem',
+              width: '100%',
+            }}
+          >
+            {results.map((result, idx) => {
+              const quality = getQuality(result.distance);
+              return (
+                <motion.div
                   key={idx}
-                  $quality={getQuality(result.distance)}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: idx * 0.1 }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '1rem',
+                    borderRadius: '0.75rem',
+                    background: quality === 'excellent' ? 'rgba(16, 185, 129, 0.1)' :
+                               quality === 'good' ? 'rgba(59, 130, 246, 0.1)' :
+                               quality === 'fair' ? 'rgba(245, 158, 11, 0.1)' :
+                               'rgba(239, 68, 68, 0.1)',
+                    border: `2px solid ${getQualityColor(quality)}`,
+                  }}
                 >
-                  <AttemptNumber>Attempt {idx + 1}</AttemptNumber>
-                  <AttemptDistance
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    margin: 0,
+                    fontWeight: '600',
+                  }}>
+                    #{idx + 1}
+                  </p>
+                  <motion.p
                     initial={{ scale: 1.2 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 300 }}
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '1.125rem',
+                      fontWeight: 'bold',
+                      margin: 0,
+                      color: getQualityColor(quality),
+                    }}
                   >
                     {Math.round(result.distance)}px
-                  </AttemptDistance>
-                </AttemptItem>
-              ))}
-            </AttemptsSummary>
+                  </motion.p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
 
-            <StatsSection
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <StatItem>
-                <StatLabel>Average Distance</StatLabel>
-                <StatValue
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  {Math.round(avgDistance)}px
-                </StatValue>
-              </StatItem>
-              <StatItem>
-                <StatLabel>Score</StatLabel>
-                <StatValue
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  {score}
-                </StatValue>
-              </StatItem>
-            </StatsSection>
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            style={{
+              display: 'flex',
+              gap: '2rem',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              width: '100%',
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                margin: 0,
+                fontWeight: '500',
+              }}>Average</p>
+              <motion.p
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                style={{
+                  fontFamily: 'monospace',
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold',
+                  color: '#6366f1',
+                  margin: 0,
+                }}
+              >
+                {Math.round(stats.avgDistance)}px
+              </motion.p>
+            </div>
 
-            <CompletionMessage
-              $success={success}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
-            >
-              <Emoji>{success ? '🎯' : '💪'}</Emoji>
-              <div>
-                {success
-                  ? 'Excellent precision!'
-                  : 'Keep practicing your accuracy!'}
-              </div>
-            </CompletionMessage>
-          </>
-        )}
-      </Container>
-    </ChallengeBase>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                margin: 0,
+                fontWeight: '500',
+              }}>Best</p>
+              <motion.p
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                style={{
+                  fontFamily: 'monospace',
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold',
+                  color: '#10b981',
+                  margin: 0,
+                }}
+              >
+                {Math.round(stats.bestDistance)}px
+              </motion.p>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                margin: 0,
+                fontWeight: '500',
+              }}>Score</p>
+              <motion.p
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                style={{
+                  fontFamily: 'monospace',
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold',
+                  color: '#6366f1',
+                  margin: 0,
+                }}
+              >
+                {stats.score}
+              </motion.p>
+            </div>
+          </motion.div>
+
+          {/* Completion Message */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+              padding: '1.5rem',
+              borderRadius: '0.75rem',
+              border: `2px solid ${stats.success ? '#10b981' : '#ef4444'}`,
+              background: stats.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              color: stats.success ? '#10b981' : '#ef4444',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              width: '100%',
+            }}
+          >
+            <span style={{ fontSize: '2.25rem', lineHeight: 1 }}>
+              {stats.success ? '🎯' : '💪'}
+            </span>
+            <div style={{ fontSize: '1.125rem' }}>
+              {stats.success
+                ? 'Excellent precision!'
+                : 'Keep practicing your accuracy!'}
+            </div>
+          </motion.div>
+        </>
+      )}
+
+      {/* Help Text */}
+      {phase === 'active' && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          style={{
+            fontSize: '0.875rem',
+            color: '#9ca3af',
+            textAlign: 'center',
+            margin: 0,
+            fontStyle: 'italic',
+          }}
+        >
+          💡 Tip: Aim for the white dot in the center. The circle shrinks over time!
+        </motion.p>
+      )}
+    </div>
   );
 };
 

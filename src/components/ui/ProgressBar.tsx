@@ -42,7 +42,7 @@ const BarContainer = styled.div`
   width: 100%;
   height: 8px;
   background-color: ${theme.colors.borderLight};
-  border-radius: ${theme.borderRadius.full};
+  border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
   position: relative;
 `;
@@ -53,7 +53,7 @@ const BarContainer = styled.div`
 const BarFill = styled(motion.div)`
   height: 100%;
   background: ${theme.gradients.primary};
-  border-radius: ${theme.borderRadius.full};
+  border-radius: ${theme.borderRadius.lg};
   will-change: width;
 `;
 

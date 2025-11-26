@@ -228,7 +228,7 @@ const ChallengeResult = styled(motion.div)`
  */
 const ChallengeName = styled.span`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textPrimary};
   font-weight: ${theme.fontWeights.medium};
 `;

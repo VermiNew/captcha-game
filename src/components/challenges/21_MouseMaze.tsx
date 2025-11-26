@@ -1,6 +1,6 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import { theme } from '../../styles/theme';
@@ -18,103 +18,147 @@ interface Point {
  */
 interface Maze {
   name: string;
-  path: Point[]; // Center line of the path
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  path: Point[];
   start: Point;
   end: Point;
+  corridorWidth: number;
 }
+
+/**
+ * Constants
+ */
+const SVG_WIDTH = 700;
+const SVG_HEIGHT = 450;
+const CURSOR_RADIUS = 10;
+const END_ZONE_RADIUS = 35;
+const TRAIL_LENGTH = 60;
 
 /**
  * Predefined mazes - 3 different difficulty levels
  */
 const MAZES: Maze[] = [
   {
-    name: 'Simple Path',
-    start: { x: 50, y: 200 },
-    end: { x: 550, y: 200 },
+    name: 'Gentle Curves',
+    difficulty: 'Easy',
+    corridorWidth: 50,
+    start: { x: 50, y: 225 },
+    end: { x: 650, y: 225 },
     path: [
-      { x: 50, y: 200 },
-      { x: 100, y: 200 },
-      { x: 150, y: 150 },
+      { x: 50, y: 225 },
+      { x: 120, y: 225 },
+      { x: 180, y: 180 },
+      { x: 240, y: 150 },
+      { x: 300, y: 180 },
+      { x: 360, y: 225 },
+      { x: 420, y: 270 },
+      { x: 480, y: 225 },
+      { x: 540, y: 180 },
+      { x: 600, y: 225 },
+      { x: 650, y: 225 },
+    ],
+  },
+  {
+    name: 'Twisted Path',
+    difficulty: 'Medium',
+    corridorWidth: 42,
+    start: { x: 50, y: 120 },
+    end: { x: 650, y: 330 },
+    path: [
+      { x: 50, y: 120 },
+      { x: 110, y: 120 },
+      { x: 170, y: 170 },
+      { x: 170, y: 280 },
+      { x: 240, y: 280 },
+      { x: 300, y: 170 },
+      { x: 360, y: 120 },
+      { x: 430, y: 170 },
+      { x: 490, y: 280 },
+      { x: 550, y: 230 },
+      { x: 610, y: 280 },
+      { x: 650, y: 330 },
+    ],
+  },
+  {
+    name: 'Spiral Challenge',
+    difficulty: 'Hard',
+    corridorWidth: 36,
+    start: { x: 50, y: 225 },
+    end: { x: 650, y: 225 },
+    path: [
+      { x: 50, y: 225 },
+      { x: 100, y: 180 },
+      { x: 150, y: 130 },
       { x: 200, y: 100 },
-      { x: 250, y: 150 },
-      { x: 300, y: 200 },
-      { x: 350, y: 250 },
-      { x: 400, y: 200 },
-      { x: 450, y: 150 },
-      { x: 500, y: 200 },
-      { x: 550, y: 200 },
-    ],
-  },
-  {
-    name: 'Twisted Maze',
-    start: { x: 50, y: 100 },
-    end: { x: 550, y: 300 },
-    path: [
-      { x: 50, y: 100 },
-      { x: 100, y: 100 },
-      { x: 150, y: 150 },
-      { x: 150, y: 250 },
-      { x: 200, y: 250 },
-      { x: 250, y: 150 },
-      { x: 300, y: 100 },
-      { x: 350, y: 150 },
-      { x: 400, y: 250 },
-      { x: 450, y: 200 },
-      { x: 500, y: 250 },
-      { x: 550, y: 300 },
-    ],
-  },
-  {
-    name: 'Spiral Maze',
-    start: { x: 50, y: 200 },
-    end: { x: 550, y: 200 },
-    path: [
-      { x: 50, y: 200 },
-      { x: 100, y: 150 },
-      { x: 150, y: 100 },
-      { x: 200, y: 150 },
-      { x: 250, y: 200 },
-      { x: 300, y: 150 },
-      { x: 350, y: 100 },
-      { x: 400, y: 150 },
-      { x: 450, y: 200 },
-      { x: 500, y: 250 },
-      { x: 550, y: 200 },
+      { x: 250, y: 130 },
+      { x: 300, y: 180 },
+      { x: 350, y: 225 },
+      { x: 400, y: 180 },
+      { x: 450, y: 130 },
+      { x: 500, y: 180 },
+      { x: 550, y: 225 },
+      { x: 600, y: 270 },
+      { x: 650, y: 225 },
     ],
   },
 ];
 
 /**
- * Get closest point on path to a given point
+ * Get closest point on path segment
  */
-const getClosestPointOnPath = (point: Point, path: Point[]): Point => {
-  let closest = path[0];
+const getClosestPointOnSegment = (point: Point, segStart: Point, segEnd: Point): Point => {
+  const dx = segEnd.x - segStart.x;
+  const dy = segEnd.y - segStart.y;
+  const lengthSquared = dx * dx + dy * dy;
+
+  if (lengthSquared === 0) return segStart;
+
+  const t = Math.max(0, Math.min(1, 
+    ((point.x - segStart.x) * dx + (point.y - segStart.y) * dy) / lengthSquared
+  ));
+
+  return {
+    x: segStart.x + t * dx,
+    y: segStart.y + t * dy,
+  };
+};
+
+/**
+ * Check if point is within corridor
+ */
+const isPointInCorridor = (point: Point, path: Point[], corridorWidth: number): boolean => {
   let minDist = Infinity;
 
-  for (const pathPoint of path) {
-    const dx = point.x - pathPoint.x;
-    const dy = point.y - pathPoint.y;
+  for (let i = 1; i < path.length; i++) {
+    const closest = getClosestPointOnSegment(point, path[i - 1], path[i]);
+    const dx = point.x - closest.x;
+    const dy = point.y - closest.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    minDist = Math.min(minDist, dist);
+  }
+
+  return minDist <= corridorWidth / 2;
+};
+
+/**
+ * Get progress along path (0-100)
+ */
+const getProgressAlongPath = (point: Point, path: Point[]): number => {
+  let closestIdx = 0;
+  let minDist = Infinity;
+
+  for (let i = 0; i < path.length; i++) {
+    const dx = point.x - path[i].x;
+    const dy = point.y - path[i].y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < minDist) {
       minDist = dist;
-      closest = pathPoint;
+      closestIdx = i;
     }
   }
 
-  return closest;
-};
-
-/**
- * Check if point is within corridor (40px width from center)
- */
-const isPointInCorridor = (point: Point, path: Point[], corridorWidth: number = 40): boolean => {
-  const closest = getClosestPointOnPath(point, path);
-  const dx = point.x - closest.x;
-  const dy = point.y - closest.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-
-  return dist <= corridorWidth / 2;
+  return (closestIdx / (path.length - 1)) * 100;
 };
 
 /**
@@ -124,19 +168,21 @@ const Container = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.lg};
+  gap: ${theme.spacing.xl};
   width: 100%;
 `;
 
 /**
  * Instruction text
  */
-const Instruction = styled.p`
+const Instruction = styled(motion.p)<{ $warning?: boolean }>`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.lg};
+  color: ${props => props.$warning ? theme.colors.error : theme.colors.textSecondary};
   text-align: center;
   margin: 0;
+  font-weight: ${props => props.$warning ? theme.fontWeights.bold : theme.fontWeights.medium};
+  transition: all 0.3s ease;
 `;
 
 /**
@@ -144,31 +190,90 @@ const Instruction = styled.p`
  */
 const MazeContainer = styled(motion.svg)`
   border: 3px solid ${theme.colors.primary};
-  background-color: white;
-  border-radius: ${theme.borderRadius.md};
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: ${theme.borderRadius.lg};
+  box-shadow: ${theme.shadows.lg};
   cursor: none;
   user-select: none;
   touch-action: none;
+
+  &:hover {
+    border-color: ${theme.colors.secondary};
+  }
 `;
 
 /**
- * Custom cursor
+ * Stats container
  */
-const CursorTrail = styled(motion.circle)`
-  pointer-events: none;
+const StatsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: ${theme.spacing.lg};
+  width: 100%;
+  max-width: 700px;
 `;
 
 /**
- * Status message
+ * Stat card
  */
-const StatusMessage = styled(motion.p)<{ $warning?: boolean }>`
+const StatCard = styled(motion.div)<{ $highlight?: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  padding: ${theme.spacing.lg};
+  background: ${props => props.$highlight ? 
+    `linear-gradient(135deg, ${theme.colors.primary}15, ${theme.colors.secondary}15)` : 
+    theme.colors.surface};
+  border-radius: ${theme.borderRadius.lg};
+  border: 2px solid ${props => props.$highlight ? theme.colors.primary : theme.colors.border};
+  transition: all 0.3s ease;
+`;
+
+/**
+ * Stat label
+ */
+const StatLabel = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${(props) => (props.$warning ? theme.colors.error : theme.colors.success)};
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.textSecondary};
   margin: 0;
-  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+/**
+ * Stat value
+ */
+const StatValue = styled(motion.p)`
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes['2xl']};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${theme.colors.primary};
+  margin: 0;
+`;
+
+/**
+ * Difficulty badge
+ */
+const DifficultyBadge = styled.span<{ $difficulty: string }>`
+  display: inline-block;
+  padding: ${theme.spacing.xs} ${theme.spacing.md};
+  border-radius: ${theme.borderRadius.full};
+  font-size: ${theme.fontSizes.sm};
+  font-weight: ${theme.fontWeights.bold};
+  background: ${props => 
+    props.$difficulty === 'Easy' ? 'rgba(16, 185, 129, 0.15)' :
+    props.$difficulty === 'Medium' ? 'rgba(245, 158, 11, 0.15)' :
+    'rgba(239, 68, 68, 0.15)'};
+  color: ${props => 
+    props.$difficulty === 'Easy' ? theme.colors.success :
+    props.$difficulty === 'Medium' ? '#F59E0B' :
+    theme.colors.error};
+  border: 2px solid ${props => 
+    props.$difficulty === 'Easy' ? theme.colors.success :
+    props.$difficulty === 'Medium' ? '#F59E0B' :
+    theme.colors.error};
 `;
 
 /**
@@ -179,24 +284,60 @@ const FeedbackMessage = styled(motion.div)<{ $success: boolean }>`
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.md};
-  padding: ${theme.spacing.lg};
+  padding: ${theme.spacing.xl};
   border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  background: ${(props) =>
-    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
+  border: 2px solid ${props => props.$success ? theme.colors.success : theme.colors.error};
+  background: ${props => props.$success ? 
+    'rgba(16, 185, 129, 0.1)' : 
+    'rgba(239, 68, 68, 0.1)'};
+  color: ${props => props.$success ? theme.colors.success : theme.colors.error};
   font-family: ${theme.fonts.primary};
   font-weight: ${theme.fontWeights.bold};
   text-align: center;
   width: 100%;
+  max-width: 700px;
 `;
 
 /**
  * Emoji
  */
 const Emoji = styled.span`
-  font-size: ${theme.fontSizes['3xl']};
+  font-size: ${theme.fontSizes['4xl']};
   line-height: 1;
+`;
+
+/**
+ * Hint text
+ */
+const HintText = styled(motion.p)`
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.info};
+  text-align: center;
+  margin: 0;
+  padding: ${theme.spacing.md};
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: ${theme.borderRadius.md};
+  max-width: 700px;
+`;
+
+/**
+ * Progress bar
+ */
+const ProgressBarContainer = styled.div`
+  width: 100%;
+  max-width: 700px;
+  height: 12px;
+  background: ${theme.colors.border};
+  border-radius: ${theme.borderRadius.full};
+  overflow: hidden;
+  position: relative;
+`;
+
+const ProgressBarFill = styled(motion.div)`
+  height: 100%;
+  background: linear-gradient(90deg, ${theme.colors.success}, ${theme.colors.info});
+  border-radius: ${theme.borderRadius.full};
 `;
 
 /**
@@ -209,46 +350,38 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [startTime] = useState(() => Date.now());
-
-  // Randomly select a maze
   const [maze] = useState(() => MAZES[Math.floor(Math.random() * MAZES.length)]);
-
   const [cursorPos, setCursorPos] = useState<Point>(maze.start);
   const [cursorTrail, setCursorTrail] = useState<Point[]>([maze.start]);
   const [hitWall, setHitWall] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [progress, setProgress] = useState(0); // 0-100 along the path
+  const [progress, setProgress] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [isInMaze, setIsInMaze] = useState(false);
+  const [maxProgress, setMaxProgress] = useState(0);
 
   /**
-   * Get progress along path
+   * Calculate distance to end
    */
-  const getProgressAlongPath = useCallback(
-    (point: Point): number => {
-      let closest = maze.path[0];
-      let closestIdx = 0;
-      let minDist = Infinity;
+  const distanceToEnd = useMemo(() => {
+    const dx = cursorPos.x - maze.end.x;
+    const dy = cursorPos.y - maze.end.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }, [cursorPos, maze.end]);
 
-      for (let i = 0; i < maze.path.length; i++) {
-        const dx = point.x - maze.path[i].x;
-        const dy = point.y - maze.path[i].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < minDist) {
-          minDist = dist;
-          closestIdx = i;
-        }
-      }
-
-      return (closestIdx / (maze.path.length - 1)) * 100;
-    },
-    [maze.path]
-  );
+  /**
+   * Reset to start position
+   */
+  const resetPosition = useCallback(() => {
+    setCursorPos(maze.start);
+    setCursorTrail([maze.start]);
+    setProgress(0);
+  }, [maze.start]);
 
   /**
    * Handle mouse move
    */
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (completed) return;
 
     const svg = svgRef.current;
@@ -261,55 +394,63 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
     const newPos: Point = { x, y };
     setCursorPos(newPos);
 
-    // Check if in corridor
-    const inCorridor = isPointInCorridor(newPos, maze.path, 40);
+    const inCorridor = isPointInCorridor(newPos, maze.path, maze.corridorWidth);
 
-    if (!inCorridor && !hitWall) {
+    if (!inCorridor && isInMaze && !hitWall) {
       // Hit wall!
       setHitWall(true);
-      setAttempts(attempts + 1);
+      setAttempts(prev => prev + 1);
 
-      // Reset after 1 second
       setTimeout(() => {
-        setCursorPos(maze.start);
-        setCursorTrail([maze.start]);
+        resetPosition();
         setHitWall(false);
-        setProgress(0);
       }, 1000);
     } else if (inCorridor) {
+      setIsInMaze(true);
+      
       // Update trail
-      setCursorTrail((prev) => {
+      setCursorTrail(prev => {
         const newTrail = [...prev, newPos];
-        return newTrail.length > 50 ? newTrail.slice(-50) : newTrail;
+        return newTrail.length > TRAIL_LENGTH ? newTrail.slice(-TRAIL_LENGTH) : newTrail;
       });
 
       // Update progress
-      const newProgress = getProgressAlongPath(newPos);
+      const newProgress = getProgressAlongPath(newPos, maze.path);
       setProgress(newProgress);
+      setMaxProgress(prev => Math.max(prev, newProgress));
 
       // Check if reached end
-      const dx = newPos.x - maze.end.x;
-      const dy = newPos.y - maze.end.y;
-      const distToEnd = Math.sqrt(dx * dx + dy * dy);
-
-      if (distToEnd < 30) {
+      if (distanceToEnd < END_ZONE_RADIUS) {
         setCompleted(true);
         const timeSpent = (Date.now() - startTime) / 1000;
-        const difficultyBonus = maze.name === 'Spiral Maze' ? 50 : maze.name === 'Twisted Maze' ? 25 : 0;
+        const difficultyBonus = 
+          maze.difficulty === 'Hard' ? 75 : 
+          maze.difficulty === 'Medium' ? 40 : 0;
+        const perfectBonus = attempts === 0 ? 50 : 0;
+        
         setTimeout(() => {
-          onComplete(true, timeSpent, 300 + difficultyBonus);
+          onComplete(true, timeSpent, 300 + difficultyBonus + perfectBonus);
         }, 2000);
       }
     }
-  };
+  }, [completed, isInMaze, hitWall, maze, distanceToEnd, startTime, attempts, onComplete, resetPosition]);
 
   /**
    * Handle mouse leave
    */
-  const handleMouseLeave = () => {
-    setCursorPos(maze.start);
-    setCursorTrail([maze.start]);
-  };
+  const handleMouseLeave = useCallback(() => {
+    if (!completed && isInMaze) {
+      resetPosition();
+      setIsInMaze(false);
+    }
+  }, [completed, isInMaze, resetPosition]);
+
+  /**
+   * Handle mouse enter
+   */
+  const handleMouseEnter = useCallback(() => {
+    setIsInMaze(false);
+  }, []);
 
   if (completed) {
     return (
@@ -320,17 +461,27 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
         challengeId={challengeId}
         onComplete={onComplete}
       >
-        <FeedbackMessage
-          $success={true}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200 }}
-        >
-          <Emoji>🎯</Emoji>
-          <span>Maze completed!</span>
-          <span>{maze.name}</span>
-          {attempts === 0 && <span>Perfect run - no wall hits!</span>}
-        </FeedbackMessage>
+        <Container>
+          <FeedbackMessage
+            $success={true}
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          >
+            <Emoji>🎯</Emoji>
+            <div style={{ fontSize: theme.fontSizes.xl }}>
+              Maze Completed!
+            </div>
+            <div style={{ fontSize: theme.fontSizes.md, display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+              {maze.name} <DifficultyBadge $difficulty={maze.difficulty}>{maze.difficulty}</DifficultyBadge>
+            </div>
+            {attempts === 0 && (
+              <div style={{ fontSize: theme.fontSizes.md, fontWeight: 'normal' }}>
+                ✨ Perfect run - no wall hits!
+              </div>
+            )}
+          </FeedbackMessage>
+        </Container>
       </ChallengeBase>
     );
   }
@@ -346,96 +497,156 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.5 }}
       >
-        <Instruction>Move your mouse through the maze from START to END without touching walls!</Instruction>
+        <Instruction $warning={hitWall}>
+          {hitWall ? 
+            '💥 Hit a wall! Resetting to start...' : 
+            'Guide your cursor from START (green) to END (blue) without touching the walls!'}
+        </Instruction>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.md }}>
+          <span style={{ fontFamily: theme.fonts.primary, color: theme.colors.textSecondary }}>
+            {maze.name}
+          </span>
+          <DifficultyBadge $difficulty={maze.difficulty}>
+            {maze.difficulty}
+          </DifficultyBadge>
+        </div>
 
         <MazeContainer
           ref={svgRef}
-          width={600}
-          height={400}
-          viewBox="0 0 600 400"
+          width={SVG_WIDTH}
+          height={SVG_HEIGHT}
+          viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          initial={{ opacity: 0, scale: 0.9 }}
+          onMouseEnter={handleMouseEnter}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
-          {/* Draw walls (corridor borders) */}
+          {/* Background with subtle grid */}
           <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E5E7EB" strokeWidth="0.5" />
+            <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#E5E7EB" strokeWidth="0.5" opacity="0.3" />
             </pattern>
+            <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#F3F4F6" />
+              <stop offset="50%" stopColor="#E5E7EB" />
+              <stop offset="100%" stopColor="#F3F4F6" />
+            </linearGradient>
           </defs>
 
-          {/* Background */}
-          <rect width="600" height="400" fill="white" />
+          <rect width={SVG_WIDTH} height={SVG_HEIGHT} fill="url(#grid)" />
 
-          {/* Draw path as thick corridor */}
-          <g>
-            {maze.path.map((point, i) => {
-              if (i === 0) return null;
-              const prevPoint = maze.path[i - 1];
-              return (
-                <line
-                  key={`corridor-${i}`}
-                  x1={prevPoint.x}
-                  y1={prevPoint.y}
-                  x2={point.x}
-                  y2={point.y}
-                  stroke="#F3F4F6"
-                  strokeWidth="40"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              );
-            })}
-          </g>
+          {/* Draw path corridor */}
+          {maze.path.map((point, i) => {
+            if (i === 0) return null;
+            const prevPoint = maze.path[i - 1];
+            return (
+              <line
+                key={`corridor-${i}`}
+                x1={prevPoint.x}
+                y1={prevPoint.y}
+                x2={point.x}
+                y2={point.y}
+                stroke="url(#pathGradient)"
+                strokeWidth={maze.corridorWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            );
+          })}
 
-          {/* Draw corridor outline (walls) */}
-          <g>
-            {maze.path.map((point, i) => {
-              if (i === 0) return null;
-              const prevPoint = maze.path[i - 1];
-              return (
+          {/* Draw corridor walls */}
+          {maze.path.map((point, i) => {
+            if (i === 0) return null;
+            const prevPoint = maze.path[i - 1];
+            return (
+              <g key={`wall-${i}`}>
                 <line
-                  key={`wall-${i}`}
                   x1={prevPoint.x}
                   y1={prevPoint.y}
                   x2={point.x}
                   y2={point.y}
                   stroke="#1F2937"
-                  strokeWidth="2"
+                  strokeWidth={maze.corridorWidth + 4}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="none"
-                  opacity="0.3"
+                  opacity="0.4"
                 />
-              );
-            })}
-          </g>
+                <line
+                  x1={prevPoint.x}
+                  y1={prevPoint.y}
+                  x2={point.x}
+                  y2={point.y}
+                  stroke="#374151"
+                  strokeWidth={maze.corridorWidth + 2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  opacity="0.6"
+                />
+              </g>
+            );
+          })}
 
-          {/* Draw path line */}
+          {/* Center guide line */}
           <polyline
-            points={maze.path.map((p) => `${p.x},${p.y}`).join(' ')}
+            points={maze.path.map(p => `${p.x},${p.y}`).join(' ')}
             fill="none"
-            stroke="#D1D5DB"
+            stroke="#9CA3AF"
             strokeWidth="1"
-            strokeDasharray="5,5"
-            opacity="0.5"
+            strokeDasharray="8,4"
+            opacity="0.4"
           />
 
           {/* Start marker */}
-          <circle cx={maze.start.x} cy={maze.start.y} r="12" fill="#10B981" opacity="0.8" />
-          <text x={maze.start.x} y={maze.start.y} textAnchor="middle" dy="0.3em" fontSize="10" fill="white" fontWeight="bold">
-            S
-          </text>
+          <g>
+            <circle cx={maze.start.x} cy={maze.start.y} r="18" fill="#10B981" opacity="0.9" />
+            <circle cx={maze.start.x} cy={maze.start.y} r="14" fill="white" opacity="0.3" />
+            <text 
+              x={maze.start.x} 
+              y={maze.start.y} 
+              textAnchor="middle" 
+              dy="0.35em" 
+              fontSize="12" 
+              fill="white" 
+              fontWeight="bold"
+              fontFamily={theme.fonts.primary}
+            >
+              START
+            </text>
+          </g>
 
-          {/* End marker */}
-          <circle cx={maze.end.x} cy={maze.end.y} r="12" fill="#3B82F6" opacity="0.8" />
-          <text x={maze.end.x} y={maze.end.y} textAnchor="middle" dy="0.3em" fontSize="10" fill="white" fontWeight="bold">
-            E
-          </text>
+          {/* End marker with pulse */}
+          <g>
+            <motion.circle 
+              cx={maze.end.x} 
+              cy={maze.end.y} 
+              r="22" 
+              fill="#3B82F6" 
+              opacity="0.3"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <circle cx={maze.end.x} cy={maze.end.y} r="18" fill="#3B82F6" opacity="0.9" />
+            <circle cx={maze.end.x} cy={maze.end.y} r="14" fill="white" opacity="0.3" />
+            <text 
+              x={maze.end.x} 
+              y={maze.end.y} 
+              textAnchor="middle" 
+              dy="0.35em" 
+              fontSize="12" 
+              fill="white" 
+              fontWeight="bold"
+              fontFamily={theme.fonts.primary}
+            >
+              END
+            </text>
+          </g>
 
           {/* Cursor trail */}
           {cursorTrail.map((point, i) => (
@@ -443,29 +654,96 @@ const MouseMazeChallenge: React.FC<ChallengeProps> = ({
               key={`trail-${i}`}
               cx={point.x}
               cy={point.y}
-              r="4"
+              r={3 + (i / cursorTrail.length) * 2}
               fill="#3B82F6"
-              opacity={0.2 + (i / cursorTrail.length) * 0.4}
+              opacity={0.15 + (i / cursorTrail.length) * 0.35}
             />
           ))}
 
           {/* Cursor */}
-          <circle
-            cx={cursorPos.x}
-            cy={cursorPos.y}
-            r="8"
-            fill="#EF4444"
-            opacity={hitWall ? 1 : 0.7}
-          />
+          <motion.g
+            animate={{ 
+              scale: hitWall ? [1, 1.5, 1] : 1,
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            <circle
+              cx={cursorPos.x}
+              cy={cursorPos.y}
+              r={CURSOR_RADIUS + 3}
+              fill={hitWall ? '#EF4444' : '#3B82F6'}
+              opacity="0.3"
+            />
+            <circle
+              cx={cursorPos.x}
+              cy={cursorPos.y}
+              r={CURSOR_RADIUS}
+              fill={hitWall ? '#EF4444' : '#3B82F6'}
+              opacity="0.9"
+            />
+            <circle
+              cx={cursorPos.x}
+              cy={cursorPos.y}
+              r={CURSOR_RADIUS - 4}
+              fill="white"
+              opacity="0.6"
+            />
+          </motion.g>
         </MazeContainer>
 
-        <StatusMessage $warning={hitWall}>
-          {hitWall
-            ? '💥 Hit a wall! Resetting...'
-            : `Progress: ${Math.round(progress)}% | Attempts: ${attempts}`}
-        </StatusMessage>
+        {/* Progress bar */}
+        <ProgressBarContainer>
+          <ProgressBarFill
+            initial={{ width: '0%' }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </ProgressBarContainer>
 
-        <Instruction>{maze.name}</Instruction>
+        {/* Stats */}
+        <StatsContainer>
+          <StatCard $highlight={progress > 0}>
+            <StatLabel>Progress</StatLabel>
+            <StatValue
+              key={Math.floor(progress)}
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              {Math.round(progress)}%
+            </StatValue>
+          </StatCard>
+
+          <StatCard>
+            <StatLabel>Best Run</StatLabel>
+            <StatValue>{Math.round(maxProgress)}%</StatValue>
+          </StatCard>
+
+          <StatCard>
+            <StatLabel>Wall Hits</StatLabel>
+            <StatValue
+              key={attempts}
+              animate={{ 
+                scale: attempts > 0 ? [1, 1.3, 1] : 1,
+                color: attempts > 0 ? [theme.colors.error, theme.colors.primary] : theme.colors.primary
+              }}
+            >
+              {attempts}
+            </StatValue>
+          </StatCard>
+        </StatsContainer>
+
+        <AnimatePresence>
+          {progress === 0 && attempts === 0 && (
+            <HintText
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              💡 Tip: Move slowly and follow the dashed center line for best results!
+            </HintText>
+          )}
+        </AnimatePresence>
       </Container>
     </ChallengeBase>
   );

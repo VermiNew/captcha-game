@@ -36,7 +36,7 @@ const Title = styled(motion.h2)`
  */
 const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
@@ -110,7 +110,7 @@ const Button = styled(motion.button)<{ $variant?: 'primary' | 'secondary' }>`
   flex: 1;
   padding: ${theme.spacing.md} ${theme.spacing.lg};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   border: none;
   border-radius: ${theme.borderRadius.lg};
@@ -182,7 +182,7 @@ const ResultMessage = styled(motion.div)<{ $type: 'success' | 'error' }>`
   border-radius: ${theme.borderRadius.lg};
   text-align: center;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   background: ${(props) =>
     props.$type === 'success'

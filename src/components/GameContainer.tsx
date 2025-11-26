@@ -6,7 +6,6 @@ import { getChallenges, getTotalChallenges } from '../utils/challengeRegistry';
 import { GameState } from '../types';
 import ProgressBar from './ui/ProgressBar';
 import ScoreDisplay from './ui/ScoreDisplay';
-import Timer from './ui/Timer';
 import { theme } from '../styles/theme';
 
 // Import challenges
@@ -50,7 +49,8 @@ import PongArcade from './challenges/37_PongArcade';
 import TetrisSprint from './challenges/38_TetrisSprint';
 import ITNetworkQuiz from './challenges/39_ITNetworkQuiz';
 import MazeKeyQuest from './challenges/40_MazeKeyQuest';
-import CarDriving from './challenges/41_CarDriving';
+import ImagePuzzle from './challenges/41_ImagePuzzle';
+import RhythmHero from './challenges/42_RhythmHero';
 
 /**
  * Styled main container
@@ -114,28 +114,7 @@ const ChallengeArea = styled.div`
   min-height: 400px;
 `;
 
-/**
- * Styled timer container - fixed position outside challenge flow
- */
-const TimerContainer = styled(motion.div)`
-  position: fixed;
-  top: ${theme.spacing.md};
-  right: ${theme.spacing.md};
-  z-index: 50;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary});
-  border-radius: ${theme.borderRadius.xl};
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 
-  @media (max-width: 768px) {
-    top: ${theme.spacing.md};
-    right: ${theme.spacing.md};
-    padding: ${theme.spacing.sm} ${theme.spacing.md};
-  }
-`;
 
 /**
  * Placeholder component for unimplemented challenges
@@ -183,8 +162,11 @@ const GameContainer: React.FC = () => {
    */
   useEffect(() => {
     if (currentChallengeIndex >= totalChallenges) {
-      setGameState('completed' as GameState);
-      setShowTimer(false);
+      const timer = setTimeout(() => {
+        setGameState('completed' as GameState);
+        setShowTimer(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [currentChallengeIndex, totalChallenges, setGameState]);
 
@@ -192,9 +174,12 @@ const GameContainer: React.FC = () => {
    * Reset timer when challenge changes
    */
   useEffect(() => {
-    setShowTimer(true);
-    setTimeLeft(currentChallenge.timeLimit);
-    setTimerActive(true);
+    const timer = setTimeout(() => {
+      setShowTimer(true);
+      setTimeLeft(currentChallenge.timeLimit);
+      setTimerActive(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [currentChallengeIndex, currentChallenge.timeLimit]);
 
   /**
@@ -251,12 +236,12 @@ const GameContainer: React.FC = () => {
   /**
    * Render the appropriate challenge component
    */
-  const renderChallenge = () => {
-    const challengeProps = {
-      onComplete: handleChallengeComplete,
-      timeLimit: currentChallenge.timeLimit,
-      challengeId: currentChallenge.id,
-    };
+   const renderChallenge = () => {
+     const challengeProps = {
+       onComplete: handleChallengeComplete,
+       timeLimit: currentChallenge.timeLimit,
+       challengeId: currentChallenge.id,
+     };
 
     switch (currentChallenge.id) {
       case 1:
@@ -270,28 +255,28 @@ const GameContainer: React.FC = () => {
       case 5:
         return <DragDropSentence {...challengeProps} />;
       case 6:
-         return <MathQuiz {...challengeProps} />;
-       case 8:
+        return <MathQuiz {...challengeProps} />;
+      case 7:
         return <DrawCircle {...challengeProps} />;
-      case 9:
+      case 8:
         return <GeographyQuiz {...challengeProps} />;
-      case 09:
-         return <FindEmoji {...challengeProps} />;
-       case 10:
+      case 9:
+        return <FindEmoji {...challengeProps} />;
+      case 10:
         return <PatternRecognition {...challengeProps} />;
       case 11:
         return <ReactionTime {...challengeProps} />;
-      case 10:
+      case 12:
         return <SlidingPuzzle {...challengeProps} />;
       case 13:
-         return <TicTacToe {...challengeProps} />;
-       case 14:
+        return <TicTacToe {...challengeProps} />;
+      case 14:
         return <ClickPrecision {...challengeProps} />;
-      case 13:
+      case 15:
         return <TowerBuilder {...challengeProps} />;
       case 16:
         return <OddOneOut {...challengeProps} />;
-      case 14:
+      case 17:
         return <SimonSays {...challengeProps} />;
       case 18:
         return <BalanceGame {...challengeProps} />;
@@ -299,23 +284,23 @@ const GameContainer: React.FC = () => {
         return <ChessPuzzle {...challengeProps} />;
       case 20:
         return <ConnectDots {...challengeProps} />;
-      case 18:
-         return <MouseMaze {...challengeProps} />;
-       case 22:
+      case 21:
+        return <MouseMaze {...challengeProps} />;
+      case 22:
         return <WhackAMole {...challengeProps} />;
       case 23:
         return <TargetPractice {...challengeProps} />;
-      case 18:
+      case 24:
         return <KeyboardMemory {...challengeProps} />;
       case 25:
-         return <ColorBlindTest {...challengeProps} />;
-       case 26:
+        return <ColorBlindTest {...challengeProps} />;
+      case 26:
         return <ShutdownComputer {...challengeProps} />;
       case 27:
         return <FractionFighter {...challengeProps} />;
-      case 22:
-         return <FlagMatch {...challengeProps} />;
-       case 23:
+      case 28:
+        return <FlagMatch {...challengeProps} />;
+      case 29:
         return <ScienceQuiz {...challengeProps} />;
       case 30:
         return <SpaceShooter {...challengeProps} />;
@@ -324,32 +309,34 @@ const GameContainer: React.FC = () => {
       case 32:
         return <MathSorting {...challengeProps} />;
       case 33:
-         return <CubeRotation {...challengeProps} />;
-       case 26:
+        return <CubeRotation {...challengeProps} />;
+      case 34:
         return <LogicChain {...challengeProps} />;
       case 35:
         return <JavaScriptCode {...challengeProps} />;
-      case 22:
+      case 36:
         return <BinaryCalculator {...challengeProps} />;
       case 37:
         return <PongArcade {...challengeProps} />;
       case 38:
         return <TetrisSprint {...challengeProps} />;
-      case 30:
+      case 39:
         return <ITNetworkQuiz {...challengeProps} />;
       case 40:
         return <MazeKeyQuest {...challengeProps} />;
       case 41:
-        return <CarDriving {...challengeProps} />;
+        return <ImagePuzzle {...challengeProps} />;
+      case 42:
+        return <RhythmHero {...challengeProps} />;
       default:
         return (
           <PlaceholderChallenge>
             <h2>Challenge Not Found</h2>
-            <p>This challenge has not been implemented yet.</p>
+            <p>Something went wrong.</p>
           </PlaceholderChallenge>
         );
-      }
-      };
+    }
+  };
 
   return (
     <Container>
@@ -366,24 +353,7 @@ const GameContainer: React.FC = () => {
         </ScoreSection>
       </Header>
 
-      <AnimatePresence>
-        {showTimer && (
-          <TimerContainer
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.5,
-            }}
-          >
-            <Timer
-              timeLeft={timeLeft}
-              totalTime={currentChallenge.timeLimit}
-              onTimeUp={() => setShowTimer(false)}
-            />
-          </TimerContainer>
-        )}
-      </AnimatePresence>
+
 
       <ChallengeArea>
         <AnimatePresence mode="wait">

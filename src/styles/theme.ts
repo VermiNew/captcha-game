@@ -6,15 +6,15 @@
 export const theme = {
   colors: {
     // Primary colors
-    primary: '#6366F1', // purple
-    secondary: '#EC4899', // pink
-    accent: '#F59E0B', // orange
+    primary: '#6366F1',
+    secondary: '#EC4899',
+    accent: '#F59E0B',
 
     // Status colors
-    success: '#10B981', // green
-    error: '#EF4444', // red
-    warning: '#F59E0B', // orange
-    info: '#3B82F6', // blue
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
 
     // Neutrals (light theme)
     background: '#FFFFFF',
@@ -33,26 +33,25 @@ export const theme = {
 
   gradients: {
     primary: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
-    sunset: 'linear-gradient(135deg, #F093FB 0%, #F5576C 100%)',
-    ocean: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)',
-    candy: 'linear-gradient(135deg, #FFD1FF 0%, #FFA8E1 100%)',
+    secondary: 'linear-gradient(135deg, #FFD1FF 0%, #FFA8E1 100%)',
   },
 
   fonts: {
-    primary: '"Poppins", sans-serif',
+    primary: '"Space Grotesk", sans-serif',
+    heading: '"Poppins", sans-serif',
     mono: '"Fira Code", monospace',
   },
 
   fontSizes: {
-    xs: '0.75rem', // 12px
-    sm: '0.875rem', // 14px
-    base: '1rem', // 16px
-    lg: '1.125rem', // 18px
-    xl: '1.25rem', // 20px
-    '2xl': '1.5rem', // 24px
-    '3xl': '1.875rem', // 30px
-    '4xl': '2.25rem', // 36px
-    '5xl': '3rem', // 48px
+    xs: '0.75rem',
+    sm: '0.875rem',
+    md: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+    '4xl': '2.25rem',
+    '5xl': '3rem',
   },
 
   fontWeights: {
@@ -60,24 +59,27 @@ export const theme = {
     medium: 500,
     semibold: 600,
     bold: 700,
+    extrabold: 800,
+    black: 900,
   },
 
   spacing: {
-    xs: '0.25rem', // 4px
-    sm: '0.5rem', // 8px
-    md: '1rem', // 16px
-    lg: '1.5rem', // 24px
-    xl: '2rem', // 32px
-    '2xl': '3rem', // 48px
-    '3xl': '4rem', // 64px
+    xs: '0.25rem',
+    sm: '0.5rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '2rem',
+    '2xl': '3rem',
+    '3xl': '4rem',
+    'a lot': '10rem',
   },
 
   borderRadius: {
-    sm: '0.25rem', // 4px
-    md: '0.5rem', // 8px
-    lg: '0.75rem', // 12px
-    xl: '1rem', // 16px
-    '2xl': '1.5rem', // 24px
+    sm: '0.25rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    xl: '1rem',
+    '2xl': '1.5rem',
     full: '9999px',
   },
 

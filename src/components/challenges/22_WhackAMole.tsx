@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -107,7 +107,7 @@ const Label = styled.span`
  */
 const Instructions = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
@@ -172,7 +172,7 @@ const WhackAMoleChallenge: React.FC<ChallengeProps> = ({
   /**
    * Spawn a mole
    */
-  const spawnMole = () => {
+  const spawnMole = useCallback(() => {
     if (completed || totalMoles >= 25) return;
 
     const randomHoleId = Math.floor(Math.random() * 9);
@@ -197,7 +197,7 @@ const WhackAMoleChallenge: React.FC<ChallengeProps> = ({
     }, 1000);
 
     moleTimeoutsRef.current.set(moleId, timeout);
-  };
+  }, [completed, totalMoles]);
 
   /**
    * Handle hole click

@@ -825,9 +825,12 @@ const TicTacToeChallenge: React.FC<ChallengeProps> = ({
    * Advances to next round or completes the challenge
    * Resets board state and prepares for next round
    */
-  const nextRound = useCallback(() => {
+  const nextRound = useCallback((result?: 'won' | 'lost' | 'draw') => {
+    const updatedResults = result ? [...roundResults, result] : roundResults;
+    
     if (currentRound < TOTAL_ROUNDS) {
       // Start next round
+      setRoundStatus('complete');
       setCurrentRound(currentRound + 1);
       setBoard(INITIAL_BOARD);
       setGameStatus('playing');
@@ -835,14 +838,16 @@ const TicTacToeChallenge: React.FC<ChallengeProps> = ({
       setIsAIThinking(false);
       setMoveCount(0);
       setRoundStatus('in-progress');
+      setRoundResults(updatedResults);
       aiMovePendingRef.current = false;
     } else {
       // Challenge complete - calculate final results
-      const wins = roundResults.filter(r => r === 'won').length;
+      const wins = updatedResults.filter(r => r === 'won').length;
       const score = calculateScore(wins);
       const timeSpent = (Date.now() - startTime) / 1000;
       const success = wins >= 1; // Need at least 1 win to pass
 
+      setRoundResults(updatedResults);
       setTimeout(() => {
         onComplete(success, timeSpent, score);
       }, 500);
@@ -855,16 +860,13 @@ const TicTacToeChallenge: React.FC<ChallengeProps> = ({
    */
   useEffect(() => {
     if (gameStatus !== 'playing') {
-      setRoundStatus('complete');
-      const newResults = [...roundResults, gameStatus as ('won' | 'lost' | 'draw')];
-      setRoundResults(newResults);
-
       // Progress to next round after showing result
-      setTimeout(() => {
-        nextRound();
+      const timer = setTimeout(() => {
+        nextRound(gameStatus as 'won' | 'lost' | 'draw');
       }, 2500);
+      return () => clearTimeout(timer);
     }
-  }, [gameStatus, nextRound, roundResults]);
+  }, [gameStatus, nextRound]);
 
   /**
    * Determines if it's currently the player's turn

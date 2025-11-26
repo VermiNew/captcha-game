@@ -6,7 +6,7 @@ import { theme } from './theme';
  * Includes CSS reset, typography, and default styles
  */
 export const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
   /* ============================================
      CSS Reset & Base Styles
@@ -30,7 +30,7 @@ export const GlobalStyles = createGlobalStyle`
     background-color: ${theme.colors.background};
     color: ${theme.colors.textPrimary};
     font-family: ${theme.fonts.primary};
-    font-size: ${theme.fontSizes.base};
+    font-size: ${theme.fontSizes.md};
     font-weight: ${theme.fontWeights.normal};
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -54,27 +54,44 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   h1 {
+    font-family: ${theme.fonts.heading};
     font-size: ${theme.fontSizes['5xl']};
+    font-weight: ${theme.fontWeights.bold};
+    letter-spacing: -0.5px;
   }
 
   h2 {
+    font-family: ${theme.fonts.heading};
     font-size: ${theme.fontSizes['4xl']};
+    font-weight: ${theme.fontWeights.bold};
+    letter-spacing: -0.3px;
   }
 
   h3 {
+    font-family: ${theme.fonts.heading};
     font-size: ${theme.fontSizes['3xl']};
+    font-weight: ${theme.fontWeights.semibold};
+    letter-spacing: -0.2px;
   }
 
   h4 {
+    font-family: ${theme.fonts.heading};
     font-size: ${theme.fontSizes['2xl']};
+    font-weight: ${theme.fontWeights.semibold};
   }
 
   h5 {
-    font-size: ${theme.fontSizes.xl};
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes.lg};
+    font-weight: ${theme.fontWeights.semibold};
   }
 
   h6 {
-    font-size: ${theme.fontSizes.lg};
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes.md};
+    font-weight: ${theme.fontWeights.semibold};
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   p {
@@ -105,7 +122,7 @@ export const GlobalStyles = createGlobalStyle`
   textarea,
   select {
     font-family: ${theme.fonts.primary};
-    font-size: ${theme.fontSizes.base};
+    font-size: ${theme.fontSizes.md};
     border: 1px solid ${theme.colors.border};
     border-radius: ${theme.borderRadius.lg};
     padding: ${theme.spacing.md};
@@ -178,5 +195,70 @@ export const GlobalStyles = createGlobalStyle`
   ::-moz-selection {
     background-color: ${theme.colors.primary};
     color: ${theme.colors.background};
+  }
+
+  /* ============================================
+     Typography Utility Classes
+     ============================================ */
+
+  .text-heading-1 {
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes['5xl']};
+    font-weight: ${theme.fontWeights.bold};
+    letter-spacing: -0.5px;
+  }
+
+  .text-heading-2 {
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes['4xl']};
+    font-weight: ${theme.fontWeights.bold};
+    letter-spacing: -0.3px;
+  }
+
+  .text-heading-3 {
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes['3xl']};
+    font-weight: ${theme.fontWeights.semibold};
+    letter-spacing: -0.2px;
+  }
+
+  .text-heading-4 {
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes['2xl']};
+    font-weight: ${theme.fontWeights.semibold};
+  }
+
+  .text-body {
+    font-family: ${theme.fonts.primary};
+    font-size: ${theme.fontSizes.md};
+    font-weight: ${theme.fontWeights.normal};
+    line-height: 1.6;
+  }
+
+  .text-body-sm {
+    font-family: ${theme.fonts.primary};
+    font-size: ${theme.fontSizes.sm};
+    font-weight: ${theme.fontWeights.normal};
+    line-height: 1.5;
+  }
+
+  .text-label {
+    font-family: ${theme.fonts.heading};
+    font-size: ${theme.fontSizes.sm};
+    font-weight: ${theme.fontWeights.semibold};
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .text-mono {
+    font-family: ${theme.fonts.mono};
+    font-weight: ${theme.fontWeights.semibold};
+  }
+
+  .text-mono-lg {
+    font-family: ${theme.fonts.mono};
+    font-size: ${theme.fontSizes['3xl']};
+    font-weight: ${theme.fontWeights.bold};
+    letter-spacing: 1px;
   }
 `;

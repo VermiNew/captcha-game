@@ -5,7 +5,6 @@ import {
   DndContext,
   closestCenter,
   DragEndEvent,
-  DragStartEvent,
   DragOverEvent,
 } from '@dnd-kit/core';
 import {
@@ -40,22 +39,11 @@ const Container = styled.div`
 `;
 
 /**
- * Styled instruction
- */
-const Instruction = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
  * Styled target sentence
  */
 const TargetSentence = styled(motion.div)`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.primary};
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
   padding: ${theme.spacing.md} ${theme.spacing.lg};
@@ -126,7 +114,7 @@ const WordCard = styled(motion.div)<{
   border-radius: ${theme.borderRadius.md};
   padding: ${theme.spacing.sm} ${theme.spacing.md};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.medium};
   text-align: center;
   cursor: grab;
@@ -195,7 +183,7 @@ const WordCard = styled(motion.div)<{
 const CheckButton = styled(motion.button)<{ $isCorrect: boolean | null }>`
   padding: ${theme.spacing.md} ${theme.spacing.xl};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   border: none;
   border-radius: ${theme.borderRadius.lg};
@@ -306,7 +294,7 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [overId, setOverId] = useState<string | null>(null);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = () => {
     setIsDragging(true);
   };
 
@@ -363,8 +351,6 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
       onComplete={onComplete}
     >
       <Container>
-        <Instruction>Arrange these words to match the sentence:</Instruction>
-
         <TargetSentence
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -30,7 +30,7 @@ const Container = styled.div`
  */
 const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
@@ -61,7 +61,7 @@ const Section = styled(motion.div)`
  */
 const SectionTitle = styled.h3`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.bold};
   color: ${theme.colors.textSecondary};
   margin: 0;
@@ -464,22 +464,24 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
    */
   useEffect(() => {
     if (balanced && rightWeights.length > 0 && !completed) {
-      setCompleted(true);
-      const timeSpent = (Date.now() - startTime) / 1000;
+      const timer = setTimeout(() => {
+        const timeSpent = (Date.now() - startTime) / 1000;
 
-      // Scoring: base points with penalties for more weights and time
-      const base = 200;
-      const weightPenalty = rightWeights.length * 10; // each weight reduces score
-      const timePenalty = Math.floor(timeSpent * 0.5); // half point per second
-      let score = Math.max(0, Math.round(base - weightPenalty - timePenalty));
+        // Scoring: base points with penalties for more weights and time
+        const base = 200;
+        const weightPenalty = rightWeights.length * 10; // each weight reduces score
+        const timePenalty = Math.floor(timeSpent * 0.5); // half point per second
+        let score = Math.max(0, Math.round(base - weightPenalty - timePenalty));
 
-      // Bonus for very precise balancing
-      if (difference <= 1) score += 30;
-      else if (difference <= BALANCE_TOLERANCE) score += 10;
+        // Bonus for very precise balancing
+        if (difference <= 1) score += 30;
+        else if (difference <= BALANCE_TOLERANCE) score += 10;
 
-      setTimeout(() => {
+        setCompleted(true);
         onComplete(true, timeSpent, score);
       }, 1500);
+
+      return () => clearTimeout(timer);
     }
   }, [balanced, rightWeights.length, completed, startTime, onComplete, difference]);
 

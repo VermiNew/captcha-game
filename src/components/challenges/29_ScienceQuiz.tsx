@@ -291,7 +291,7 @@ const OptionButton = styled(motion.button)<{
   padding: ${theme.spacing.md} ${theme.spacing.lg};
   text-align: left;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   border: 2px solid
     ${(props) => {

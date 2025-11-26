@@ -1,9 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import type { ChallengeProps } from '../../types';
-import ChallengeBase from './ChallengeBase';
-import { theme } from '../../styles/theme';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Point interface for drawing coordinates
@@ -14,17 +10,26 @@ interface Point {
 }
 
 /**
+ * Challenge props interface
+ */
+interface ChallengeProps {
+  onComplete: (success: boolean, timeSpent: number, score: number) => void;
+  timeLimit?: number;
+  challengeId: string;
+}
+
+/**
  * Calculate circularity of drawn shape (0-100%)
  * Uses multiple criteria: radius consistency, closure, aspect ratio, and smoothness
  */
 const calculateCircularity = (points: Point[]): number => {
   if (points.length < 20) return 0;
 
-  // 1. Calculate center
+  // Calculate center
   const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
   const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
 
-  // 2. Calculate distances from center to each point
+  // Calculate distances from center to each point
   const distances = points.map((p) =>
     Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2)),
   );
@@ -33,7 +38,7 @@ const calculateCircularity = (points: Point[]): number => {
 
   if (avgRadius === 0) return 0;
 
-  // 3. Radius consistency (80% weight)
+  // Radius consistency (50% weight)
   const variance = distances.reduce(
     (sum, d) => sum + Math.pow(d - avgRadius, 2),
     0,
@@ -41,7 +46,7 @@ const calculateCircularity = (points: Point[]): number => {
   const stdDev = Math.sqrt(variance);
   const radiusScore = Math.max(0, 100 - (stdDev / avgRadius) * 120);
 
-  // 4. Check closure - distance from start to end point
+  // Check closure - distance from start to end point (20% weight)
   const firstPoint = points[0];
   const lastPoint = points[points.length - 1];
   const closureDistance = Math.sqrt(
@@ -49,7 +54,7 @@ const calculateCircularity = (points: Point[]): number => {
   );
   const closureScore = Math.max(0, 100 - (closureDistance / avgRadius) * 100);
 
-  // 5. Check aspect ratio - circle should be symmetric
+  // Check aspect ratio - circle should be symmetric (20% weight)
   const xDistances = points.map((p) => Math.abs(p.x - centerX));
   const yDistances = points.map((p) => Math.abs(p.y - centerY));
   const maxX = Math.max(...xDistances);
@@ -57,23 +62,27 @@ const calculateCircularity = (points: Point[]): number => {
   const aspectRatio = Math.min(maxX, maxY) / Math.max(maxX, maxY);
   const aspectScore = aspectRatio * 100;
 
-  // 6. Check smoothness - penalize sudden direction changes
+  // Check smoothness - penalize sudden direction changes (10% weight)
   let angleChanges = 0;
-  for (let i = 1; i < Math.min(points.length - 1, 100); i++) {
+  const sampleSize = Math.min(points.length - 1, 100);
+  for (let i = 1; i < sampleSize; i++) {
     const p1 = points[i - 1];
     const p2 = points[i];
     const p3 = points[i + 1];
 
     const angle1 = Math.atan2(p2.y - p1.y, p2.x - p1.x);
     const angle2 = Math.atan2(p3.y - p2.y, p3.x - p2.x);
-    const angleDiff = Math.abs(angle2 - angle1);
+    let angleDiff = Math.abs(angle2 - angle1);
+    
+    // Normalize angle difference to 0-π range
+    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
 
     // Penalize sharp turns (> 45 degrees)
-    if (angleDiff > Math.PI / 4 && angleDiff < (3 * Math.PI) / 4) {
+    if (angleDiff > Math.PI / 4) {
       angleChanges++;
     }
   }
-  const smoothScore = Math.max(0, 100 - (angleChanges / points.length) * 50);
+  const smoothScore = Math.max(0, 100 - (angleChanges / sampleSize) * 100);
 
   // Combine scores with weights
   const finalScore = radiusScore * 0.5 + closureScore * 0.2 + aspectScore * 0.2 + smoothScore * 0.1;
@@ -82,222 +91,23 @@ const calculateCircularity = (points: Point[]): number => {
 };
 
 /**
- * Styled container
- */
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.xl};
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-`;
-
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
- * Styled instruction
- */
-const Instruction = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
- * Styled accuracy display
- */
-const AccuracyDisplay = styled(motion.div)<{ $color: string }>`
-  text-align: center;
-  margin-bottom: ${theme.spacing.lg};
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.xl};
-  width: 100%;
-  border: 2px solid ${(props) => props.$color};
-`;
-
-/**
- * Styled accuracy label
- */
-const AccuracyLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0 0 ${theme.spacing.sm} 0;
-  letter-spacing: 1px;
-`;
-
-/**
- * Styled accuracy value
- */
-const AccuracyValue = styled(motion.div)<{ $color: string }>`
-  font-family: ${theme.fonts.primary};
-  font-size: 5rem;
-  font-weight: ${theme.fontWeights.bold};
-  color: ${(props) => props.$color};
-  line-height: 1;
-  margin-bottom: ${theme.spacing.sm};
-`;
-
-/**
- * Styled success message
- */
-const SuccessMessage = styled(motion.p)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.success};
-  margin: ${theme.spacing.md} 0 0 0;
-`;
-
-/**
- * Styled canvas wrapper
- */
-const CanvasWrapper = styled(motion.div)`
-  position: relative;
-  display: inline-block;
-  margin: 0 auto ${theme.spacing.lg};
-  width: 100%;
-`;
-
-/**
- * Styled canvas element
- */
-const Canvas = styled.canvas`
-  display: block;
-  border: 2px solid ${theme.colors.primary};
-  border-radius: ${theme.borderRadius.lg};
-  background: ${theme.colors.background};
-  cursor: crosshair;
-  box-shadow: ${theme.shadows.lg};
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  margin: 0 auto;
-`;
-
-/**
- * Styled canvas hint
- */
-const CanvasHint = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 4rem;
-  opacity: 0.15;
-  pointer-events: none;
-  user-select: none;
-  line-height: 1;
-`;
-
-/**
- * Styled button group
- */
-const ButtonGroup = styled(motion.div)`
-  display: flex;
-  gap: ${theme.spacing.md};
-  justify-content: center;
-  flex-wrap: wrap;
-  width: 100%;
-`;
-
-/**
- * Styled action button
- */
-const ActionButton = styled(motion.button)<{ $variant?: 'primary' | 'secondary' }>`
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.semibold};
-  border-radius: ${theme.borderRadius.lg};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  box-shadow: ${theme.shadows.md};
-
-  ${(props) =>
-    props.$variant === 'primary'
-      ? `
-    background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%);
-    color: white;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: ${theme.shadows.lg};
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  `
-      : `
-    background: ${theme.colors.background};
-    border: 2px solid ${theme.colors.primary};
-    color: ${theme.colors.primary};
-
-    &:hover {
-      background: ${theme.colors.surface};
-      transform: translateY(-2px);
-      box-shadow: ${theme.shadows.lg};
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  `}
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-/**
- * Styled tip
- */
-const Tip = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
-  font-style: italic;
-  opacity: 0.8;
-`;
-
-/**
  * Draw Circle Challenge Component
  * User must draw a perfect circle with 90% accuracy
  */
 const DrawCircleChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [points, setPoints] = useState<Point[]>([]);
   const [accuracy, setAccuracy] = useState(0);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
   const [startTime] = useState(() => Date.now());
   const [successTriggered, setSuccessTriggered] = useState(false);
+  const [showHint, setShowHint] = useState(true);
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   /**
    * Initialize canvas context
@@ -306,72 +116,111 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const updateCanvasSize = () => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    // Set actual canvas size
-    canvas.width = 500;
-    canvas.height = 500;
+      const containerWidth = container.clientWidth;
+      const size = containerWidth;
+      
+      canvas.width = size;
+      canvas.height = size;
+      canvas.style.width = `${size}px`;
+      canvas.style.height = `${size}px`;
 
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = theme.colors.primary;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    ctxRef.current = ctx;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#6366f1';
+
+      ctxRef.current = ctx;
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    
+    return () => window.removeEventListener('resize', updateCanvasSize);
   }, []);
 
   /**
-   * Handle mouse down - start drawing
+   * Get coordinates from event (mouse or touch)
    */
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCoordinates = useCallback((e: React.MouseEvent | React.TouchEvent): Point | null => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return null;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    if ('touches' in e) {
+      if (e.touches.length === 0) return null;
+      const touch = e.touches[0];
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY,
+      };
+    } else {
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY,
+      };
+    }
+  }, []);
+
+  /**
+   * Start drawing
+   */
+  const startDrawing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const coords = getCoordinates(e);
+    if (!coords) return;
 
     setIsDrawing(true);
-    setPoints([{ x, y }]);
+    setHasDrawn(true);
+    setShowHint(false);
+    setPoints([coords]);
 
     const ctx = ctxRef.current;
-    if (ctx) {
+    const canvas = canvasRef.current;
+    if (ctx && canvas) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
-      ctx.moveTo(x, y);
+      ctx.moveTo(coords.x, coords.y);
     }
-  };
+  }, [getCoordinates]);
 
   /**
-   * Handle mouse move - draw
+   * Continue drawing
    */
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     if (!isDrawing) return;
 
-    const canvas = canvasRef.current;
+    const coords = getCoordinates(e);
+    if (!coords) return;
+
     const ctx = ctxRef.current;
-    if (!canvas || !ctx) return;
+    if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    setPoints((prev) => [...prev, coords]);
 
-    setPoints((prev) => [...prev, { x, y }]);
-
-    ctx.lineTo(x, y);
+    ctx.lineTo(coords.x, coords.y);
     ctx.stroke();
-  };
+  }, [isDrawing, getCoordinates]);
 
   /**
-   * Handle mouse up - stop drawing and calculate accuracy
+   * Stop drawing and calculate accuracy
    */
-  const handleMouseUp = () => {
+  const stopDrawing = useCallback(() => {
     if (!isDrawing || points.length === 0) return;
 
     setIsDrawing(false);
 
-    // Calculate circularity - must have drawn enough points
+    // Calculate circularity
     if (points.length < 20) {
       setAccuracy(0);
       return;
@@ -381,22 +230,22 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
     const roundedAccuracy = Math.round(circularity);
     setAccuracy(roundedAccuracy);
 
-    // Check if user succeeded - must have drawn and achieved accuracy
-    if (circularity >= 90 && points.length >= 20 && !successTriggered) {
+    // Check if user succeeded
+    if (circularity >= 90 && !successTriggered) {
       setSuccessTriggered(true);
       const timeSpent = (Date.now() - startTime) / 1000;
-      const score = 250; // High score for difficult challenge
+      const score = Math.round(250 + (100 - circularity) * 10); // Bonus for perfection
 
       setTimeout(() => {
         onComplete(true, timeSpent, score);
-      }, 1000);
+      }, 1500);
     }
-  };
+  }, [isDrawing, points, successTriggered, startTime, onComplete]);
 
   /**
    * Handle clear button
    */
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
@@ -404,104 +253,225 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setPoints([]);
     setAccuracy(0);
-  };
+    setHasDrawn(false);
+    setShowHint(true);
+    setSuccessTriggered(false);
+  }, []);
 
   /**
    * Get color based on accuracy
    */
-  const getAccuracyColor = (): string => {
-    if (accuracy >= 90) return theme.colors.success;
-    if (accuracy >= 70) return theme.colors.warning;
-    return theme.colors.error;
+  const getAccuracyColor = useCallback((): string => {
+    if (accuracy >= 90) return '#10b981';
+    if (accuracy >= 70) return '#f59e0b';
+    if (accuracy >= 50) return '#f97316';
+    return '#ef4444';
+  }, [accuracy]);
+
+  /**
+   * Get feedback message
+   */
+  const getFeedbackMessage = (): string => {
+    if (!hasDrawn) return 'Draw a circle to see your accuracy';
+    if (accuracy >= 90) return '🎉 Perfect! Challenge completed!';
+    if (accuracy >= 80) return '😊 Almost there! Try one more time';
+    if (accuracy >= 70) return '👍 Good attempt! Keep practicing';
+    if (accuracy >= 50) return '💪 Not bad! Try drawing slower';
+    if (accuracy > 0) return '🔄 Keep trying! You can do it';
+    return 'Draw must have at least 20 points';
   };
 
   return (
-    <ChallengeBase
-      title="Draw Circle Challenge"
-      description="Draw a perfect circle with 90% accuracy"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-    >
-      <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          Draw a Perfect Circle
-        </Title>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2rem',
+      width: '100%',
+      maxWidth: '700px',
+      margin: '0 auto',
+      padding: '1rem',
+    }}>
+      <motion.h2
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          textAlign: 'center',
+          margin: 0,
+        }}
+      >
+        Draw a Perfect Circle
+      </motion.h2>
 
-        <Instruction>
-          Draw a circle in one stroke. Achieve 90% accuracy to pass!
-        </Instruction>
+      <p style={{
+        fontSize: '1rem',
+        color: '#6b7280',
+        textAlign: 'center',
+        margin: 0,
+      }}>
+        Draw a circle in one stroke. Achieve 90% accuracy to pass!
+      </p>
 
-        <AccuracyDisplay
-          $color={getAccuracyColor()}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        style={{
+          textAlign: 'center',
+          padding: '1.5rem',
+          background: '#f9fafb',
+          borderRadius: '1rem',
+          width: '100%',
+          border: `2px solid ${getAccuracyColor()}`,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <p style={{
+          fontSize: '0.875rem',
+          color: '#6b7280',
+          margin: '0 0 0.5rem 0',
+          letterSpacing: '1px',
+          textTransform: 'uppercase',
+        }}>
+          Accuracy
+        </p>
+        <motion.div
+          key={accuracy}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          style={{
+            fontSize: '4rem',
+            fontWeight: 'bold',
+            color: getAccuracyColor(),
+            lineHeight: 1,
+            marginBottom: '0.5rem',
+          }}
         >
-          <AccuracyLabel>Accuracy</AccuracyLabel>
-          <AccuracyValue
-            $color={getAccuracyColor()}
-            key={accuracy}
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          {accuracy}%
+        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={getFeedbackMessage()}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              fontSize: '1rem',
+              fontWeight: accuracy >= 90 ? 'bold' : 'normal',
+              color: accuracy >= 90 ? '#10b981' : '#6b7280',
+              margin: '0.5rem 0 0 0',
+            }}
           >
-            {accuracy}%
-          </AccuracyValue>
-          {accuracy >= 90 && (
-            <SuccessMessage
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                type: 'spring',
-                stiffness: 200,
-                damping: 15,
+            {getFeedbackMessage()}
+          </motion.p>
+        </AnimatePresence>
+      </motion.div>
+
+      <motion.div
+        ref={containerRef}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        style={{
+          position: 'relative',
+          display: 'inline-block',
+          width: '100%',
+        }}
+      >
+        <canvas
+          ref={canvasRef}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          style={{
+            display: 'block',
+            border: '8px solid #6366f1',
+            borderRadius: '0.5rem',
+            background: '#ffffff',
+            cursor: 'crosshair',
+            boxShadow: '0 10px 15px rgba(0, 0, 0, 0.1)',
+            touchAction: 'none',
+          }}
+        />
+        <AnimatePresence>
+          {showHint && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.15 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: '8rem',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                lineHeight: 1,
               }}
             >
-              ✓ Perfect!
-            </SuccessMessage>
+              ⭕
+            </motion.div>
           )}
-        </AccuracyDisplay>
+        </AnimatePresence>
+      </motion.div>
 
-        <CanvasWrapper
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          width: '100%',
+        }}
+      >
+        <motion.button
+          onClick={handleClear}
+          disabled={!hasDrawn}
+          whileHover={{ scale: hasDrawn ? 1.05 : 1 }}
+          whileTap={{ scale: hasDrawn ? 0.95 : 1 }}
+          style={{
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            fontWeight: '600',
+            borderRadius: '0.5rem',
+            cursor: hasDrawn ? 'pointer' : 'not-allowed',
+            transition: 'all 0.2s ease',
+            border: '2px solid #6366f1',
+            background: '#ffffff',
+            color: '#6366f1',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            opacity: hasDrawn ? 1 : 0.5,
+          }}
         >
-          <Canvas
-            ref={canvasRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          />
-          <CanvasHint>⭕</CanvasHint>
-        </CanvasWrapper>
+          🗑️ Clear & Try Again
+        </motion.button>
+      </motion.div>
 
-        <ButtonGroup
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <ActionButton
-            $variant="secondary"
-            onClick={handleClear}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            🗑️ Try Again
-          </ActionButton>
-        </ButtonGroup>
-
-        <Tip>
-          💡 Tip: Draw slowly and steadily for better accuracy!
-        </Tip>
-      </Container>
-    </ChallengeBase>
+      <p style={{
+        fontSize: '0.875rem',
+        color: '#6b7280',
+        textAlign: 'center',
+        margin: 0,
+        fontStyle: 'italic',
+        opacity: 0.8,
+      }}>
+        💡 Tip: Draw slowly and steadily in one smooth motion for better accuracy!
+      </p>
+    </div>
   );
 };
 

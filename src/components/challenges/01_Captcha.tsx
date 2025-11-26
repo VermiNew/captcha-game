@@ -221,7 +221,7 @@ const CaptchaChallenge: React.FC<ChallengeProps> = ({
                 damping: 25,
               }}
             >
-              ✓ Verification successful! You're all set.
+              Verification successful! You're all set.
             </SuccessMessage>
           )}
         </AnimatePresence>
@@ -299,7 +299,7 @@ const CaptchaChallenge: React.FC<ChallengeProps> = ({
             }
             transition={{ duration: 0.4 }}
           >
-            {isSuccess ? 'Verified Human ✓' : 
+            {isSuccess ? 'Verified' : 
              isLoading ? 'Verifying...' : 
              "I'm not a robot"}
           </Label>

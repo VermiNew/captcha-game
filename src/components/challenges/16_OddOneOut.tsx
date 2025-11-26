@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -521,7 +521,7 @@ const OddOneOutChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   // Generate random category and shuffle grid on mount
-  const { category, grid, oddOneIndex } = useMemo(() => {
+  const [{ category, grid, oddOneIndex }] = useState(() => {
     const selectedCategory = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
     const gameGrid = [...selectedCategory.items, selectedCategory.oddOne];
     const shuffled = shuffleArray(gameGrid);
@@ -532,7 +532,7 @@ const OddOneOutChallenge: React.FC<ChallengeProps> = ({
       grid: shuffled,
       oddOneIndex: oddIndex,
     };
-  }, []);
+  });
 
   // Game state
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
@@ -28,7 +28,7 @@ const Container = styled.div`
  */
 const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
@@ -173,7 +173,7 @@ const ResultMessage = styled(motion.div)<{ $success: boolean }>`
   text-align: center;
   color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
   font-weight: ${theme.fontWeights.bold};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
 `;
 
 const TOTAL_ROUNDS = 5;
@@ -196,7 +196,7 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
 
   const stateRef = useRef<GameState>('waiting');
   const readyTimeRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update refs when state changes
   useEffect(() => {
@@ -204,9 +204,32 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
   }, [state]);
 
   /**
+   * Finish current round and start next
+   */
+  const finishRound = useCallback((reactionTime: number) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    setTimes((prev) => [...prev, reactionTime]);
+
+    // Move to next round after delay
+    timeoutRef.current = setTimeout(() => {
+      setRound((r) => {
+        if (r < TOTAL_ROUNDS) {
+          // Next round will be started by useEffect
+          return r + 1;
+        } else {
+          // Game complete
+          setState('complete');
+          return r;
+        }
+      });
+    }, 800);
+  }, []);
+
+  /**
    * Start new round
    */
-  const startRound = () => {
+  const startRound = useCallback(() => {
     setCurrentTime(null);
     setState('waiting');
 
@@ -226,7 +249,7 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
         }
       }, READY_TIMEOUT);
     }, delay);
-  };
+  }, [finishRound]);
 
   /**
    * Handle button click
@@ -241,26 +264,6 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
   };
 
   /**
-   * Finish current round and start next
-   */
-  const finishRound = (reactionTime: number) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-    setTimes((prev) => [...prev, reactionTime]);
-
-    // Move to next round after delay
-    timeoutRef.current = setTimeout(() => {
-      if (round < TOTAL_ROUNDS) {
-        setRound(round + 1);
-        startRound();
-      } else {
-        // Game complete
-        setState('complete');
-      }
-    }, 800);
-  };
-
-  /**
    * Initialize first round
    */
   useEffect(() => {
@@ -269,8 +272,7 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [startRound]);
 
   /**
    * Calculate stats

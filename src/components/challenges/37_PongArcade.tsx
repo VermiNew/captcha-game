@@ -46,7 +46,7 @@ const Title = styled(motion.h2)`
  */
 const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;

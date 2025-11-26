@@ -64,7 +64,7 @@ const StyledButton = styled(motion.button)<{
       default:
         return `
           padding: ${theme.spacing.md} ${theme.spacing.lg};
-          font-size: ${theme.fontSizes.base};
+          font-size: ${theme.fontSizes.md};
         `;
     }
   }}
@@ -74,14 +74,16 @@ const StyledButton = styled(motion.button)<{
     switch (props.$variant) {
       case 'primary':
         return `
-          background: ${theme.gradients.primary};
-          color: ${theme.colors.background};
-          box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+          background: linear-gradient(135deg, #3d58d3ff 0%, #5d5bddff 100%);
+          color: white;
+          box-shadow: 0 8px 20px rgba(61, 159, 211, 0.4);
+          font-weight: bold;
+          letter-spacing: 0.5px;
           
           &:hover:not(:disabled) {
-            filter: brightness(1.1);
-            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
-            transform: translateY(-2px);
+            filter: brightness(1.15);
+            box-shadow: 0 12px 30px rgba(91, 179, 221, 0.6);
+            transform: translateY(-3px);
           }
 
           &:active:not(:disabled) {

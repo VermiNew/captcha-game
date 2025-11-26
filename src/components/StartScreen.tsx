@@ -5,6 +5,7 @@ import { useGameStore } from '../store/gameStore';
 import Button from './ui/Button';
 import { theme } from '../styles/theme';
 import { getTotalChallenges } from '../utils/challengeRegistry';
+import logoImg from '../assets/logo.png';
 
 /**
  * Styled main container
@@ -16,7 +17,7 @@ const Container = styled.div`
   min-height: 100vh;
   width: 100%;
   padding: ${theme.spacing.xl};
-  background: ${theme.gradients.primary};
+  background: linear-gradient(135deg, #1e5a96 0%, #2d7ab8 25%, #3d9fd3 50%, #5bb3dd 75%, #7fc8e9 100%);
   position: relative;
   overflow: hidden;
 
@@ -100,6 +101,61 @@ const Subtitle = styled.p`
   line-height: 1.8;
   max-width: 500px;
   font-weight: ${theme.fontWeights.medium};
+  position: relative;
+  display: inline-block;
+
+  /* Glitch effect layers */
+  &::before,
+  &::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+  }
+
+  &::before {
+    animation: glitch 1.5s infinite;
+    color: #ff00ff;
+    z-index: -1;
+    text-shadow: -2px 0 #ff00ff;
+  }
+
+  &::after {
+    animation: glitch 1.5s infinite reverse;
+    color: #00ffff;
+    z-index: -2;
+    text-shadow: 2px 0 #00ffff;
+  }
+
+  @keyframes glitch {
+    0% {
+      clip-path: inset(40% 0 61% 0);
+      transform: translate(-2px, -2px);
+    }
+    20% {
+      clip-path: inset(92% 0 1% 0);
+      transform: translate(2px, 2px);
+    }
+    40% {
+      clip-path: inset(43% 0 1% 0);
+      transform: translate(-2px, 1px);
+    }
+    60% {
+      clip-path: inset(25% 0 58% 0);
+      transform: translate(2px, -2px);
+    }
+    80% {
+      clip-path: inset(54% 0 7% 0);
+      transform: translate(-1px, 2px);
+    }
+    100% {
+      clip-path: inset(58% 0 43% 0);
+      transform: translate(0, 0);
+    }
+  }
 
   @media (max-width: 768px) {
     font-size: ${theme.fontSizes.lg};
@@ -124,7 +180,7 @@ const InstructionsToggle = styled.button`
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   opacity: 0.9;
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-family: ${theme.fonts.primary};
   cursor: pointer;
   padding: ${theme.spacing.md} ${theme.spacing.lg};
@@ -156,17 +212,18 @@ const InstructionsToggle = styled.button`
 const InstructionsCard = styled(motion.div)`
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
+  padding: ${theme.spacing.sm};
   margin-top: ${theme.spacing.md};
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   width: 100%;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  max-height: 180px;
+  max-height: 190px;
   overflow-y: auto;
 
   @media (max-width: 768px) {
-    max-height: 140px;
+    max-height: 175px;
+    padding: ${theme.spacing.xs};
   }
 `;
 
@@ -181,7 +238,7 @@ const InstructionsList = styled.ul`
 
   li {
     font-family: ${theme.fonts.primary};
-    font-size: ${theme.fontSizes.base};
+    font-size: ${theme.fontSizes.md};
     color: ${theme.colors.textPrimary};
     padding: ${theme.spacing.md};
     border-bottom: 1px solid ${theme.colors.borderLight};
@@ -199,75 +256,6 @@ const InstructionsList = styled.ul`
       margin-right: ${theme.spacing.md};
     }
   }
-`;
-
-/**
- * Styled features container
- */
-const Features = styled(motion.div)`
-  display: flex;
-  justify-content: center;
-  gap: ${theme.spacing.xl};
-  margin-top: ${theme.spacing['2xl']};
-  flex-wrap: wrap;
-  width: 100%;
-
-  @media (max-width: 768px) {
-    gap: ${theme.spacing.lg};
-  }
-`;
-
-/**
- * Styled feature item
- */
-const Feature = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.lg} ${theme.spacing.xl};
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: ${theme.borderRadius.lg};
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  min-width: 140px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-4px);
-  }
-`;
-
-/**
- * Styled feature icon
- */
-const FeatureIcon = styled.div`
-  font-size: ${theme.fontSizes['3xl']};
-  line-height: 1;
-  animation: bounce 2s infinite;
-
-  @keyframes bounce {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-8px);
-    }
-  }
-`;
-
-/**
- * Styled feature text
- */
-const FeatureText = styled.span`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: white;
-  opacity: 0.9;
-  font-weight: ${theme.fontWeights.medium};
 `;
 
 /**
@@ -305,16 +293,31 @@ const StartScreen: React.FC = () => {
             damping: 15,
           }}
         >
-          🤖 NOT A ROBOT
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 160 }}>
+            <img
+              src={logoImg}
+              alt="Robot Icon"
+              loading="lazy"
+              style={{ maxWidth: 160, height: 'auto', display: 'block', marginBottom: '16px', borderRadius: '20%', boxShadow: '0 12px 16px rgba(0, 0, 0, 0.2)' }}
+            />
+            <span style={{ display: 'block' }}>NOT A ROBOT</span>
+          </div>
         </Title>
-
         {/* Subtitle */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <Subtitle>Prove you're human in {totalChallenges} fun challenges!</Subtitle>
+          <Subtitle
+            as={motion.p}
+            data-text={`Prove you're human in ${totalChallenges} fun challenges!`}
+            style={{
+              letterSpacing: '2px',
+            }}
+          >
+            Prove you're human in {totalChallenges} fun challenges!
+          </Subtitle>
         </motion.div>
 
         {/* Start Button */}
@@ -369,39 +372,6 @@ const StartScreen: React.FC = () => {
             </InstructionsCard>
           )}
         </AnimatePresence>
-
-        {/* Features */}
-        <Features>
-          <Feature
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <FeatureIcon>⚡</FeatureIcon>
-            <FeatureText>Fast-paced</FeatureText>
-          </Feature>
-
-          <Feature
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <FeatureIcon>🎯</FeatureIcon>
-            <FeatureText>Challenging</FeatureText>
-          </Feature>
-
-          <Feature
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <FeatureIcon>🎉</FeatureIcon>
-            <FeatureText>Fun</FeatureText>
-          </Feature>
-        </Features>
       </Content>
     </Container>
   );

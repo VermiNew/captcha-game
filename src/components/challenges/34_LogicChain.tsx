@@ -51,27 +51,10 @@ const LOGIC_PUZZLES: LogicPuzzle[] = [
       'Cherry': 'Red',
       'Date': 'Brown',
     },
-  },
-  {
-    entities: ['Cat', 'Dog', 'Parrot', 'Fish'],
-    clues: [
-      'The cat is furry',
-      'The dog is not small',
-      'The parrot can fly',
-      'The fish cannot fly',
-      'The cat is not large',
-      'The parrot is small',
-    ],
-    solution: {
-      'Cat': 'Furry',
-      'Dog': 'Large',
-      'Parrot': 'Small',
-      'Fish': 'Silent',
-    },
-  },
+  }
 ];
 
-const ATTRIBUTES = ['Red', 'Blue', 'Green', 'Yellow', 'Small', 'Large', 'Furry', 'Silent', 'Brown'];
+const ATTRIBUTES = ['Red', 'Blue', 'Green', 'Yellow', 'Brown'];
 
 /**
  * Styled container
@@ -116,7 +99,7 @@ const CluesContainer = styled(motion.div)`
  */
 const ClueTitle = styled.h3`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   color: ${theme.colors.textPrimary};
   margin: 0 0 ${theme.spacing.md} 0;
@@ -212,7 +195,7 @@ const AnswerGrid = styled.div`
  */
 const AnswerTitle = styled.h3`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   color: ${theme.colors.textPrimary};
   margin: 0 0 ${theme.spacing.lg} 0;
@@ -255,7 +238,7 @@ const AnswerRow = styled.div`
 const SubmitButton = styled(motion.button)`
   padding: ${theme.spacing.md} ${theme.spacing.xl};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   border: none;
   border-radius: ${theme.borderRadius.lg};
@@ -286,7 +269,7 @@ const Feedback = styled(motion.div)<{ $type: 'success' | 'error' }>`
   border-radius: ${theme.borderRadius.lg};
   text-align: center;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   background: ${(props) =>
     props.$type === 'success'

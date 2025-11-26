@@ -193,7 +193,7 @@ const CalculatorButton = styled.button`
   border-radius: ${theme.borderRadius.lg};
   cursor: pointer;
   font-weight: ${theme.fontWeights.semibold};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -350,7 +350,7 @@ const ResultTitle = styled.h3`
  * Styled result text
  */
 const ResultText = styled.p`
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textPrimary};
   margin: ${theme.spacing.sm} 0;
 `;
@@ -382,15 +382,13 @@ function generateExpressions(): MathExpression[] {
   // 2. Basic division (15÷3)
   const a2 = randomInt(3, 10) * randomInt(1, 5);
   const b2 = randomInt(2, 10);
-  if (a2 % b2 === 0) {
-    expressions.push({
-      id: 'basic2',
-      expression: `${a2}÷${b2}`,
-      value: a2 / b2,
-      tooltip: `Basic Division`,
-      description: `Divide ${a2} by ${b2}. How many groups of ${b2} make ${a2}?`,
-    });
-  }
+  expressions.push({
+    id: 'basic2',
+    expression: `${a2}÷${b2}`,
+    value: a2 / b2,
+    tooltip: `Basic Division`,
+    description: `Divide ${a2} by ${b2}. How many groups of ${b2} make ${a2}?`,
+  });
 
   // 3. Fraction (10/13)
   const num = randomInt(1, 20);

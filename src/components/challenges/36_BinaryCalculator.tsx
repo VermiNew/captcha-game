@@ -73,7 +73,7 @@ const DecimalNumber = styled.div`
  */
 const InstructionText = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0 0 ${theme.spacing.lg} 0;
@@ -128,7 +128,7 @@ const BinaryInput = styled.input<{ $isCorrect?: boolean; $isWrong?: boolean }>`
  */
 const FeedbackMessage = styled(motion.p)<{ $type: 'correct' | 'wrong' }>`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   color: ${(props) =>
     props.$type === 'correct' ? theme.colors.success : theme.colors.error};
@@ -339,7 +339,7 @@ const BinaryCalculatorChallenge: React.FC<ChallengeProps> = ({
                 marginTop: theme.spacing.lg,
                 padding: `${theme.spacing.md} ${theme.spacing.xl}`,
                 fontFamily: theme.fonts.primary,
-                fontSize: theme.fontSizes.base,
+                fontSize: theme.fontSizes.md,
                 fontWeight: theme.fontWeights.semibold,
                 border: 'none',
                 borderRadius: theme.borderRadius.lg,

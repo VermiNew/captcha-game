@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { ChallengeProps } from '../../types';
-import ChallengeBase from './ChallengeBase';
-import { theme } from '../../styles/theme';
 
 /**
  * Question type definition
@@ -16,6 +12,15 @@ interface Question {
   description: string;
   hint?: string;
   difficulty: 'easy' | 'medium' | 'hard';
+}
+
+/**
+ * Challenge props interface
+ */
+interface ChallengeProps {
+  onComplete: (success: boolean, timeSpent: number, score: number) => void;
+  timeLimit?: number;
+  challengeId: string;
 }
 
 /**
@@ -126,420 +131,23 @@ const generatePrimeQuestion = (): Question => {
 };
 
 /**
- * Styled container
- */
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.xl};
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-`;
-
-/**
- * Styled progress indicator
- */
-const ProgressIndicator = styled.div`
-  display: flex;
-  gap: ${theme.spacing.md};
-  justify-content: center;
-  width: 100%;
-  flex-wrap: wrap;
-`;
-
-/**
- * Styled progress dot
- */
-const ProgressDot = styled(motion.div)<{ $active: boolean; $answered: boolean; $correct?: boolean }>`
-  width: 44px;
-  height: 44px;
-  border-radius: ${theme.borderRadius.full};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  font-weight: ${theme.fontWeights.bold};
-  color: white;
-  cursor: default;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  ${(props) => {
-    if (props.$answered) {
-      if (props.$correct) {
-        return `
-          background: ${theme.colors.success}; 
-          border: 3px solid ${theme.colors.success};
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        `;
-      } else {
-        return `
-          background: ${theme.colors.error}; 
-          border: 3px solid ${theme.colors.error};
-          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        `;
-      }
-    } else if (props.$active) {
-      return `
-        background: ${theme.colors.primary}; 
-        border: 3px solid ${theme.colors.primary};
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        animation: pulse 2s infinite;
-      `;
-    } else {
-      return `
-        background: ${theme.colors.surface}; 
-        border: 3px solid ${theme.colors.border};
-        color: ${theme.colors.textSecondary};
-      `;
-    }
-  }}
-
-  @keyframes pulse {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-  }
-`;
-
-/**
- * Difficulty badge
- */
-const DifficultyBadge = styled.span<{ $difficulty: 'easy' | 'medium' | 'hard' }>`
-  display: inline-block;
-  padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius.full};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.xs};
-  font-weight: ${theme.fontWeights.bold};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: ${(props) => {
-    switch (props.$difficulty) {
-      case 'easy': return 'rgba(16, 185, 129, 0.1)';
-      case 'medium': return 'rgba(245, 158, 11, 0.1)';
-      case 'hard': return 'rgba(239, 68, 68, 0.1)';
-    }
-  }};
-  color: ${(props) => {
-    switch (props.$difficulty) {
-      case 'easy': return theme.colors.success;
-      case 'medium': return theme.colors.warning;
-      case 'hard': return theme.colors.error;
-    }
-  }};
-  border: 2px solid ${(props) => {
-    switch (props.$difficulty) {
-      case 'easy': return theme.colors.success;
-      case 'medium': return theme.colors.warning;
-      case 'hard': return theme.colors.error;
-    }
-  }};
-`;
-
-/**
- * Styled question wrapper
- */
-const QuestionWrapper = styled(motion.div)`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.lg};
-`;
-
-/**
- * Question header with type and difficulty
- */
-const QuestionHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: ${theme.spacing.md};
-  flex-wrap: wrap;
-`;
-
-/**
- * Styled question type label
- */
-const QuestionTypeLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.semibold};
-`;
-
-/**
- * Styled question title
- */
-const QuestionTitle = styled(motion.h3)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  margin: 0;
-  text-align: center;
-`;
-
-/**
- * Styled sequence display
- */
-const SequenceDisplay = styled(motion.div)`
-  display: flex;
-  gap: ${theme.spacing.md};
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: ${theme.spacing.xl};
-  background: linear-gradient(135deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%);
-  border-radius: ${theme.borderRadius.lg};
-  width: 100%;
-  box-shadow: ${theme.shadows.md};
-  border: 2px solid ${theme.colors.border};
-`;
-
-/**
- * Styled number item
- */
-const NumberItem = styled(motion.span)<{ $isAnswer?: boolean }>`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${(props) => props.$isAnswer ? theme.colors.secondary : theme.colors.primary};
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  background: ${theme.colors.background};
-  border-radius: ${theme.borderRadius.md};
-  border: 2px solid ${(props) => props.$isAnswer ? theme.colors.secondary : theme.colors.primary};
-  min-width: 60px;
-  text-align: center;
-  box-shadow: ${theme.shadows.sm};
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.md};
-  }
-`;
-
-/**
- * Styled separator
- */
-const Separator = styled.span`
-  font-size: ${theme.fontSizes['2xl']};
-  color: ${theme.colors.textSecondary};
-  font-weight: ${theme.fontWeights.bold};
-`;
-
-/**
- * Styled input container
- */
-const InputContainer = styled.div`
-  display: flex;
-  gap: ${theme.spacing.md};
-  width: 100%;
-  align-items: stretch;
-`;
-
-/**
- * Styled number input with error state
- */
-const NumberInput = styled(motion.input)<{ $hasError?: boolean }>`
-  flex: 1;
-  height: 60px;
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.xl};
-  font-weight: ${theme.fontWeights.semibold};
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  border: 3px solid ${(props) => props.$hasError ? theme.colors.error : theme.colors.primary};
-  border-radius: ${theme.borderRadius.lg};
-  text-align: center;
-  color: ${theme.colors.textPrimary};
-  background: ${theme.colors.background};
-  transition: all 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: ${(props) => props.$hasError ? theme.colors.error : theme.colors.secondary};
-    box-shadow: 0 0 0 4px ${(props) => 
-      props.$hasError 
-        ? 'rgba(239, 68, 68, 0.1)' 
-        : 'rgba(99, 102, 241, 0.1)'
-    };
-  }
-
-  &::placeholder {
-    color: ${theme.colors.textSecondary};
-  }
-
-  &:disabled {
-    background: ${theme.colors.surface};
-    cursor: not-allowed;
-  }
-`;
-
-/**
- * Styled submit button
- */
-const SubmitButton = styled(motion.button)`
-  height: 60px;
-  padding: 0 ${theme.spacing.xl};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
-  font-weight: ${theme.fontWeights.bold};
-  background: ${theme.colors.primary};
-  color: white;
-  border: none;
-  border-radius: ${theme.borderRadius.lg};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: ${theme.shadows.md};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &:hover:not(:disabled) {
-    background: ${theme.colors.secondary};
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
-    transform: translateY(-2px);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-/**
- * Hint button
- */
-const HintButton = styled(motion.button)`
-  align-self: center;
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  font-weight: ${theme.fontWeights.semibold};
-  background: transparent;
-  color: ${theme.colors.primary};
-  border: 2px solid ${theme.colors.primary};
-  border-radius: ${theme.borderRadius.md};
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${theme.colors.primary};
-    color: white;
-  }
-`;
-
-/**
- * Hint display
- */
-const HintDisplay = styled(motion.div)`
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  background: rgba(99, 102, 241, 0.1);
-  border: 2px solid ${theme.colors.primary};
-  border-radius: ${theme.borderRadius.lg};
-  color: ${theme.colors.primary};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  text-align: center;
-  font-weight: ${theme.fontWeights.medium};
-`;
-
-/**
- * Styled feedback
- */
-const Feedback = styled(motion.div)<{ $correct: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.md};
-  padding: ${theme.spacing.lg} ${theme.spacing.xl};
-  border-radius: ${theme.borderRadius.lg};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  background: ${(props) =>
-    props.$correct ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'};
-  color: ${(props) => (props.$correct ? theme.colors.success : theme.colors.error)};
-  border: 3px solid
-    ${(props) => (props.$correct ? theme.colors.success : theme.colors.error)};
-  width: 100%;
-  box-shadow: ${(props) =>
-    props.$correct 
-      ? '0 4px 16px rgba(16, 185, 129, 0.2)' 
-      : '0 4px 16px rgba(239, 68, 68, 0.2)'};
-`;
-
-/**
- * Styled emoji icon
- */
-const EmojiIcon = styled.span`
-  font-size: ${theme.fontSizes['2xl']};
-  line-height: 1;
-`;
-
-/**
- * Stats display
- */
-const StatsBar = styled.div`
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  padding: ${theme.spacing.md};
-  background: linear-gradient(135deg, 
-    rgba(99, 102, 241, 0.05) 0%, 
-    rgba(168, 85, 247, 0.05) 100%);
-  border-radius: ${theme.borderRadius.lg};
-  gap: ${theme.spacing.lg};
-`;
-
-const StatItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.xs};
-`;
-
-const StatLabel = styled.span`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.xs};
-  color: ${theme.colors.textSecondary};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
-
-const StatValue = styled.span`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.xl};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-`;
-
-/**
  * Pattern Recognition Challenge Component
- * Enhanced with hints, better feedback, and improved scoring
+ * Enhanced with better UX, accessibility, and performance
  */
 const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
+  timeLimit = 120,
   challengeId,
 }) => {
-  const [questions] = useState<Question[]>(() => [
-    generateArithmeticQuestion(),
-    generateGeometricQuestion(),
-    generateFibonacciQuestion(),
-    generateSquareQuestion(),
-    generatePrimeQuestion(),
-  ].slice(0, 3)); // Take 3 random questions
+  // Generate questions once on mount
+  const [questions] = useState<Question[]>(() => {
+    const allQuestions = [
+      generateArithmeticQuestion(),
+      generateGeometricQuestion(),
+      generateFibonacciQuestion(),
+    ];
+    return allQuestions;
+  });
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([null, null, null]);
@@ -550,12 +158,13 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   const [hintUsed, setHintUsed] = useState<boolean[]>([false, false, false]);
   const [attempts, setAttempts] = useState<number[]>([0, 0, 0]);
   const [hasInputError, setHasInputError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
 
   /**
-   * Calculate score based on performance
+   * Calculate final score based on performance
    */
   const calculateScore = useCallback(() => {
     let totalScore = 0;
@@ -569,17 +178,16 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
           questionScore -= 30;
         }
         
-        // Deduct points for multiple attempts
-        if (attempts[idx] > 1) {
-          questionScore -= (attempts[idx] - 1) * 15;
-        }
+        // Deduct points for multiple attempts (more lenient)
+        const extraAttempts = Math.max(0, attempts[idx] - 1);
+        questionScore -= extraAttempts * 10;
         
         // Bonus for difficulty
         const difficulty = questions[idx].difficulty;
         if (difficulty === 'medium') questionScore += 20;
         if (difficulty === 'hard') questionScore += 40;
         
-        totalScore += Math.max(20, questionScore);
+        totalScore += Math.max(30, questionScore);
       }
     });
     
@@ -590,15 +198,16 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
    * Handle answer submission
    */
   const handleSubmitAnswer = useCallback(() => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isSubmitting) return;
 
     const userAnswer = parseInt(inputValue, 10);
 
     if (isNaN(userAnswer)) {
       setHasInputError(true);
-      setTimeout(() => setHasInputError(false), 500);
       return;
     }
+
+    setIsSubmitting(true);
 
     // Track attempts
     const newAttempts = [...attempts];
@@ -625,10 +234,11 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
     if (currentQuestionIndex < questions.length - 1) {
       setTimeout(() => {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setIsSubmitting(false);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
-      }, 1500);
+      }, 1800);
     } else {
       // Challenge complete
       setTimeout(() => {
@@ -638,9 +248,9 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
         const timeSpent = (Date.now() - startTime) / 1000;
 
         onComplete(success, timeSpent, score);
-      }, 1800);
+      }, 2000);
     }
-  }, [inputValue, currentQuestionIndex, currentQuestion, answers, feedback, attempts, questions, startTime, calculateScore, onComplete]);
+  }, [inputValue, isSubmitting, currentQuestionIndex, currentQuestion, answers, feedback, attempts, questions, startTime, calculateScore, onComplete]);
 
   /**
    * Handle hint toggle
@@ -659,32 +269,33 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
    */
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && inputValue.trim() && !isAnswered) {
+      if (e.key === 'Enter' && inputValue.trim() && !isAnswered && !isSubmitting) {
         handleSubmitAnswer();
       }
     };
 
     window.addEventListener('keypress', handleKeyPress);
     return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [inputValue, handleSubmitAnswer]);
+  }, [inputValue, handleSubmitAnswer, isSubmitting]);
 
   /**
-   * Focus input on mount and when question changes
+   * Focus input when question changes
    */
   useEffect(() => {
-    if (feedback[currentQuestionIndex] === null) {
-      setTimeout(() => {
+    if (feedback[currentQuestionIndex] === null && !isSubmitting) {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, 400);
+      return () => clearTimeout(timer);
     }
-  }, [currentQuestionIndex, feedback]);
+  }, [currentQuestionIndex, feedback, isSubmitting]);
 
   /**
    * Clear input error after animation
    */
   useEffect(() => {
     if (hasInputError) {
-      const timer = setTimeout(() => setHasInputError(false), 500);
+      const timer = setTimeout(() => setHasInputError(false), 600);
       return () => clearTimeout(timer);
     }
   }, [hasInputError]);
@@ -692,181 +303,439 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   const isAnswered = feedback[currentQuestionIndex] !== null;
   const isCorrect = feedback[currentQuestionIndex] === true;
   const correctCount = useMemo(() => feedback.filter(f => f === true).length, [feedback]);
+  const answeredCount = useMemo(() => feedback.filter(f => f !== null).length, [feedback]);
   const accuracy = useMemo(() => {
-    const answered = feedback.filter(f => f !== null).length;
-    return answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
-  }, [feedback, correctCount]);
+    return answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+  }, [answeredCount, correctCount]);
+
+  // Get difficulty color
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return '#10b981';
+      case 'medium': return '#f59e0b';
+      case 'hard': return '#ef4444';
+      default: return '#6366f1';
+    }
+  };
 
   return (
-    <ChallengeBase
-      title="Pattern Recognition Challenge"
-      description="Identify the pattern and provide the next number"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-    >
-      <Container>
-        <ProgressIndicator>
-          {questions.map((q, idx) => (
-            <ProgressDot
-              key={q.id}
-              $active={idx === currentQuestionIndex}
-              $answered={feedback[idx] !== null}
-              $correct={feedback[idx]}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: idx * 0.1, type: 'spring', stiffness: 300 }}
-              whileHover={{ scale: 1.1 }}
-            >
-              {feedback[idx] === null ? idx + 1 : feedback[idx] ? '✓' : '✗'}
-            </ProgressDot>
-          ))}
-        </ProgressIndicator>
-
-        <StatsBar>
-          <StatItem>
-            <StatLabel>Progress</StatLabel>
-            <StatValue>{currentQuestionIndex + 1}/3</StatValue>
-          </StatItem>
-          <StatItem>
-            <StatLabel>Correct</StatLabel>
-            <StatValue>{correctCount}</StatValue>
-          </StatItem>
-          <StatItem>
-            <StatLabel>Accuracy</StatLabel>
-            <StatValue>{accuracy}%</StatValue>
-          </StatItem>
-        </StatsBar>
-
-        <AnimatePresence mode="wait">
-          <QuestionWrapper
-            key={currentQuestion.id}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2rem',
+      width: '100%',
+      maxWidth: '700px',
+      margin: '0 auto',
+      padding: '1rem',
+    }}>
+      {/* Progress Indicator */}
+      <div style={{
+        display: 'flex',
+        gap: '1rem',
+        justifyContent: 'center',
+        width: '100%',
+        flexWrap: 'wrap',
+      }}>
+        {questions.map((q, idx) => (
+          <motion.div
+            key={q.id}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: idx * 0.1, type: 'spring', stiffness: 300 }}
+            whileHover={{ scale: 1.1 }}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              color: 'white',
+              cursor: 'default',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              background: feedback[idx] === null 
+                ? (idx === currentQuestionIndex ? '#6366f1' : '#e5e7eb')
+                : (feedback[idx] ? '#10b981' : '#ef4444'),
+              border: `3px solid ${
+                feedback[idx] === null 
+                  ? (idx === currentQuestionIndex ? '#6366f1' : '#d1d5db')
+                  : (feedback[idx] ? '#10b981' : '#ef4444')
+              }`,
+            }}
           >
-            <QuestionHeader>
-              <QuestionTypeLabel>{currentQuestion.description}</QuestionTypeLabel>
-              <DifficultyBadge $difficulty={currentQuestion.difficulty}>
-                {currentQuestion.difficulty}
-              </DifficultyBadge>
-            </QuestionHeader>
+            {feedback[idx] === null ? idx + 1 : feedback[idx] ? '✓' : '✗'}
+          </motion.div>
+        ))}
+      </div>
 
-            <QuestionTitle
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              Find the Next Number
-            </QuestionTitle>
+      {/* Stats Bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        width: '100%',
+        padding: '1rem',
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%)',
+        borderRadius: '1rem',
+        gap: '1rem',
+      }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.25rem',
+        }}>
+          <span style={{
+            fontSize: '0.75rem',
+            color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>Progress</span>
+          <span style={{
+            fontFamily: 'monospace',
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            color: '#6366f1',
+          }}>{currentQuestionIndex + 1}/3</span>
+        </div>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.25rem',
+        }}>
+          <span style={{
+            fontSize: '0.75rem',
+            color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>Correct</span>
+          <span style={{
+            fontFamily: 'monospace',
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            color: '#10b981',
+          }}>{correctCount}</span>
+        </div>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.25rem',
+        }}>
+          <span style={{
+            fontSize: '0.75rem',
+            color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>Accuracy</span>
+          <span style={{
+            fontFamily: 'monospace',
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            color: '#6366f1',
+          }}>{accuracy}%</span>
+        </div>
+      </div>
 
-            <SequenceDisplay
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 }}
-            >
-              {currentQuestion.sequence.map((num, idx) => (
-                <React.Fragment key={idx}>
-                  <NumberItem
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2 + idx * 0.08, type: 'spring', stiffness: 200 }}
-                  >
-                    {num}
-                  </NumberItem>
-                  {idx < currentQuestion.sequence.length - 1 && <Separator>,</Separator>}
-                </React.Fragment>
-              ))}
-              <Separator>,</Separator>
-              <NumberItem
-                $isAnswer
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
-              >
-                ?
-              </NumberItem>
-            </SequenceDisplay>
+      {/* Question Section */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentQuestion.id}
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+          }}
+        >
+          {/* Question Header */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap',
+          }}>
+            <p style={{
+              fontSize: '1rem',
+              color: '#6b7280',
+              margin: 0,
+              fontWeight: '600',
+            }}>{currentQuestion.description}</p>
+            <span style={{
+              display: 'inline-block',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              background: `${getDifficultyColor(currentQuestion.difficulty)}15`,
+              color: getDifficultyColor(currentQuestion.difficulty),
+              border: `2px solid ${getDifficultyColor(currentQuestion.difficulty)}`,
+            }}>
+              {currentQuestion.difficulty}
+            </span>
+          </div>
 
-            {!isAnswered ? (
-              <>
-                <InputContainer>
-                  <NumberInput
-                    ref={inputRef}
-                    type="number"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Your answer..."
-                    $hasError={hasInputError}
-                    disabled={false}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ 
-                      opacity: 1, 
-                      y: 0,
-                      x: hasInputError ? [-5, 5, -5, 5, 0] : 0
-                    }}
-                    transition={{ delay: 0.3, duration: hasInputError ? 0.3 : 0.2 }}
-                    aria-label="Answer input"
-                  />
-                  <SubmitButton
-                    onClick={handleSubmitAnswer}
-                    disabled={!inputValue.trim()}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    Submit
-                  </SubmitButton>
-                </InputContainer>
+          <motion.h3
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: '#1f2937',
+              margin: 0,
+              textAlign: 'center',
+            }}
+          >
+            Find the Next Number
+          </motion.h3>
 
-                {attempts[currentQuestionIndex] >= 2 && !showHint && (
-                  <HintButton
-                    onClick={handleToggleHint}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    💡 Show Hint (-30 points)
-                  </HintButton>
+          {/* Sequence Display */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 }}
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+              borderRadius: '1rem',
+              width: '100%',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              border: '2px solid #e5e7eb',
+            }}
+          >
+            {currentQuestion.sequence.map((num, idx) => (
+              <React.Fragment key={idx}>
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 + idx * 0.08, type: 'spring', stiffness: 200 }}
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#6366f1',
+                    padding: '0.5rem 1rem',
+                    background: '#ffffff',
+                    borderRadius: '0.5rem',
+                    border: '2px solid #6366f1',
+                    minWidth: '60px',
+                    textAlign: 'center',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                  }}
+                >
+                  {num}
+                </motion.span>
+                {idx < currentQuestion.sequence.length - 1 && (
+                  <span style={{ fontSize: '1.5rem', color: '#9ca3af', fontWeight: 'bold' }}>,</span>
                 )}
+              </React.Fragment>
+            ))}
+            <span style={{ fontSize: '1.5rem', color: '#9ca3af', fontWeight: 'bold' }}>,</span>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
+              style={{
+                fontFamily: 'monospace',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: '#a855f7',
+                padding: '0.5rem 1rem',
+                background: '#ffffff',
+                borderRadius: '0.5rem',
+                border: '2px solid #a855f7',
+                minWidth: '60px',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              ?
+            </motion.span>
+          </motion.div>
 
-                <AnimatePresence>
-                  {showHint && currentQuestion.hint && (
-                    <HintDisplay
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      💡 {currentQuestion.hint}
-                    </HintDisplay>
-                  )}
-                </AnimatePresence>
-              </>
-            ) : (
-              <Feedback
-                $correct={isCorrect}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <EmojiIcon>{isCorrect ? '✓' : '✗'}</EmojiIcon>
-                <span>
-                  {isCorrect
-                    ? `Correct! The answer is ${currentQuestion.correctAnswer}`
-                    : `Wrong. The correct answer is ${currentQuestion.correctAnswer}`}
-                </span>
-              </Feedback>
-            )}
-          </QuestionWrapper>
-        </AnimatePresence>
-      </Container>
-    </ChallengeBase>
+          {/* Input Section */}
+          {!isAnswered ? (
+            <>
+              <div style={{
+                display: 'flex',
+                gap: '0.75rem',
+                width: '100%',
+                alignItems: 'stretch',
+              }}>
+                <motion.input
+                  ref={inputRef}
+                  type="number"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Your answer..."
+                  disabled={isSubmitting}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    x: hasInputError ? [-5, 5, -5, 5, 0] : 0
+                  }}
+                  transition={{ delay: 0.3, duration: hasInputError ? 0.3 : 0.2 }}
+                  style={{
+                    flex: 1,
+                    height: '60px',
+                    fontFamily: 'monospace',
+                    fontSize: '1.25rem',
+                    fontWeight: '600',
+                    padding: '0.75rem 1rem',
+                    border: `3px solid ${hasInputError ? '#ef4444' : '#6366f1'}`,
+                    borderRadius: '0.75rem',
+                    textAlign: 'center',
+                    color: '#1f2937',
+                    background: isSubmitting ? '#f9fafb' : '#ffffff',
+                    cursor: isSubmitting ? 'not-allowed' : 'text',
+                  }}
+                  aria-label="Answer input"
+                />
+                <motion.button
+                  onClick={handleSubmitAnswer}
+                  disabled={!inputValue.trim() || isSubmitting}
+                  whileHover={{ scale: inputValue.trim() && !isSubmitting ? 1.05 : 1 }}
+                  whileTap={{ scale: inputValue.trim() && !isSubmitting ? 0.95 : 1 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  style={{
+                    height: '60px',
+                    padding: '0 2rem',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    background: inputValue.trim() && !isSubmitting ? '#6366f1' : '#e5e7eb',
+                    color: inputValue.trim() && !isSubmitting ? 'white' : '#9ca3af',
+                    border: 'none',
+                    borderRadius: '0.75rem',
+                    cursor: inputValue.trim() && !isSubmitting ? 'pointer' : 'not-allowed',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {isSubmitting ? 'Checking...' : 'Submit'}
+                </motion.button>
+              </div>
+
+              {/* Hint Button - shows after 1 attempt */}
+              {attempts[currentQuestionIndex] >= 1 && !showHint && (
+                <motion.button
+                  onClick={handleToggleHint}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    alignSelf: 'center',
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    background: 'transparent',
+                    color: '#6366f1',
+                    border: '2px solid #6366f1',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  💡 Show Hint (-30 points)
+                </motion.button>
+              )}
+
+              {/* Hint Display */}
+              <AnimatePresence>
+                {showHint && currentQuestion.hint && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      padding: '1rem 1.5rem',
+                      background: 'rgba(99, 102, 241, 0.1)',
+                      border: '2px solid #6366f1',
+                      borderRadius: '0.75rem',
+                      color: '#6366f1',
+                      fontSize: '0.875rem',
+                      textAlign: 'center',
+                      fontWeight: '500',
+                    }}
+                  >
+                    💡 {currentQuestion.hint}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -20 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                padding: '1.25rem 1.5rem',
+                borderRadius: '0.75rem',
+                fontSize: '1.125rem',
+                fontWeight: 'bold',
+                background: isCorrect ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                color: isCorrect ? '#10b981' : '#ef4444',
+                border: `3px solid ${isCorrect ? '#10b981' : '#ef4444'}`,
+                width: '100%',
+                boxShadow: isCorrect 
+                  ? '0 4px 16px rgba(16, 185, 129, 0.2)' 
+                  : '0 4px 16px rgba(239, 68, 68, 0.2)',
+              }}
+            >
+              <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>
+                {isCorrect ? '✓' : '✗'}
+              </span>
+              <span>
+                {isCorrect
+                  ? `Correct! The answer is ${currentQuestion.correctAnswer}`
+                  : `Not quite. The correct answer is ${currentQuestion.correctAnswer}`}
+              </span>
+            </motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Attempt Counter */}
+      {!isAnswered && attempts[currentQuestionIndex] > 0 && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            fontSize: '0.875rem',
+            color: '#6b7280',
+            textAlign: 'center',
+            margin: 0,
+            fontStyle: 'italic',
+          }}
+        >
+          Attempt {attempts[currentQuestionIndex]} {attempts[currentQuestionIndex] >= 1 && '• Hint available after 1 attempt'}
+        </motion.p>
+      )}
+    </div>
   );
 };
 

@@ -1,119 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
 /**
- * Pixel art patterns (16x16 grid = 256 pixels)
- * 1 = filled (black), 0 = empty (white)
+ * Simplified 8x8 patterns (64 pixels instead of 256)
  */
 const PIXEL_PATTERNS = {
   heart: [
-    0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,
-    1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,0,
-    1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,
-    1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,
-    1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,
-    0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,
-    0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,1,1,0,0,1,1,0,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    0,1,1,1,1,1,1,0,
+    0,0,1,1,1,1,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,0,0,0,0,0,0,
   ] as number[],
 
   star: [
-    0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,
-    0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,
-    0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,1,1,1,1,0,0,
+    0,1,1,1,1,1,1,0,
+    1,1,1,1,1,1,1,1,
+    0,1,1,1,1,1,1,0,
+    0,0,1,1,1,1,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,0,0,0,0,0,0,
   ] as number[],
 
   smile: [
-    0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,
-    1,1,1,0,0,1,1,0,0,0,1,1,0,1,1,1,
-    1,1,1,0,1,1,1,1,0,1,1,1,0,1,1,1,
-    1,1,1,0,1,1,1,1,0,1,1,1,0,1,1,1,
-    1,1,1,0,0,1,1,0,0,0,1,1,0,1,1,1,
-    1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,
-    1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,0,
-    1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,0,
-    1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,0,
-    0,1,1,1,0,0,1,1,1,1,0,0,1,1,1,0,
-    0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,
-    0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,
+    0,1,1,1,1,1,1,0,
+    1,1,0,1,1,0,1,1,
+    1,1,0,1,1,0,1,1,
+    1,1,1,1,1,1,1,1,
+    1,0,1,1,1,1,0,1,
+    1,0,0,1,1,0,0,1,
+    0,1,0,0,0,0,1,0,
+    0,0,1,1,1,1,0,0,
   ] as number[],
 
-  house: [
-    0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,
-    0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,
-    0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,
-    1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,
-    1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,
-    1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,
-    1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  arrow: [
+    0,0,0,1,1,0,0,0,
+    0,0,1,1,1,1,0,0,
+    0,1,1,1,1,1,1,0,
+    1,1,1,1,1,1,1,1,
+    0,0,0,1,1,0,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,0,0,0,0,0,0,
   ] as number[],
 
-  lightning: [
-    0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,
-    0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,
-    0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,
-    0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,
-    0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,
-    0,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,
-    1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,
-    1,1,0,0,0,0,1,1,1,1,1,1,1,1,0,0,
-    0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,
-    0,0,0,0,1,1,1,1,1,0,0,1,1,1,1,1,
-    0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,
-    0,0,1,1,1,0,0,0,0,0,0,0,0,1,1,1,
+  tree: [
+    0,0,0,1,1,0,0,0,
+    0,0,1,1,1,1,0,0,
+    0,1,1,1,1,1,1,0,
+    1,1,1,1,1,1,1,1,
+    0,0,1,1,1,1,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,1,1,1,1,0,0,
   ] as number[],
 };
 
 type PatternName = keyof typeof PIXEL_PATTERNS;
-const patternNames: PatternName[] = ['heart', 'star', 'smile', 'house', 'lightning'];
+const PATTERN_NAMES: PatternName[] = ['heart', 'star', 'smile', 'arrow', 'tree'];
+const PATTERN_LABELS: Record<PatternName, string> = {
+  heart: '❤️ Heart',
+  star: '⭐ Star',
+  smile: '😊 Smile',
+  arrow: '⬆️ Arrow',
+  tree: '🌲 Tree',
+};
+
+const GRID_SIZE = 8;
+const MEMORIZE_TIME = 5;
 
 /**
  * Styled container
  */
-const Container = styled.div`
+const Container = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -124,12 +93,36 @@ const Container = styled.div`
 /**
  * Styled phase display
  */
-const PhaseDisplay = styled.div`
+const PhaseDisplay = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.md};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.semibold};
-  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.xl};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${theme.colors.primary};
   text-align: center;
+`;
+
+/**
+ * Timer display
+ */
+const TimerDisplay = styled(motion.div)<{ $warning?: boolean }>`
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes['3xl']};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${props => props.$warning ? theme.colors.error : theme.colors.success};
+  text-shadow: 0 2px 10px currentColor;
+`;
+
+/**
+ * Pattern label
+ */
+const PatternLabel = styled.div`
+  font-size: ${theme.fontSizes.lg};
+  color: ${theme.colors.textSecondary};
+  font-weight: ${theme.fontWeights.semibold};
 `;
 
 /**
@@ -137,42 +130,56 @@ const PhaseDisplay = styled.div`
  */
 const GridContainer = styled(motion.div)`
   display: inline-grid;
-  grid-template-columns: repeat(16, 20px);
-  grid-template-rows: repeat(16, 20px);
-  gap: 1px;
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
+  grid-template-columns: repeat(${GRID_SIZE}, 40px);
+  grid-template-rows: repeat(${GRID_SIZE}, 40px);
+  gap: 2px;
+  padding: ${theme.spacing.xl};
+  background: linear-gradient(135deg, ${theme.colors.surface}, ${theme.colors.border}20);
   border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.border};
+  border: 3px solid ${theme.colors.primary};
+  box-shadow: ${theme.shadows.lg};
 `;
 
 /**
  * Styled single pixel
  */
-const Pixel = styled.div<{
+const Pixel = styled(motion.div)<{
   $filled: boolean;
   $isDrawing?: boolean;
   $correct?: boolean;
 }>`
-  width: 20px;
-  height: 20px;
-  background: ${(props) => {
+  width: 40px;
+  height: 40px;
+  background: ${props => {
+    if (props.$correct === true) return 'linear-gradient(135deg, #10B981, #059669)';
+    if (props.$correct === false) return 'linear-gradient(135deg, #EF4444, #DC2626)';
+    return props.$filled ? 
+      'linear-gradient(135deg, #1F2937, #111827)' : 
+      'linear-gradient(135deg, #FFFFFF, #F3F4F6)';
+  }};
+  border: 2px solid ${props => {
     if (props.$correct === true) return '#10B981';
     if (props.$correct === false) return '#EF4444';
-    return props.$filled ? '#1F2937' : '#FFFFFF';
+    return props.$filled ? '#374151' : '#D1D5DB';
   }};
-  border: 1px solid ${theme.colors.border};
-  cursor: ${(props) => (props.$isDrawing ? 'crosshair' : 'default')};
-  transition: all 0.1s ease;
+  border-radius: ${theme.borderRadius.sm};
+  cursor: ${props => props.$isDrawing ? 'pointer' : 'default'};
+  transition: all 0.15s ease;
+  box-shadow: ${props => props.$filled ? 
+    'inset 0 2px 4px rgba(0,0,0,0.3)' : 
+    'inset 0 2px 4px rgba(255,255,255,0.5)'};
 
   &:hover {
-    ${(props) =>
-      props.$isDrawing
-        ? `
+    ${props => props.$isDrawing ? `
       transform: scale(0.95);
-      box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
-    `
-        : ''}
+      border-color: ${theme.colors.primary};
+    ` : ''}
+  }
+
+  &:active {
+    ${props => props.$isDrawing ? `
+      transform: scale(0.9);
+    ` : ''}
   }
 `;
 
@@ -182,52 +189,83 @@ const Pixel = styled.div<{
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  gap: ${theme.spacing.md};
+  gap: ${theme.spacing.lg};
 `;
 
 /**
- * Styled result display
+ * Stats container
  */
-const ResultDisplay = styled(motion.div)`
+const StatsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: ${theme.spacing.lg};
   width: 100%;
+  max-width: 500px;
+`;
+
+/**
+ * Stat card
+ */
+const StatCard = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.sm};
   padding: ${theme.spacing.lg};
   background: ${theme.colors.surface};
   border-radius: ${theme.borderRadius.lg};
-  text-align: center;
+  border: 2px solid ${theme.colors.border};
+`;
+
+const StatLabel = styled.p`
   font-family: ${theme.fonts.primary};
-`;
-
-/**
- * Styled result title
- */
-const ResultTitle = styled.h3`
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  margin: 0 0 ${theme.spacing.md} 0;
-`;
-
-/**
- * Styled result stat
- */
-const ResultStat = styled.p`
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
-  margin: ${theme.spacing.sm} 0;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
-/**
- * Styled accuracy
- */
-const Accuracy = styled.div<{ $accuracy: number }>`
+const StatValue = styled(motion.p)<{ $highlight?: boolean }>`
+  font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${(props) => {
-    if (props.$accuracy >= 90) return theme.colors.success;
-    if (props.$accuracy >= 80) return theme.colors.warning;
-    return theme.colors.error;
-  }};
-  margin: ${theme.spacing.md} 0;
+  color: ${props => props.$highlight ? theme.colors.success : theme.colors.primary};
+  margin: 0;
+`;
+
+/**
+ * Result message
+ */
+const ResultMessage = styled(motion.div)<{ $success: boolean }>`
+  padding: ${theme.spacing.xl};
+  background: ${props => props.$success ? 
+    'rgba(16, 185, 129, 0.1)' : 
+    'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${props => props.$success ? theme.colors.success : theme.colors.error};
+  border-radius: ${theme.borderRadius.lg};
+  text-align: center;
+  font-family: ${theme.fonts.primary};
+  font-weight: ${theme.fontWeights.bold};
+  font-size: ${theme.fontSizes.lg};
+  color: ${props => props.$success ? theme.colors.success : theme.colors.error};
+  width: 100%;
+  max-width: 500px;
+`;
+
+/**
+ * Hint text
+ */
+const HintText = styled(motion.p)`
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.info};
+  text-align: center;
+  margin: 0;
+  padding: ${theme.spacing.md};
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: ${theme.borderRadius.md};
+  max-width: 500px;
 `;
 
 /**
@@ -239,192 +277,256 @@ const PixelArtMemoryChallenge: React.FC<ChallengeProps> = ({
   challengeId,
 }) => {
   const [phase, setPhase] = useState<'showing' | 'drawing' | 'result'>('showing');
-  const [pattern] = useState<number[]>(
-    () => PIXEL_PATTERNS[patternNames[Math.floor(Math.random() * patternNames.length)]]
+  const [timeLeft, setTimeLeft] = useState(MEMORIZE_TIME);
+  const [patternName] = useState<PatternName>(
+    () => PATTERN_NAMES[Math.floor(Math.random() * PATTERN_NAMES.length)]
   );
-  const [userGrid, setUserGrid] = useState<number[]>(Array(256).fill(0));
+  const [userGrid, setUserGrid] = useState<number[]>(Array(64).fill(0));
   const [result, setResult] = useState<{
     accuracy: number;
     correct: number;
     total: number;
   } | null>(null);
+  const [startTime] = useState(() => Date.now());
+
+  const pattern = useMemo(() => PIXEL_PATTERNS[patternName], [patternName]);
 
   /**
-   * Initialize - show pattern for 6 seconds
+   * Countdown timer for showing phase
    */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPhase('drawing');
-    }, 6000);
+    if (phase !== 'showing') return;
 
-    return () => clearTimeout(timer);
-  }, []);
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          setPhase('drawing');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [phase]);
 
   /**
    * Toggle pixel
    */
-  const handlePixelClick = (index: number) => {
+  const handlePixelClick = useCallback((index: number) => {
     if (phase !== 'drawing') return;
 
-    setUserGrid((prev) => {
+    setUserGrid(prev => {
       const newGrid = [...prev];
       newGrid[index] = newGrid[index] === 0 ? 1 : 0;
       return newGrid;
     });
-  };
+  }, [phase]);
 
   /**
    * Clear grid
    */
-  const handleClear = () => {
-    setUserGrid(Array(256).fill(0));
-  };
+  const handleClear = useCallback(() => {
+    setUserGrid(Array(64).fill(0));
+  }, []);
 
   /**
    * Submit and evaluate
    */
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (phase !== 'drawing') return;
 
-    // Compare grids
     let correct = 0;
-    let filledPixels = 0;
-
-    for (let i = 0; i < 256; i++) {
-      if (pattern[i] === 1) {
-        filledPixels++;
-        if (userGrid[i] === 1) {
-          correct++;
-        }
-      } else if (userGrid[i] === 0) {
+    for (let i = 0; i < 64; i++) {
+      if (pattern[i] === userGrid[i]) {
         correct++;
       }
     }
 
-    const accuracy = filledPixels > 0
-      ? (correct / 256) * 100
-      : 0;
+    const accuracy = (correct / 64) * 100;
 
     setResult({
       accuracy,
       correct,
-      total: 256,
+      total: 64,
     });
     setPhase('result');
 
-    // Determine success
-    const success = accuracy >= 80;
+    const timeSpent = (Date.now() - startTime) / 1000;
+    const success = accuracy >= 75;
     let score = 0;
-    if (accuracy >= 90) score = 300;
-    else if (accuracy >= 80) score = 200;
+    
+    if (accuracy >= 95) score = 300;
+    else if (accuracy >= 85) score = 250;
+    else if (accuracy >= 75) score = 200;
 
     setTimeout(() => {
-      onComplete(success, 0, score);
+      onComplete(success, timeSpent, score);
     }, 2000);
-  };
+  }, [phase, pattern, userGrid, startTime, onComplete]);
+
+  /**
+   * Count filled pixels
+   */
+  const filledCount = useMemo(() => 
+    userGrid.filter(p => p === 1).length,
+    [userGrid]
+  );
+
+  const targetCount = useMemo(() => 
+    pattern.filter(p => p === 1).length,
+    [pattern]
+  );
 
   return (
     <ChallengeBase
       title="Pixel Art Memory Challenge"
-      description="Memorize the pattern and draw it from memory"
+      description="Memorize and recreate the pattern"
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
     >
-      <Container>
+      <Container
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <PhaseDisplay>
-          {phase === 'showing'
-            ? 'Memorize the pattern (6 seconds)'
-            : phase === 'drawing'
-              ? 'Now draw the pattern from memory'
-              : 'Checking your accuracy...'}
+          {phase === 'showing' && (
+            <>
+              <PatternLabel>{PATTERN_LABELS[patternName]}</PatternLabel>
+              <div>Memorize the pattern!</div>
+              <TimerDisplay 
+                $warning={timeLeft <= 2}
+                animate={{ scale: timeLeft <= 2 ? [1, 1.1, 1] : 1 }}
+                transition={{ duration: 0.5, repeat: timeLeft <= 2 ? Infinity : 0 }}
+              >
+                {timeLeft}
+              </TimerDisplay>
+            </>
+          )}
+          {phase === 'drawing' && (
+            <>
+              <div>🎨 Draw from memory</div>
+              <PatternLabel style={{ fontSize: theme.fontSizes.md, opacity: 0.7 }}>
+                ({PATTERN_LABELS[patternName]})
+              </PatternLabel>
+            </>
+          )}
+          {phase === 'result' && (
+            <div>✓ Checking accuracy...</div>
+          )}
         </PhaseDisplay>
 
         <GridContainer
           key={phase}
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         >
           {(phase === 'showing' ? pattern : userGrid).map((filled, idx) => {
             let correct: boolean | undefined;
             if (phase === 'result') {
-              if (pattern[idx] === 1 && userGrid[idx] === 1) {
-                correct = true;
-              } else if (pattern[idx] !== userGrid[idx]) {
-                correct = false;
-              }
+              correct = pattern[idx] === userGrid[idx];
             }
 
             return (
               <Pixel
                 key={idx}
-                $filled={phase === 'showing' ? filled === 1 : userGrid[idx] === 1}
+                $filled={filled === 1}
                 $isDrawing={phase === 'drawing'}
                 $correct={correct}
                 onClick={() => handlePixelClick(idx)}
-                style={{
-                  animation:
-                    phase === 'showing' && filled === 1
-                      ? 'pulse 2s ease-in-out infinite'
-                      : 'none',
-                }}
+                whileHover={phase === 'drawing' ? { scale: 1.05 } : {}}
+                whileTap={phase === 'drawing' ? { scale: 0.95 } : {}}
+                animate={phase === 'showing' && filled === 1 ? {
+                  boxShadow: [
+                    'inset 0 2px 4px rgba(0,0,0,0.3)',
+                    'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(31, 41, 55, 0.5)',
+                    'inset 0 2px 4px rgba(0,0,0,0.3)',
+                  ]
+                } : {}}
+                transition={{ duration: 1.5, repeat: Infinity }}
               />
             );
           })}
         </GridContainer>
 
         {phase === 'drawing' && (
-          <ButtonContainer>
-            <Button
-              onClick={handleClear}
-              disabled={false}
-              size="md"
-              variant="secondary"
+          <>
+            <StatsContainer>
+              <StatCard>
+                <StatLabel>Filled</StatLabel>
+                <StatValue>{filledCount}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Target</StatLabel>
+                <StatValue $highlight>{targetCount}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Empty</StatLabel>
+                <StatValue>{64 - filledCount}</StatValue>
+              </StatCard>
+            </StatsContainer>
+
+            <ButtonContainer>
+              <Button
+                onClick={handleClear}
+                disabled={false}
+                size="lg"
+                variant="secondary"
+              >
+                🗑️ Clear
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={false}
+                size="lg"
+                variant="primary"
+              >
+                ✓ Submit
+              </Button>
+            </ButtonContainer>
+
+            <HintText
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
             >
-              Clear
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={false}
-              size="md"
-              variant="primary"
-            >
-              Submit
-            </Button>
-          </ButtonContainer>
+              💡 Tip: Click pixels to fill/unfill. Try to match {targetCount} pixels!
+            </HintText>
+          </>
         )}
 
-        {phase === 'result' && result && (
-          <ResultDisplay
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ResultTitle>Accuracy Check</ResultTitle>
-            <Accuracy $accuracy={result.accuracy}>
-              {result.accuracy.toFixed(1)}%
-            </Accuracy>
-            <ResultStat>
-              {result.accuracy >= 90
-                ? '✓ Perfect! 300 points'
-                : result.accuracy >= 80
-                  ? '✓ Good! 200 points'
-                  : '✗ Try again'}
-            </ResultStat>
-          </ResultDisplay>
-        )}
-
-        <style>{`
-          @keyframes pulse {
-            0%, 100% {
-              box-shadow: 0 0 0 0 rgba(31, 41, 55, 0.7);
-            }
-            50% {
-              box-shadow: 0 0 0 2px rgba(31, 41, 55, 0.3);
-            }
-          }
-        `}</style>
+        <AnimatePresence>
+          {phase === 'result' && result && (
+            <ResultMessage
+              $success={result.accuracy >= 75}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: theme.spacing.md }}>
+                {result.accuracy >= 95 ? '🏆' :
+                 result.accuracy >= 85 ? '⭐' :
+                 result.accuracy >= 75 ? '✓' : '❌'}
+              </div>
+              <div style={{ fontSize: theme.fontSizes['2xl'], marginBottom: theme.spacing.sm }}>
+                {result.accuracy.toFixed(0)}% Accuracy
+              </div>
+              <div style={{ fontSize: theme.fontSizes.md, opacity: 0.9 }}>
+                {result.correct}/{result.total} pixels correct
+              </div>
+              <div style={{ fontSize: theme.fontSizes.sm, marginTop: theme.spacing.sm, opacity: 0.7 }}>
+                {result.accuracy >= 95 ? '🎉 Perfect! +300 points' :
+                 result.accuracy >= 85 ? '✨ Excellent! +250 points' :
+                 result.accuracy >= 75 ? '👍 Good! +200 points' :
+                 '🔄 Try again!'}
+              </div>
+            </ResultMessage>
+          )}
+        </AnimatePresence>
       </Container>
     </ChallengeBase>
   );

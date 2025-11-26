@@ -10,7 +10,7 @@ import { theme } from '../../styles/theme';
  * Flag data type
  */
 interface FlagData {
-  flag: string;
+  url: string;
   name: string;
   id: string;
 }
@@ -19,18 +19,18 @@ interface FlagData {
  * Available flags
  */
 const FLAG_DATABASE: FlagData[] = [
-  { flag: '🇵🇱', name: 'Poland', id: 'poland' },
-  { flag: '🇺🇸', name: 'USA', id: 'usa' },
-  { flag: '🇬🇧', name: 'UK', id: 'uk' },
-  { flag: '🇫🇷', name: 'France', id: 'france' },
-  { flag: '🇩🇪', name: 'Germany', id: 'germany' },
-  { flag: '🇯🇵', name: 'Japan', id: 'japan' },
-  { flag: '🇮🇹', name: 'Italy', id: 'italy' },
-  { flag: '🇪🇸', name: 'Spain', id: 'spain' },
-  { flag: '🇨🇦', name: 'Canada', id: 'canada' },
-  { flag: '🇧🇷', name: 'Brazil', id: 'brazil' },
-  { flag: '🇦🇺', name: 'Australia', id: 'australia' },
-  { flag: '🇰🇷', name: 'Korea', id: 'korea' },
+  { url: 'https://flagcdn.com/w320/pl.png', name: 'Poland', id: 'poland' },
+  { url: 'https://flagcdn.com/w320/us.png', name: 'USA', id: 'usa' },
+  { url: 'https://flagcdn.com/w320/gb.png', name: 'UK', id: 'uk' },
+  { url: 'https://flagcdn.com/w320/fr.png', name: 'France', id: 'france' },
+  { url: 'https://flagcdn.com/w320/de.png', name: 'Germany', id: 'germany' },
+  { url: 'https://flagcdn.com/w320/jp.png', name: 'Japan', id: 'japan' },
+  { url: 'https://flagcdn.com/w320/it.png', name: 'Italy', id: 'italy' },
+  { url: 'https://flagcdn.com/w320/es.png', name: 'Spain', id: 'spain' },
+  { url: 'https://flagcdn.com/w320/ca.png', name: 'Canada', id: 'canada' },
+  { url: 'https://flagcdn.com/w320/br.png', name: 'Brazil', id: 'brazil' },
+  { url: 'https://flagcdn.com/w320/au.png', name: 'Australia', id: 'australia' },
+  { url: 'https://flagcdn.com/w320/kr.png', name: 'Korea', id: 'korea' },
 ];
 
 /**
@@ -49,7 +49,7 @@ const Container = styled.div`
  */
 const Instructions = styled.p`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
   text-align: center;
   margin: 0;
@@ -93,7 +93,6 @@ const ColumnTitle = styled.h3`
  */
 const FlagButton = styled(motion.button)<{ $matched?: boolean }>`
   padding: ${theme.spacing.md} ${theme.spacing.lg};
-  font-size: ${theme.fontSizes['3xl']};
   border: 2px solid
     ${(props) =>
       props.$matched ? theme.colors.success : theme.colors.primary};
@@ -102,8 +101,17 @@ const FlagButton = styled(motion.button)<{ $matched?: boolean }>`
   border-radius: ${theme.borderRadius.lg};
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 60px;
-  font-weight: ${theme.fontWeights.bold};
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 80px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: ${theme.borderRadius.md};
+  }
 
   &:hover:not(:disabled) {
     transform: scale(1.05);
@@ -122,7 +130,7 @@ const FlagButton = styled(motion.button)<{ $matched?: boolean }>`
 const CountryButton = styled(motion.button)<{ $matched?: boolean }>`
   padding: ${theme.spacing.md} ${theme.spacing.lg};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   border: 2px solid
     ${(props) =>
@@ -161,7 +169,7 @@ const ActionButtons = styled.div`
  */
 const Progress = styled.div`
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.semibold};
   color: ${theme.colors.textSecondary};
 `;
@@ -196,8 +204,20 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
     return shuffleArray([...selected]);
   });
   const [countries] = useState<FlagData[]>(() => {
-    const selected = shuffleArray(FLAG_DATABASE).slice(0, totalPairs);
-    return shuffleArray([...selected]);
+    // Ensure countries include all selected flags plus additional random ones
+    const flagSet = new Set(flags.map((f) => f.id));
+    const flagsAsCountries = flags.filter((f) => flagSet.has(f.id));
+    
+    // If we need more, add random ones that aren't already in flags
+    if (flagsAsCountries.length < totalPairs) {
+      const remaining = totalPairs - flagsAsCountries.length;
+      const others = shuffleArray(
+        FLAG_DATABASE.filter((f) => !flagSet.has(f.id))
+      ).slice(0, remaining);
+      return shuffleArray([...flagsAsCountries, ...others]);
+    }
+    
+    return shuffleArray([...flagsAsCountries]);
   });
   const [matches, setMatches] = useState<Record<string, string>>({});
   const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
@@ -305,7 +325,7 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
                     selectedFlag === flag.id ? 'rgba(99, 102, 241, 0.2)' : '',
                 }}
               >
-                {flag.flag}
+                <img src={flag.url} alt={flag.name} />
               </FlagButton>
             ))}
           </Column>
@@ -338,9 +358,11 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
                   }}
                 >
                   {matchedFlagId && (
-                    <span style={{ marginRight: '8px' }}>
-                      {matchedFlag?.flag}
-                    </span>
+                    <img
+                      src={matchedFlag?.url}
+                      alt={matchedFlag?.name}
+                      style={{ marginRight: '8px', width: '24px', height: '16px', objectFit: 'cover' }}
+                    />
                   )}
                   {country.name}
                 </CountryButton>

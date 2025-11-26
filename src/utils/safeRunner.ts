@@ -37,7 +37,7 @@ export const runUserCode = (
           // Post outputs back
           self.postMessage({ type: 'done', outputs });
         } catch (err) {
-          const message = err && err.message ? err.message : String(err);
+          const message = err && err.message ? "What are you doing?!\n" + err.message : "What are you doing?!\n" + String(err);
           self.postMessage({ type: 'error', error: message, outputs });
         }
       };

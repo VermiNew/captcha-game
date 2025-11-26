@@ -423,7 +423,7 @@ const SimpleMathChallenge: React.FC<ChallengeProps> = ({
             size="lg"
             variant="primary"
           >
-            {isSubmitted && isCorrect ? 'Correct! ✓' : 'Check Answer'}
+            {isSubmitted && isCorrect ? 'Correct' : 'Check Answer'}
           </Button>
         </ButtonContainer>
 

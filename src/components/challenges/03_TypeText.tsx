@@ -33,7 +33,7 @@ const TargetTextContainer = styled(motion.div)`
   border-radius: ${theme.borderRadius.lg};
   padding: ${theme.spacing.xl};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   line-height: 1.6;
   letter-spacing: 0px;
   border: 2px solid ${theme.colors.primary};
@@ -49,16 +49,20 @@ const TargetTextContainer = styled(motion.div)`
  * Styled individual character
  */
 const Char = styled.span<{ $color: CharColor }>`
+  padding: 1px 2px;
   transition: all 0.15s ease;
   color: ${(props) => {
     switch (props.$color) {
-      case 'success':
+      case 'success': {
         return theme.colors.success;
-      case 'error':
+      }
+      case 'error': {
         return theme.colors.error;
+      }
       case 'pending':
-      default:
-        return theme.colors.textPrimary;
+      default: {
+        return theme.colors.textSecondary;
+      }
     }
   }};
   font-weight: ${(props) =>
@@ -68,7 +72,6 @@ const Char = styled.span<{ $color: CharColor }>`
     if (props.$color === 'success') return 'rgba(16, 185, 129, 0.15)';
     return 'transparent';
   }};
-  padding: 1px 2px;
   border-radius: ${theme.borderRadius.sm};
   white-space: pre-wrap;
 `;
@@ -80,7 +83,7 @@ const Textarea = styled.textarea`
   width: 100%;
   height: 100px;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   padding: ${theme.spacing.md};
   border: 2px solid ${theme.colors.primary};
   border-radius: ${theme.borderRadius.lg};
@@ -175,6 +178,7 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
   const [userInput, setUserInput] = useState('');
   const [startTime] = useState(() => Date.now());
   const [isCompleted, setIsCompleted] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   /**
@@ -183,6 +187,19 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
+
+  /**
+   * Update elapsed time for WPM calculation
+   */
+  useEffect(() => {
+    if (isCompleted) return;
+
+    const interval = setInterval(() => {
+      setElapsedTime((Date.now() - startTime) / 1000);
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [startTime, isCompleted]);
 
   /**
    * Check for completion
@@ -232,6 +249,17 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
   );
   const remainingChars = Math.max(0, targetText.length - userInput.length);
 
+  /**
+   * Calculate WPM (Words Per Minute)
+   * Standard: 5 characters = 1 word
+   */
+  const calculateWPM = () => {
+    if (elapsedTime < 1) return 0;
+    const words = userInput.length / 5;
+    const minutes = elapsedTime / 60;
+    return Math.round(words / minutes);
+  };
+
   return (
     <ChallengeBase
       title="Type Text Challenge"
@@ -265,6 +293,15 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
+            <StatLabel>WPM</StatLabel>
+            <StatValue>{calculateWPM()}</StatValue>
+          </Stat>
+
+          <Stat
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
             <StatLabel>Progress</StatLabel>
             <StatValue>{progressPercentage}%</StatValue>
           </Stat>
@@ -272,7 +309,7 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
           <Stat
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
           >
             <StatLabel>Characters</StatLabel>
             <StatValue>
@@ -283,7 +320,7 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
           <Stat
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
           >
             <StatLabel>Remaining</StatLabel>
             <StatValue>{Math.max(0, remainingChars)}</StatValue>
