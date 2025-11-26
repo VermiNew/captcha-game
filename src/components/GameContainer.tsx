@@ -149,7 +149,6 @@ const GameContainer: React.FC = () => {
     setGameState,
   } = useGameStore();
 
-  const [showTimer, setShowTimer] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerActive, setTimerActive] = useState(true);
 
@@ -164,7 +163,6 @@ const GameContainer: React.FC = () => {
     if (currentChallengeIndex >= totalChallenges) {
       const timer = setTimeout(() => {
         setGameState('completed' as GameState);
-        setShowTimer(false);
       }, 0);
       return () => clearTimeout(timer);
     }
@@ -175,7 +173,6 @@ const GameContainer: React.FC = () => {
    */
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowTimer(true);
       setTimeLeft(currentChallenge.timeLimit);
       setTimerActive(true);
     }, 0);
@@ -223,7 +220,6 @@ const GameContainer: React.FC = () => {
     timeSpent: number,
     score: number,
   ) => {
-    setShowTimer(false);
     completeChallenge({
       challengeId: currentChallenge.id,
       success,
@@ -237,11 +233,11 @@ const GameContainer: React.FC = () => {
    * Render the appropriate challenge component
    */
    const renderChallenge = () => {
-     const challengeProps = {
-       onComplete: handleChallengeComplete,
-       timeLimit: currentChallenge.timeLimit,
-       challengeId: currentChallenge.id,
-     };
+      const challengeProps = {
+        onComplete: handleChallengeComplete,
+        timeLimit: currentChallenge.timeLimit,
+        challengeId: String(currentChallenge.id),
+      };
 
     switch (currentChallenge.id) {
       case 1:

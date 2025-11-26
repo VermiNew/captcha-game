@@ -38,7 +38,7 @@ export interface Challenge {
 export interface ChallengeProps {
   onComplete: (success: boolean, timeSpent: number, score: number, accuracy?: number) => void;
   timeLimit: number; // in seconds
-  challengeId: number;
+  challengeId: string;
 }
 
 /**
