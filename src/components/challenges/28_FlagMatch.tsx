@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -291,7 +292,9 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
+      hideTimer
     >
+      <Timer timeLimit={timeLimit} />
       <Container>
         <Instructions>
           Click a flag, then click the country name to match them

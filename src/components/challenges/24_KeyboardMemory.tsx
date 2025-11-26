@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 /**
@@ -275,7 +276,9 @@ const KeyboardMemoryChallenge: React.FC<ChallengeProps> = ({
         timeLimit={timeLimit}
         challengeId={challengeId}
         onComplete={onComplete}
+        hideTimer
       >
+        <Timer timeLimit={timeLimit} />
         <FinalFeedback
           $success={success}
           initial={{ opacity: 0, scale: 0.9 }}
@@ -299,7 +302,9 @@ const KeyboardMemoryChallenge: React.FC<ChallengeProps> = ({
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
+      hideTimer
     >
+      <Timer timeLimit={timeLimit} />
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
