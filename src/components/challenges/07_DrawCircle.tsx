@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 /**
@@ -159,7 +160,7 @@ const StyledButton = styled(motion.button)`
   width: 100%;
   padding: ${theme.spacing.lg};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.base};
+  font-size: ${theme.fontSizes.md};
   font-weight: ${theme.fontWeights.bold};
   border: 2px solid ${theme.colors.primary};
   background: ${theme.colors.surface};
@@ -427,7 +428,9 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
       challengeId={challengeId}
       onComplete={onComplete}
       maxWidth="600px"
+      hideTimer
     >
+      <Timer timeLimit={timeLimit} />
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

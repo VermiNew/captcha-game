@@ -16,6 +16,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import { theme } from '../../styles/theme';
 import { sentenceDataset } from '../../utils/sentenceDataset';
 
@@ -349,7 +350,9 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
+      hideTimer
     >
+      <Timer timeLimit={timeLimit} />
       <Container>
         <TargetSentence
           initial={{ opacity: 0 }}
