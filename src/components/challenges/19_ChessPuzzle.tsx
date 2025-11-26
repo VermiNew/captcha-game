@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -306,7 +307,8 @@ const ChessPuzzleChallenge: React.FC<ChallengeProps> = ({ onComplete, timeLimit,
   }, [puzzle]);
 
   return (
-    <ChallengeBase title="Chess Puzzle" description="Find checkmate in one move" timeLimit={timeLimit} challengeId={challengeId} onComplete={onComplete}>
+    <ChallengeBase title="Chess Puzzle" description="Find checkmate in one move" timeLimit={timeLimit} challengeId={challengeId} onComplete={onComplete} hideTimer>
+      <Timer timeLimit={timeLimit} />
       <Container>
         <Header>
           <PuzzleTitle initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>{puzzle.name}</PuzzleTitle>

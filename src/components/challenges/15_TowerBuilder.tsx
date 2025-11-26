@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 
 /**
  * Block colors - vibrant gradient palette
@@ -294,16 +296,25 @@ const TowerBuilderChallenge: React.FC<ChallengeProps> = ({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '1.5rem',
-      width: '100%',
-      maxWidth: '600px',
-      margin: '0 auto',
-      padding: '1rem',
-    }}>
+    <ChallengeBase
+      title="Tower Builder"
+      description="Stack blocks with precision"
+      timeLimit={timeLimit}
+      challengeId={challengeId}
+      onComplete={onComplete}
+      hideTimer
+    >
+      <Timer timeLimit={timeLimit} />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1.5rem',
+        width: '100%',
+        maxWidth: '600px',
+        margin: '0 auto',
+        padding: '1rem',
+      }}>
       {/* Game Area */}
       <div
         onClick={handleBlockClick}
@@ -570,7 +581,8 @@ const TowerBuilderChallenge: React.FC<ChallengeProps> = ({
           💡 Tip: Aim for 80%+ overlap for bonus points. Perfect = 100%!
         </motion.p>
       )}
-    </div>
+      </div>
+    </ChallengeBase>
   );
 };
 

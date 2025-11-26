@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
+import Timer from './Timer';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -501,7 +502,9 @@ const BalanceGameChallenge: React.FC<ChallengeProps> = ({
       timeLimit={timeLimit}
       challengeId={challengeId}
       onComplete={onComplete}
+      hideTimer
     >
+      <Timer timeLimit={timeLimit} />
       <Container>
         <Instruction>
           {completed
