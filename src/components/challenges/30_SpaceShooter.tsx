@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
+import asteroidImg from '../../assets/asteroid.webp';
+import spaceshipImg from '../../assets/spaceship.webp';
+import bulletImg from '../../assets/spaceship_bullet.gif';
 
 /**
  * Game constants
@@ -239,8 +242,6 @@ const generateStars = (count: number): Star[] => {
  */
 const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameActive, setGameActive] = useState(true);
@@ -266,7 +267,36 @@ const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
   const bulletCounterRef = useRef(0);
   const asteroidCounterRef = useRef(0);
   const gameLoopRef = useRef<number | null>(null);
-  const lastComboTimeRef = useRef(Date.now());
+  const lastComboTimeRef = useRef(0);
+  const lastShotTimeRef = useRef(0);
+  const SHOOT_COOLDOWN = 200; // milliseconds
+  const imagesRef = useRef<{
+    asteroid: HTMLImageElement | null;
+    spaceship: HTMLImageElement | null;
+    bullet: HTMLImageElement | null;
+  }>({
+    asteroid: null,
+    spaceship: null,
+    bullet: null,
+  });
+
+  // Load images and initialize combo timer
+  useEffect(() => {
+    const asteroidImage = new Image();
+    asteroidImage.src = asteroidImg;
+    imagesRef.current.asteroid = asteroidImage;
+
+    const spaceshipImage = new Image();
+    spaceshipImage.src = spaceshipImg;
+    imagesRef.current.spaceship = spaceshipImage;
+
+    const bulletImage = new Image();
+    bulletImage.src = bulletImg;
+    imagesRef.current.bullet = bulletImage;
+
+    // Initialize combo timer
+    lastComboTimeRef.current = Date.now();
+  }, []);
 
   /**
    * Create explosion particles
@@ -345,39 +375,13 @@ const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
         const opacity = 0.5 + asteroid.z * 0.5;
         
         ctx.save();
+        ctx.globalAlpha = opacity;
         ctx.translate(asteroid.x + size / 2, asteroid.y + size / 2);
         ctx.rotate(asteroid.rotation);
         
-        // Shadow for depth
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 10 * scale;
-        ctx.shadowOffsetY = 5 * scale;
-        
-        // Asteroid body with gradient
-        const asteroidGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size / 2);
-        asteroidGradient.addColorStop(0, `rgba(255, 136, 0, ${opacity})`);
-        asteroidGradient.addColorStop(0.7, `rgba(255, 68, 0, ${opacity})`);
-        asteroidGradient.addColorStop(1, `rgba(139, 0, 0, ${opacity * 0.8})`);
-        ctx.fillStyle = asteroidGradient;
-        
-        ctx.beginPath();
-        ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Crater details
-        ctx.fillStyle = `rgba(139, 0, 0, ${opacity * 0.6})`;
-        for (let i = 0; i < 3; i++) {
-          const angle = (i * Math.PI * 2) / 3;
-          const dist = size / 4;
-          ctx.beginPath();
-          ctx.arc(
-            Math.cos(angle) * dist,
-            Math.sin(angle) * dist,
-            size / 8,
-            0,
-            Math.PI * 2
-          );
-          ctx.fill();
+        // Draw asteroid image
+        if (imagesRef.current.asteroid) {
+          ctx.drawImage(imagesRef.current.asteroid, -size / 2, -size / 2, size, size);
         }
         
         ctx.restore();
@@ -391,30 +395,14 @@ const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
         ctx.shadowColor = '#00ffff';
         ctx.shadowBlur = 15 * scale;
         
-        // Bullet trail
-        const trailGradient = ctx.createLinearGradient(
-          bullet.x + width / 2,
-          bullet.y,
-          bullet.x + width / 2,
-          bullet.y + height + 20
-        );
-        trailGradient.addColorStop(0, `rgba(0, 255, 255, ${0.8 * scale})`);
-        trailGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
-        ctx.fillStyle = trailGradient;
-        ctx.fillRect(bullet.x, bullet.y, width, height + 20);
-        
-        // Bullet body
-        const bulletGradient = ctx.createLinearGradient(
-          bullet.x,
-          bullet.y,
-          bullet.x + width,
-          bullet.y
-        );
-        bulletGradient.addColorStop(0, '#00ffff');
-        bulletGradient.addColorStop(0.5, '#ffffff');
-        bulletGradient.addColorStop(1, '#00ffff');
-        ctx.fillStyle = bulletGradient;
-        ctx.fillRect(bullet.x, bullet.y, width, height);
+        // Draw bullet image (rotated 180 degrees)
+        if (imagesRef.current.bullet) {
+          ctx.save();
+          ctx.translate(bullet.x + width / 2, bullet.y + height / 2);
+          ctx.rotate(Math.PI); // 180 degree rotation
+          ctx.drawImage(imagesRef.current.bullet, -width / 2, -height / 2, width, height);
+          ctx.restore();
+        }
         
         ctx.shadowBlur = 0;
       }
@@ -434,42 +422,15 @@ const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
 
-    // Draw player ship with 3D effect
+    // Draw player ship
     ctx.save();
     ctx.shadowColor = 'rgba(0, 255, 0, 0.5)';
     ctx.shadowBlur = 20;
     
-    // Ship body
-    const shipGradient = ctx.createLinearGradient(
-      player.x,
-      player.y,
-      player.x + player.width,
-      player.y
-    );
-    shipGradient.addColorStop(0, '#00ff00');
-    shipGradient.addColorStop(0.5, '#00ff88');
-    shipGradient.addColorStop(1, '#00ff00');
-    ctx.fillStyle = shipGradient;
-    
-    ctx.beginPath();
-    ctx.moveTo(player.x + player.width / 2, player.y);
-    ctx.lineTo(player.x + player.width, player.y + player.height);
-    ctx.lineTo(player.x + player.width / 2, player.y + player.height - 10);
-    ctx.lineTo(player.x, player.y + player.height);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Cockpit
-    ctx.fillStyle = '#00aa00';
-    ctx.beginPath();
-    ctx.arc(
-      player.x + player.width / 2,
-      player.y + 15,
-      8,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
+    // Draw spaceship image
+    if (imagesRef.current.spaceship) {
+      ctx.drawImage(imagesRef.current.spaceship, player.x, player.y, player.width, player.height);
+    }
     
     // Engine flames with animation
     const flameSize = 15 + Math.sin(Date.now() / 100) * 5;
@@ -698,17 +659,31 @@ const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
       if (e.code === 'Space') {
         e.preventDefault();
         if (gameActive) {
-          const player = playerRef.current;
-          const z = 0.8;
-          const newBullet: Bullet = {
-            id: bulletCounterRef.current++,
-            x: player.x + player.width / 2 - BULLET_WIDTH / 2,
-            y: player.y,
-            z,
-            width: BULLET_WIDTH,
-            height: BULLET_HEIGHT,
-          };
-          bulletsRef.current.push(newBullet);
+          const now = Date.now();
+          if (now - lastShotTimeRef.current >= SHOOT_COOLDOWN) {
+            lastShotTimeRef.current = now;
+            const player = playerRef.current;
+            const z = 0.8;
+            // Dual fire - left and right bullets
+            const leftBullet: Bullet = {
+              id: bulletCounterRef.current++,
+              x: player.x + player.width / 2 - BULLET_WIDTH / 2 - 5,
+              y: player.y,
+              z,
+              width: BULLET_WIDTH,
+              height: BULLET_HEIGHT,
+            };
+            const rightBullet: Bullet = {
+              id: bulletCounterRef.current++,
+              x: player.x + player.width / 2 - BULLET_WIDTH / 2 + 5,
+              y: player.y,
+              z,
+              width: BULLET_WIDTH,
+              height: BULLET_HEIGHT,
+            };
+            bulletsRef.current.push(leftBullet);
+            bulletsRef.current.push(rightBullet);
+          }
         }
       }
     };
@@ -769,12 +744,10 @@ const SpaceShooterChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Space Shooter Challenge"
       description="Destroy asteroids and survive for 30 seconds"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

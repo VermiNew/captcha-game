@@ -1,472 +1,292 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
-/**
- * Question type
- */
-interface Question {
-  id: string;
+interface ScienceQuestion {
+  id: number;
   question: string;
-  options: string[];
-  correctAnswer: number;
-  category: 'physics' | 'chemistry' | 'biology' | 'astronomy';
+  correctAnswer: string;
+  answers: string[];
+  explanation: string;
+  emoji: string;
 }
 
-/**
- * Science question database
- */
-const SCIENCE_QUESTIONS: Question[] = [
+const SCIENCE_QUESTIONS: ScienceQuestion[] = [
   {
-    id: 'q1',
-    question: 'What is H2O?',
-    options: ['Water', 'Hydrogen', 'Oxygen', 'Salt'],
-    correctAnswer: 0,
-    category: 'chemistry',
-  },
-  {
-    id: 'q2',
-    question: 'Which planet is fastest?',
-    options: ['Mercury', 'Venus', 'Earth', 'Mars'],
-    correctAnswer: 0,
-    category: 'astronomy',
-  },
-  {
-    id: 'q3',
-    question: 'What is the boiling point of water?',
-    options: ['100°C', '90°C', '110°C', '80°C'],
-    correctAnswer: 0,
-    category: 'chemistry',
-  },
-  {
-    id: 'q4',
-    question: 'What is the largest organ in the human body?',
-    options: ['Skin', 'Heart', 'Liver', 'Brain'],
-    correctAnswer: 0,
-    category: 'biology',
-  },
-  {
-    id: 'q5',
-    question: 'What is the speed of light?',
-    options: [
-      '300,000 km/s',
-      '150,000 km/s',
-      '500,000 km/s',
-      '1,000,000 km/s',
-    ],
-    correctAnswer: 0,
-    category: 'physics',
-  },
-  {
-    id: 'q6',
-    question: 'How many bones are in the human body?',
-    options: ['206', '256', '186', '226'],
-    correctAnswer: 0,
-    category: 'biology',
-  },
-  {
-    id: 'q7',
-    question: 'What is the chemical symbol for gold?',
-    options: ['Go', 'Gd', 'Au', 'Ag'],
-    correctAnswer: 2,
-    category: 'chemistry',
-  },
-  {
-    id: 'q8',
-    question: 'How many planets are in our solar system?',
-    options: ['8', '9', '7', '10'],
-    correctAnswer: 0,
-    category: 'astronomy',
-  },
-  {
-    id: 'q9',
-    question: 'What is the smallest unit of life?',
-    options: ['Cell', 'Atom', 'Molecule', 'Protein'],
-    correctAnswer: 0,
-    category: 'biology',
-  },
-  {
-    id: 'q10',
-    question: 'What does DNA stand for?',
-    options: [
-      'Deoxyribonucleic Acid',
-      'Digital Neural Algorithm',
-      'Deoxyribose Nucleotide Arrangement',
-      'Diribose Nucleic Acid',
-    ],
-    correctAnswer: 0,
-    category: 'biology',
-  },
-  {
-    id: 'q11',
-    question: 'How many sides does a benzene ring have?',
-    options: ['6', '4', '8', '5'],
-    correctAnswer: 0,
-    category: 'chemistry',
-  },
-  {
-    id: 'q12',
-    question: 'What is the closest star to Earth?',
-    options: ['Proxima Centauri', 'Sirius', 'Alpha Centauri', 'Sun'],
-    correctAnswer: 3,
-    category: 'astronomy',
-  },
-  {
-    id: 'q13',
+    id: 1,
+    emoji: '⚛️',
     question: 'What is the SI unit of force?',
-    options: ['Newton', 'Joule', 'Watt', 'Pascal'],
-    correctAnswer: 0,
-    category: 'physics',
+    correctAnswer: 'Newton (N)',
+    answers: ['Joule (J)', 'Newton (N)', 'Pascal (Pa)', 'Watt (W)'],
+    explanation: 'The Newton (N) is the SI unit of force, named after Isaac Newton.',
   },
   {
-    id: 'q14',
-    question: 'How many electrons does oxygen have?',
-    options: ['8', '6', '10', '4'],
-    correctAnswer: 0,
-    category: 'chemistry',
+    id: 2,
+    emoji: '🌍',
+    question: 'What is the speed of light in vacuum?',
+    correctAnswer: '300,000 km/s',
+    answers: ['150,000 km/s', '300,000 km/s', '500,000 km/s', '1,000,000 km/s'],
+    explanation: 'The speed of light is approximately 3 × 10⁸ m/s or 300,000 km/s.',
   },
   {
-    id: 'q15',
-    question: 'What is photosynthesis?',
-    options: [
-      'Process of converting light to chemical energy',
-      'Process of breaking down glucose',
-      'Process of producing oxygen',
-      'Process of absorbing water',
-    ],
-    correctAnswer: 0,
-    category: 'biology',
+    id: 3,
+    emoji: '🔬',
+    question: 'What is the chemical symbol for Gold?',
+    correctAnswer: 'Au',
+    answers: ['Go', 'Au', 'Gd', 'Ag'],
+    explanation: 'Gold is represented by the symbol Au, derived from its Latin name "aurum".',
   },
   {
-    id: 'q16',
-    question: 'How far is the Moon from Earth?',
-    options: [
-      '384,400 km',
-      '150,000 km',
-      '57,900 km',
-      '227,900 km',
-    ],
-    correctAnswer: 0,
-    category: 'astronomy',
+    id: 4,
+    emoji: '🌡️',
+    question: 'At what temperature does water boil at standard pressure?',
+    correctAnswer: '100°C',
+    answers: ['90°C', '100°C', '110°C', '120°C'],
+    explanation: 'Water boils at 100°C (or 212°F) at 1 atmosphere of pressure.',
   },
   {
-    id: 'q17',
-    question: 'What is the speed of sound?',
-    options: [
-      '343 m/s',
-      '500 m/s',
-      '200 m/s',
-      '100 m/s',
-    ],
-    correctAnswer: 0,
-    category: 'physics',
-  },
-  {
-    id: 'q18',
-    question: 'What is the process called when water becomes ice?',
-    options: ['Freezing', 'Condensation', 'Solidification', 'Deposition'],
-    correctAnswer: 0,
-    category: 'chemistry',
-  },
-  {
-    id: 'q19',
-    question: 'How many chambers does the heart have?',
-    options: ['4', '3', '5', '6'],
-    correctAnswer: 0,
-    category: 'biology',
-  },
-  {
-    id: 'q20',
-    question: 'What is the temperature on the surface of the Sun?',
-    options: [
-      '5,500°C',
-      '3,000°C',
-      '10,000°C',
-      '1,500°C',
-    ],
-    correctAnswer: 0,
-    category: 'astronomy',
+    id: 5,
+    emoji: '⚡',
+    question: 'What does DNA stand for?',
+    correctAnswer: 'Deoxyribonucleic Acid',
+    answers: ['Deoxyribonucleic Acid', 'Diribonucleic Acid', 'Dynucleic Acid', 'Diatomic Nitrogen Acid'],
+    explanation: 'DNA stands for Deoxyribonucleic Acid, the molecule that carries genetic instructions.',
   },
 ];
 
-/**
- * Category colors
- */
-const CATEGORY_COLORS: Record<string, string> = {
-  physics: '#FF6B6B',
-  chemistry: '#4ECDC4',
-  biology: '#FFE66D',
-  astronomy: '#A8E6CF',
-};
-
-/**
- * Styled container
- */
-const Container = styled.div`
+const Container = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.xl};
   width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
 `;
 
-/**
- * Styled progress bar
- */
-const ProgressBar = styled.div`
+const QuestionCard = styled(motion.div)`
   width: 100%;
-  height: 8px;
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.full};
-  overflow: hidden;
+  padding: ${theme.spacing.xl};
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  border: 2px solid ${theme.colors.primary};
+  border-radius: ${theme.borderRadius.lg};
+  text-align: center;
 `;
 
-/**
- * Styled progress fill
- */
-const ProgressFill = styled(motion.div)`
-  height: 100%;
-  background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
-  border-radius: ${theme.borderRadius.full};
+const EmojiDisplay = styled(motion.div)`
+  font-size: 56px;
+  margin-bottom: ${theme.spacing.lg};
 `;
 
-/**
- * Styled progress text
- */
-const ProgressText = styled.p`
+const QuestionText = styled.h3`
   font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.lg};
+  color: ${theme.colors.textPrimary};
+  margin: 0 0 ${theme.spacing.md} 0;
+  line-height: 1.6;
+`;
+
+const QuestionMeta = styled.p`
+  font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textSecondary};
   margin: 0;
 `;
 
-/**
- * Styled category badge
- */
-const CategoryBadge = styled.span<{ category: string }>`
-  display: inline-block;
-  padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  background: ${(props) => CATEGORY_COLORS[props.category]};
-  color: white;
-  border-radius: ${theme.borderRadius.full};
-  font-size: ${theme.fontSizes.xs};
-  font-weight: ${theme.fontWeights.bold};
-  margin-bottom: ${theme.spacing.md};
-`;
-
-/**
- * Styled question
- */
-const Question = styled(motion.div)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.xl};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin-bottom: ${theme.spacing.lg};
-  line-height: 1.4;
-`;
-
-/**
- * Styled options container
- */
-const OptionsContainer = styled.div`
+const AnswersContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.md};
-  width: 100%;
+  margin: ${theme.spacing.xl} 0;
 `;
 
-/**
- * Styled option button
- */
-const OptionButton = styled(motion.button)<{
-  $selected?: boolean;
-  $isCorrect?: boolean;
-  $isWrong?: boolean;
-}>`
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  text-align: left;
+const AnswerButton = styled(motion.button)<{ $selected: boolean }>`
+  padding: ${theme.spacing.md};
+  background: ${props => props.$selected
+    ? `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`
+    : theme.colors.surface};
+  border: 2px solid ${props => props.$selected
+    ? theme.colors.primary
+    : theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.md};
+  color: ${props => props.$selected ? 'white' : theme.colors.textPrimary};
   font-weight: ${theme.fontWeights.semibold};
-  border: 2px solid
-    ${(props) => {
-      if (props.$isCorrect) return theme.colors.success;
-      if (props.$isWrong) return theme.colors.error;
-      if (props.$selected) return theme.colors.primary;
-      return theme.colors.border;
-    }};
-  background: ${(props) => {
-    if (props.$isCorrect) return 'rgba(16, 185, 129, 0.1)';
-    if (props.$isWrong) return 'rgba(239, 68, 68, 0.1)';
-    if (props.$selected) return 'rgba(99, 102, 241, 0.1)';
-    return 'white';
-  }};
-  color: ${theme.colors.textPrimary};
-  border-radius: ${theme.borderRadius.lg};
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: left;
 
-  &:hover:not(:disabled) {
+  &:hover {
     border-color: ${theme.colors.primary};
-    transform: translateX(5px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    transform: translateX(4px);
+    box-shadow: ${theme.shadows.md};
   }
 `;
 
-/**
- * Styled score display
- */
-const ScoreDisplay = styled.div`
+const ProgressBar = styled.div`
+  width: 100%;
+  height: 6px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: ${theme.borderRadius.full};
+  overflow: hidden;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+`;
+
+const ProgressFill = styled(motion.div)`
+  height: 100%;
+  background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.secondary});
+  box-shadow: 0 0 10px ${theme.colors.primary}40;
+`;
+
+const ExplanationBox = styled(motion.div)<{ $correct: boolean }>`
+  padding: ${theme.spacing.lg};
+  background: ${props => props.$correct
+    ? 'rgba(16, 185, 129, 0.1)'
+    : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${props => props.$correct
+    ? theme.colors.success
+    : theme.colors.error};
+  border-radius: ${theme.borderRadius.lg};
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.semibold};
-  color: ${theme.colors.primary};
+  font-size: ${theme.fontSizes.md};
+  color: ${props => props.$correct
+    ? theme.colors.success
+    : theme.colors.error};
   text-align: center;
 `;
 
-/**
- * Science Quiz Challenge Component
- * 6 random science questions with multiple choice answers
- */
-const ScienceQuizChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
-  const totalQuestions = 6;
-  const successThreshold = 4;
-  const pointsPerQuestion = 40;
+const ScoreDisplay = styled.p`
+  font-family: ${theme.fonts.mono};
+  font-size: ${theme.fontSizes.xl};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${theme.colors.primary};
+  margin: 0;
+`;
 
-  const [questions] = useState<Question[]>(() => {
-    const shuffled = [...SCIENCE_QUESTIONS]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, totalQuestions);
-    return shuffled;
-  });
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [answered, setAnswered] = useState(false);
+const ScienceQuizChallenge: React.FC<ChallengeProps> = ({ onComplete }) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | undefined>();
   const [score, setScore] = useState(0);
+  const [startTime] = useState(() => Date.now());
 
-  /**
-   * Handle answer selection
-   */
-  const handleSelectAnswer = (index: number) => {
-    if (answered) return;
+  const currentQuestion = useMemo(
+    () => SCIENCE_QUESTIONS[currentQuestionIndex],
+    [currentQuestionIndex]
+  );
 
-    setSelectedAnswer(index);
-    setAnswered(true);
+  const progressPercentage = useMemo(
+    () => ((currentQuestionIndex + 1) / SCIENCE_QUESTIONS.length) * 100,
+    [currentQuestionIndex]
+  );
 
-    const currentQuestion = questions[currentIndex];
-    const isCorrect = index === currentQuestion.correctAnswer;
+  const handleSubmit = useCallback(() => {
+    if (submitted || !selectedAnswer) return;
 
-    if (isCorrect) {
-      setScore((prev) => prev + pointsPerQuestion);
+    setSubmitted(true);
+    const correct = selectedAnswer === currentQuestion.correctAnswer;
+    setIsCorrect(correct);
+
+    if (correct) {
+      setScore(prev => prev + 200);
     }
 
-    const nextIndex = currentIndex + 1;
-
     setTimeout(() => {
-      if (nextIndex < totalQuestions) {
-        setCurrentIndex(nextIndex);
+      if (currentQuestionIndex < SCIENCE_QUESTIONS.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
         setSelectedAnswer(null);
-        setAnswered(false);
+        setSubmitted(false);
+        setIsCorrect(undefined);
       } else {
-        // Quiz complete
-        const finalScore =
-          score + (isCorrect ? pointsPerQuestion : 0);
-        const correctAnswers = Math.ceil(
-          (finalScore / pointsPerQuestion)
-        );
-        const success = correctAnswers >= successThreshold;
-        onComplete(success, 0, finalScore);
+        const timeSpent = (Date.now() - startTime) / 1000;
+        onComplete(true, timeSpent, score + (correct ? 200 : 0));
       }
-    }, 1000);
-  };
-
-  if (questions.length === 0) return null;
-
-  const currentQuestion = questions[currentIndex];
-  const correctAnswers = Math.floor(score / pointsPerQuestion);
-  const progressPercent = ((currentIndex + 1) / totalQuestions) * 100;
+    }, 2500);
+  }, [submitted, selectedAnswer, currentQuestion, currentQuestionIndex, score, startTime, onComplete]);
 
   return (
     <ChallengeBase
-      title="Science Quiz Challenge"
-      description="Answer 6 science questions correctly"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+      title="🔬 Science Quiz Challenge"
+      description="Test your knowledge of physics, chemistry, and biology"
     >
-      <Timer timeLimit={timeLimit} />
-      <Container>
-        <div style={{ width: '100%' }}>
-          <ProgressBar>
-            <ProgressFill
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </ProgressBar>
-          <ProgressText>
-            Question {currentIndex + 1} / {totalQuestions}
-          </ProgressText>
-        </div>
+      <Container
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <ProgressBar>
+          <ProgressFill
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          />
+        </ProgressBar>
 
-        <CategoryBadge category={currentQuestion.category}>
-          {currentQuestion.category.toUpperCase()}
-        </CategoryBadge>
-
-        <Question
-          key={`q-${currentIndex}`}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
+        <QuestionCard
+          key={`question-${currentQuestionIndex}`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
         >
-          {currentQuestion.question}
-        </Question>
+          <EmojiDisplay
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
+          >
+            {currentQuestion.emoji}
+          </EmojiDisplay>
+          <QuestionText>{currentQuestion.question}</QuestionText>
+          <QuestionMeta>
+            Question {currentQuestionIndex + 1} of {SCIENCE_QUESTIONS.length}
+          </QuestionMeta>
+        </QuestionCard>
 
-        <OptionsContainer>
-          {currentQuestion.options.map((option, index) => (
-            <OptionButton
-              key={index}
-              $selected={selectedAnswer === index && !answered}
-              $isCorrect={
-                answered &&
-                index === currentQuestion.correctAnswer
-              }
-              $isWrong={
-                answered &&
-                selectedAnswer === index &&
-                index !== currentQuestion.correctAnswer
-              }
-              onClick={() => handleSelectAnswer(index)}
-              disabled={answered}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              whileHover={{ x: 5 }}
+        <AnswersContainer>
+          {currentQuestion.answers.map((answer) => (
+            <AnswerButton
+              key={answer}
+              $selected={selectedAnswer === answer}
+              onClick={() => !submitted && setSelectedAnswer(answer)}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {option}
-            </OptionButton>
+              {answer}
+            </AnswerButton>
           ))}
-        </OptionsContainer>
+        </AnswersContainer>
 
-        <ScoreDisplay>
-          Correct: {correctAnswers} / {successThreshold}
-        </ScoreDisplay>
+        <Button
+          onClick={handleSubmit}
+          disabled={!selectedAnswer || submitted}
+          size="lg"
+          variant="primary"
+        >
+          {submitted ? (isCorrect ? '✓ Correct!' : '✗ Incorrect') : 'Check Answer'}
+        </Button>
+
+        <AnimatePresence>
+          {submitted && isCorrect !== undefined && (
+            <ExplanationBox
+              $correct={isCorrect}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+            >
+              <p style={{ margin: '0 0 0.5rem 0', fontSize: theme.fontSizes.lg }}>
+                {isCorrect ? '🎉' : '📚'}
+              </p>
+              <p style={{ margin: 0 }}>{currentQuestion.explanation}</p>
+              <ScoreDisplay style={{ marginTop: theme.spacing.md }}>
+                +{isCorrect ? 200 : 0} points
+              </ScoreDisplay>
+            </ExplanationBox>
+          )}
+        </AnimatePresence>
       </Container>
     </ChallengeBase>
   );

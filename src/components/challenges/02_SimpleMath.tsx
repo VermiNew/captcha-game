@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -278,8 +277,6 @@ const HintText = styled(motion.p)`
  */
 const SimpleMathChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [math] = useState<MathProblem>(() => generateMath());
   const [userAnswer, setUserAnswer] = useState('');
@@ -287,7 +284,7 @@ const SimpleMathChallenge: React.FC<ChallengeProps> = ({
   const [isCorrect, setIsCorrect] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef(0);
 
   /**
    * Auto-focus input on component mount for immediate interaction
@@ -353,12 +350,8 @@ const SimpleMathChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Quick Math Challenge"
       description="Solve the equation as quickly as you can"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         {/* Math equation card with entrance animation */}
         <EquationCard

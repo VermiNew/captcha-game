@@ -49,8 +49,16 @@ export const runUserCode = (
 
     let settled = false;
     const cleanup = () => {
-      try { worker.terminate(); } catch (_) {}
-      try { URL.revokeObjectURL(url); } catch (_) {}
+      try { 
+        worker.terminate(); 
+      } catch {
+        // Ignore error
+      }
+      try { 
+        URL.revokeObjectURL(url); 
+      } catch {
+        // Ignore error
+      }
     };
 
     const timer = setTimeout(() => {

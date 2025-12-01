@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -191,11 +191,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
  * Flag Match Challenge Component
  * Match flags to country names using click-based matching
  */
-const FlagMatchChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const FlagMatchChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const totalPairs = 6;
   const successThreshold = 5;
   const pointsPerMatch = 35;
@@ -289,12 +285,12 @@ const FlagMatchChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Flag Match Challenge"
       description="Match flags to their country names"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <Instructions>
           Click a flag, then click the country name to match them

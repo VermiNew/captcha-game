@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -305,11 +305,7 @@ const getAngularDiff = (angle1: number, angle2: number): number => {
 /**
  * Cube Rotation Challenge Component
  */
-const CubeRotationChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const CubeRotationChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const [targetRotateX] = useState(() => Math.floor(Math.random() * 4) * 90);
   const [targetRotateY] = useState(() => Math.floor(Math.random() * 4) * 90);
 
@@ -451,12 +447,12 @@ const CubeRotationChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="3D Cube Rotation"
       description="Rotate the cube to match the target orientation"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

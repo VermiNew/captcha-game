@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 interface Question {
@@ -355,8 +354,6 @@ const ScoreValue = styled(motion.p)`
  */
 const MathQuizChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [questions] = useState<Question[]>(() => [
     generateEasyQuestion(),
@@ -439,13 +436,8 @@ const MathQuizChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Math Quiz Challenge"
       description="Solve 5 math problems as fast as you can!"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      maxWidth="600px"
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

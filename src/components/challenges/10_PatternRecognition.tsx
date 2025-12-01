@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 
 /**
  * Question type definition
@@ -16,8 +15,6 @@ interface Question {
   hint?: string;
   difficulty: 'easy' | 'medium' | 'hard';
 }
-
-
 
 /**
  * Generate arithmetic progression question
@@ -132,8 +129,6 @@ const generatePrimeQuestion = (): Question => {
  */
 const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit = 120,
-  challengeId,
 }) => {
   // Generate questions once on mount
   const [questions] = useState<Question[]>(() => {
@@ -141,18 +136,20 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
       generateArithmeticQuestion(),
       generateGeometricQuestion(),
       generateFibonacciQuestion(),
+      generateSquareQuestion(),
+      generatePrimeQuestion(),
     ];
     return allQuestions;
   });
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>([null, null, null]);
-  const [feedback, setFeedback] = useState<(boolean | null)[]>([null, null, null]);
+  const [answers, setAnswers] = useState<(number | null)[]>([null, null, null, null, null]);
+  const [feedback, setFeedback] = useState<(boolean | null)[]>([null, null, null, null, null]);
   const [inputValue, setInputValue] = useState('');
   const [startTime] = useState(() => Date.now());
   const [showHint, setShowHint] = useState(false);
-  const [hintUsed, setHintUsed] = useState<boolean[]>([false, false, false]);
-  const [attempts, setAttempts] = useState<number[]>([0, 0, 0]);
+  const [hintUsed, setHintUsed] = useState<boolean[]>([false, false, false, false, false]);
+  const [attempts, setAttempts] = useState<number[]>([0, 0, 0, 0, 0]);
   const [hasInputError, setHasInputError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -238,8 +235,8 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
     } else {
       // Challenge complete
       setTimeout(() => {
-        const correctCount = newFeedback.filter((f) => f === true).length;
-        const success = correctCount >= 2;
+      const correctCount = newFeedback.filter((f) => f === true).length;
+      const success = correctCount >= 3;
         const score = calculateScore();
         const timeSpent = (Date.now() - startTime) / 1000;
 
@@ -264,6 +261,8 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
    * Handle Enter key press
    */
   useEffect(() => {
+    const isAnswered = feedback[currentQuestionIndex] !== null;
+    
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && inputValue.trim() && !isAnswered && !isSubmitting) {
         handleSubmitAnswer();
@@ -272,7 +271,7 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
 
     window.addEventListener('keypress', handleKeyPress);
     return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [inputValue, handleSubmitAnswer, isSubmitting]);
+  }, [inputValue, handleSubmitAnswer, isSubmitting, feedback, currentQuestionIndex]);
 
   /**
    * Focus input when question changes
@@ -318,12 +317,8 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Pattern Recognition"
       description="Identify the pattern and find the next number"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -403,7 +398,7 @@ const PatternRecognitionChallenge: React.FC<ChallengeProps> = ({
             fontSize: '1.25rem',
             fontWeight: 'bold',
             color: '#6366f1',
-          }}>{currentQuestionIndex + 1}/3</span>
+            }}>{currentQuestionIndex + 1}/5</span>
         </div>
         <div style={{
           display: 'flex',

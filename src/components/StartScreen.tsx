@@ -5,7 +5,7 @@ import { useGameStore } from '../store/gameStore';
 import Button from './ui/Button';
 import { theme } from '../styles/theme';
 import { getTotalChallenges } from '../utils/challengeRegistry';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/logo.webp';
 
 /**
  * Styled main container

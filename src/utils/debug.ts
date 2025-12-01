@@ -7,11 +7,11 @@ export const isDebugMode = (): boolean => {
   if (anyWin.__DEBUG__ === true) return true;
 
   try {
-    const params = new URLSearchParams(window.location.search);
-    return params.has('debug');
-  } catch (e) {
-    return false;
-  }
+     const params = new URLSearchParams(window.location.search);
+     return params.has('debug');
+   } catch {
+     return false;
+   }
 };
 
 export default isDebugMode;

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -196,11 +196,7 @@ const BASE_TARGET_RADIUS = 25;
 /**
  * Target Practice Challenge Component - 2.5D Version
  */
-const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const TargetPracticeChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [startTime] = useState(() => Date.now());
 
@@ -266,6 +262,20 @@ const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
   /**
    * Handle canvas click
    */
+  /**
+   * Add feedback message
+   */
+  const addFeedback = useCallback((x: number, y: number, z: number, type: 'hit' | 'miss') => {
+    const id = `feedback-${Date.now()}-${Math.random()}`;
+    const feedback: HitFeedback = { id, x, y, z, type };
+
+    setFeedbacks(prev => [...prev, feedback]);
+
+    setTimeout(() => {
+      setFeedbacks(prev => prev.filter(f => f.id !== id));
+    }, 1000);
+  }, []);
+
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas || completed) return;
@@ -301,21 +311,7 @@ const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
       addFeedback(clickX, clickY, 0.5, 'miss');
       createExplosion(clickX, clickY, '#EF4444');
     }
-  }, [completed, createExplosion]);
-
-  /**
-   * Add feedback message
-   */
-  const addFeedback = useCallback((x: number, y: number, z: number, type: 'hit' | 'miss') => {
-    const id = `feedback-${Date.now()}-${Math.random()}`;
-    const feedback: HitFeedback = { id, x, y, z, type };
-
-    setFeedbacks(prev => [...prev, feedback]);
-
-    setTimeout(() => {
-      setFeedbacks(prev => prev.filter(f => f.id !== id));
-    }, 1000);
-  }, []);
+  }, [completed, createExplosion, addFeedback]);
 
   /**
    * Animation loop with 2.5D rendering
@@ -535,9 +531,9 @@ const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
       <ChallengeBase
         title="Target Practice Challenge"
         description="Shoot the approaching targets!"
-        timeLimit={timeLimit}
-        challengeId={challengeId}
-        onComplete={onComplete}
+   
+   
+  
       >
         <Container>
           <FeedbackMessage
@@ -563,12 +559,12 @@ const TargetPracticeChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Target Practice Challenge"
       description="Shoot the approaching targets!"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

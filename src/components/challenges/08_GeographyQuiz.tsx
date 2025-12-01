@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps as IChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 
 /**
  * Quiz question interface
@@ -129,8 +128,6 @@ const getDifficultyColor = (difficulty: string) => {
  */
 const GeographyQuizChallenge: React.FC<ChallengeProps> = ({
     onComplete,
-    timeLimit = 120,
-    challengeId,
 }) => {
     // Randomly select 5 questions from the bank
     const [questions] = useState<QuizQuestion[]>(() => {
@@ -224,12 +221,8 @@ const GeographyQuizChallenge: React.FC<ChallengeProps> = ({
         <ChallengeBase
             title="🌍 Geography Quiz"
             description="Answer geography questions to test your knowledge"
-            timeLimit={timeLimit}
-            challengeId={challengeId}
-            onComplete={onComplete}
-            hideTimer
         >
-            <Timer timeLimit={timeLimit} />
+       
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',

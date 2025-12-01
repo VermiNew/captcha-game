@@ -188,7 +188,7 @@ export function getTerserOptions(dropConsole = true) {
 export function getOptimizedBuildConfig(dropConsole = true): BuildOptions {
   return {
     minify: 'terser',
-    terserOptions: getTerserOptions(dropConsole) as any,
+    terserOptions: getTerserOptions(dropConsole) as Record<string, unknown>,
     sourcemap: false,
     rollupOptions: {
       output: {

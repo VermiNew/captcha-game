@@ -1,339 +1,334 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
-import runUserCode from '../../utils/safeRunner';
 
-/**
- * Styled container
- */
-const Container = styled.div`
+interface CodeChallenge {
+  id: number;
+  title: string;
+  description: string;
+  instruction: string;
+  testCases: { input: number[]; expected: number }[];
+  starterCode: string;
+}
+
+const CODE_CHALLENGES: CodeChallenge[] = [
+  {
+    id: 1,
+    title: 'Add Two Numbers',
+    description: 'Create a function that adds two numbers',
+    instruction: 'Write a function called "add" that takes two parameters and returns their sum.',
+    testCases: [
+      { input: [5, 3], expected: 8 },
+      { input: [10, 20], expected: 30 },
+      { input: [-5, 5], expected: 0 },
+    ],
+    starterCode: 'function add(a, b) {\n  // Write your code here\n  return 0;\n}',
+  },
+  {
+    id: 2,
+    title: 'Multiply Numbers',
+    description: 'Create a function that multiplies two numbers',
+    instruction: 'Write a function called "multiply" that takes two parameters and returns their product.',
+    testCases: [
+      { input: [4, 5], expected: 20 },
+      { input: [7, 3], expected: 21 },
+      { input: [0, 100], expected: 0 },
+    ],
+    starterCode: 'function multiply(a, b) {\n  // Write your code here\n  return 0;\n}',
+  },
+  {
+    id: 3,
+    title: 'Calculate Square',
+    description: 'Create a function that returns the square of a number',
+    instruction: 'Write a function called "square" that takes one parameter and returns its square.',
+    testCases: [
+      { input: [5], expected: 25 },
+      { input: [10], expected: 100 },
+      { input: [3], expected: 9 },
+    ],
+    starterCode: 'function square(n) {\n  // Write your code here\n  return 0;\n}',
+  },
+];
+
+const Container = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.xl};
   width: 100%;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
 `;
 
-/**
- * Styled title
- */
-const Title = styled(motion.h2)`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes['2xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textPrimary};
-  text-align: center;
-  margin: 0;
+const ChallengeCard = styled(motion.div)`
+  width: 100%;
+  padding: ${theme.spacing.xl};
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  border: 2px solid ${theme.colors.primary};
+  border-radius: ${theme.borderRadius.lg};
 `;
 
-/**
- * Styled instruction
- */
-const Instruction = styled.p`
+const Title = styled.h3`
+  font-family: ${theme.fonts.primary};
+  font-size: ${theme.fontSizes.lg};
+  color: ${theme.colors.primary};
+  margin: 0 0 ${theme.spacing.sm} 0;
+`;
+
+const Description = styled.p`
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.md};
   color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
+  margin: 0 0 ${theme.spacing.md} 0;
 `;
 
-/**
- * Styled editor container
- */
-const EditorContainer = styled.div`
-  width: 100%;
-  background: ${theme.colors.background};
-  border-radius: ${theme.borderRadius.xl};
-  box-shadow: ${theme.shadows.lg};
-  overflow: hidden;
-  border: 2px solid ${theme.colors.borderLight};
-`;
-
-/**
- * Styled editor header
- */
-const EditorHeader = styled.div`
-  background: ${theme.colors.surface};
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  border-bottom: 1px solid ${theme.colors.borderLight};
+const Instruction = styled.p`
   font-family: ${theme.fonts.primary};
   font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  font-weight: ${theme.fontWeights.semibold};
+  color: ${theme.colors.textPrimary};
+  margin: 0;
+  padding: ${theme.spacing.md};
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: ${theme.borderRadius.md};
+  line-height: 1.6;
 `;
 
-/**
- * Styled textarea for code
- */
-const CodeEditor = styled.textarea`
+const CodeEditor = styled(motion.textarea)`
   width: 100%;
-  padding: ${theme.spacing.lg};
-  font-family: 'Monaco', 'Courier New', monospace;
+  min-height: 200px;
+  font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes.sm};
-  line-height: 1.6;
-  border: none;
+  padding: ${theme.spacing.md};
   background: ${theme.colors.background};
+  border: 2px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.lg};
   color: ${theme.colors.textPrimary};
   resize: vertical;
-  min-height: 250px;
-  max-height: 400px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
 
   &:focus {
     outline: none;
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   }
 
-  &:disabled {
-    background: ${theme.colors.surface};
-    cursor: not-allowed;
-    opacity: 0.7;
+  &::selection {
+    background: ${theme.colors.primary}40;
   }
 `;
 
-/**
- * Styled button container
- */
-const ButtonContainer = styled.div`
+const TestCasesContainer = styled.div`
   display: flex;
+  flex-direction: column;
   gap: ${theme.spacing.md};
-  width: 100%;
+  margin: ${theme.spacing.lg} 0;
 `;
 
-/**
- * Styled button
- */
-const Button = styled(motion.button)<{ $variant?: 'primary' | 'secondary' }>`
-  flex: 1;
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.md};
-  font-weight: ${theme.fontWeights.semibold};
-  border: none;
-  border-radius: ${theme.borderRadius.lg};
-  background: ${(props) =>
-    props.$variant === 'secondary' ? theme.colors.surface : theme.colors.primary};
-  color: ${(props) =>
-    props.$variant === 'secondary' ? theme.colors.textPrimary : 'white'};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: ${theme.shadows.md};
-
-  &:hover:not(:disabled) {
-    box-shadow: ${theme.shadows.lg};
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-/**
- * Styled output container
- */
-const OutputContainer = styled(motion.div)`
-  width: 100%;
-  background: ${theme.colors.background};
-  border-radius: ${theme.borderRadius.xl};
-  box-shadow: ${theme.shadows.lg};
-  overflow: hidden;
-  border: 2px solid ${theme.colors.borderLight};
-`;
-
-/**
- * Styled output header
- */
-const OutputHeader = styled.div`
-  background: ${theme.colors.surface};
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  border-bottom: 1px solid ${theme.colors.borderLight};
-  font-family: ${theme.fonts.primary};
+const TestCase = styled(motion.div)<{ $passed?: boolean }>`
+  padding: ${theme.spacing.md};
+  background: ${props => props.$passed === undefined
+    ? 'rgba(59, 130, 246, 0.1)'
+    : props.$passed
+      ? 'rgba(16, 185, 129, 0.1)'
+      : 'rgba(239, 68, 68, 0.1)'};
+  border-left: 4px solid ${props => props.$passed === undefined
+    ? theme.colors.info
+    : props.$passed
+      ? theme.colors.success
+      : theme.colors.error};
+  border-radius: ${theme.borderRadius.md};
+  font-family: ${theme.fonts.mono};
   font-size: ${theme.fontSizes.sm};
+`;
+
+const TestLabel = styled.div`
   color: ${theme.colors.textSecondary};
   font-weight: ${theme.fontWeights.semibold};
+  margin-bottom: 4px;
 `;
 
-/**
- * Styled output content
- */
-const OutputContent = styled.div<{ $type?: 'success' | 'error' }>`
-  padding: ${theme.spacing.lg};
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: ${theme.fontSizes.sm};
-  line-height: 1.6;
-  color: ${(props) =>
-    props.$type === 'error' ? theme.colors.error : theme.colors.success};
-  white-space: pre-wrap;
-  word-break: break-all;
-  min-height: 80px;
+const TestCode = styled.code`
+  color: ${theme.colors.textPrimary};
 `;
 
-/**
- * Styled result message
- */
-const ResultMessage = styled(motion.div)<{ $type: 'success' | 'error' }>`
+const ProgressBar = styled.div`
+  width: 100%;
+  height: 6px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: ${theme.borderRadius.full};
+  overflow: hidden;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+`;
+
+const ProgressFill = styled(motion.div)`
+  height: 100%;
+  background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.secondary});
+  box-shadow: 0 0 10px ${theme.colors.primary}40;
+`;
+
+const FeedbackMessage = styled(motion.div)<{ $success: boolean }>`
+  width: 100%;
   padding: ${theme.spacing.lg};
+  background: ${props => props.$success
+    ? 'rgba(16, 185, 129, 0.1)'
+    : 'rgba(239, 68, 68, 0.1)'};
+  border: 2px solid ${props => props.$success
+    ? theme.colors.success
+    : theme.colors.error};
   border-radius: ${theme.borderRadius.lg};
   text-align: center;
   font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.md};
-  font-weight: ${theme.fontWeights.semibold};
-  background: ${(props) =>
-    props.$type === 'success'
-      ? `rgba(34, 197, 94, 0.1)`
-      : `rgba(239, 68, 68, 0.1)`};
-  color: ${(props) =>
-    props.$type === 'success' ? theme.colors.success : theme.colors.error};
-  border: 2px solid
-    ${(props) =>
-      props.$type === 'success' ? theme.colors.success : theme.colors.error};
+  font-weight: ${theme.fontWeights.bold};
+  color: ${props => props.$success
+    ? theme.colors.success
+    : theme.colors.error};
 `;
 
-/**
- * JavaScript Code Challenge Component
- * Write JavaScript code that outputs "Hello World!"
- */
-const JavaScriptCodeChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
-  const [code, setCode] = useState('// Write your code here\n');
-  const [output, setOutput] = useState('');
-  const [error, setError] = useState('');
-  const [isRunning, setIsRunning] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+const JavaScriptCodeChallenge: React.FC<ChallengeProps> = ({ onComplete }) => {
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
+  const [code, setCode] = useState(CODE_CHALLENGES[0].starterCode);
+  const [testResults, setTestResults] = useState<(boolean | undefined)[]>([]);
+  const [submitted, setSubmitted] = useState(false);
   const [startTime] = useState(() => Date.now());
 
-  /**
-   * Execute the code
-   */
-  const runCode = () => {
-    setError('');
-    setOutput('');
-    setIsRunning(true);
-    (async () => {
-      try {
-        const res = await runUserCode(code, 2000);
-        if (res.error) {
-          setError(res.error);
+  const currentChallenge = useMemo(
+    () => CODE_CHALLENGES[currentChallengeIndex],
+    [currentChallengeIndex]
+  );
+
+  const progressPercentage = useMemo(
+    () => ((currentChallengeIndex + 1) / CODE_CHALLENGES.length) * 100,
+    [currentChallengeIndex]
+  );
+
+  const runTests = useCallback(() => {
+    try {
+      // eslint-disable-next-line no-eval
+      eval(code);
+      const results: (boolean | undefined)[] = [];
+
+      currentChallenge.testCases.forEach((testCase) => {
+        try {
+          // eslint-disable-next-line no-eval
+          const result = eval(`${code.split('function')[1].split('(')[0]}(${testCase.input.join(',')})`);
+          results.push(result === testCase.expected);
+        } catch {
+          results.push(false);
         }
+      });
 
-        const result = (res.outputs || []).join('\n');
-        setOutput(result);
+      setTestResults(results);
+      setSubmitted(true);
 
-        if (!res.timedOut && result.trim() === 'Hello World!') {
-          setIsSuccess(true);
-          setTimeout(() => {
+      const allPassed = results.every(r => r === true);
+      if (allPassed) {
+        setTimeout(() => {
+          if (currentChallengeIndex < CODE_CHALLENGES.length - 1) {
+            setCurrentChallengeIndex(prev => prev + 1);
+            setCode(CODE_CHALLENGES[currentChallengeIndex + 1].starterCode);
+            setTestResults([]);
+            setSubmitted(false);
+          } else {
             const timeSpent = (Date.now() - startTime) / 1000;
-            onComplete(true, timeSpent, 200);
-          }, 1000);
-        }
-        if (res.timedOut) {
-          setError('Execution timed out');
-        }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setIsRunning(false);
+            onComplete(true, timeSpent, 300 * CODE_CHALLENGES.length);
+          }
+        }, 2500);
       }
-    })();
-  };
-
-  /**
-   * Reset code
-   */
-  const resetCode = () => {
-    setCode('// Write your code here\n');
-    setOutput('');
-    setError('');
-    setIsSuccess(false);
-  };
+    } catch {
+      setTestResults(currentChallenge.testCases.map(() => false));
+      setSubmitted(true);
+    }
+  }, [code, currentChallenge, currentChallengeIndex, startTime, onComplete]);
 
   return (
     <ChallengeBase
-      title="JavaScript Code Challenge"
-      description="Write code that outputs exactly 'Hello World!'"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+      title="💻 JavaScript Code Challenge"
+      description="Write JavaScript functions to solve the challenges"
     >
-      <Timer timeLimit={timeLimit} />
-      <Container>
-        <Title
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          JavaScript Code Editor
-        </Title>
-
-        <Instruction>
-          Write JavaScript code that outputs exactly "Hello World!" using console.log()
-        </Instruction>
-
-        <EditorContainer>
-          <EditorHeader>JavaScript Code</EditorHeader>
-          <CodeEditor
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            disabled={isSuccess}
-            placeholder="// Write your code here"
+      <Container
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <ProgressBar>
+          <ProgressFill
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
           />
-        </EditorContainer>
+        </ProgressBar>
 
-        <ButtonContainer>
-          <Button
-            onClick={runCode}
-            disabled={isSuccess || isRunning}
-            $variant="primary"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {isRunning ? 'Running...' : 'Run Code'}
-          </Button>
-          <Button
-            onClick={resetCode}
-            disabled={isSuccess}
-            $variant="secondary"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Reset
-          </Button>
-        </ButtonContainer>
+        <ChallengeCard
+          key={`challenge-${currentChallengeIndex}`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+        >
+          <Title>{currentChallenge.title}</Title>
+          <Description>{currentChallenge.description}</Description>
+          <Instruction>{currentChallenge.instruction}</Instruction>
+        </ChallengeCard>
 
-        {(output || error) && (
-          <OutputContainer
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <OutputHeader>Output</OutputHeader>
-            <OutputContent $type={error ? 'error' : 'success'}>
-              {error || output}
-            </OutputContent>
-          </OutputContainer>
-        )}
+        <CodeEditor
+          value={code}
+          onChange={(e) => !submitted && setCode(e.target.value)}
+          spellCheck="false"
+          disabled={submitted}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        />
 
-        {isSuccess && (
-          <ResultMessage
-            $type="success"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200 }}
-          >
-            ✓ Success! You output "Hello World!" correctly!
-          </ResultMessage>
-        )}
+        <TestCasesContainer>
+          {currentChallenge.testCases.map((testCase, idx) => (
+            <TestCase
+              key={idx}
+              $passed={testResults[idx]}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.1 }}
+            >
+              <TestLabel>
+                Test Case {idx + 1}:
+                {testResults[idx] === undefined && ' Pending'}
+                {testResults[idx] === true && ' ✓ Passed'}
+                {testResults[idx] === false && ' ✗ Failed'}
+              </TestLabel>
+              <TestCode>
+                {`Input: [${testCase.input.join(', ')}] → Expected: ${testCase.expected}`}
+              </TestCode>
+            </TestCase>
+          ))}
+        </TestCasesContainer>
+
+        <Button
+          onClick={runTests}
+          disabled={submitted && testResults.every(r => r === true)}
+          size="lg"
+          variant="primary"
+        >
+          {testResults.every(r => r === true) ? '✓ All Tests Passed!' : 'Run Tests'}
+        </Button>
+
+        <AnimatePresence>
+          {submitted && (
+            <FeedbackMessage
+              $success={testResults.every(r => r === true)}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+            >
+              {testResults.every(r => r === true)
+                ? '🎉 All tests passed! Great job!'
+                : '❌ Some tests failed. Try again!'}
+            </FeedbackMessage>
+          )}
+        </AnimatePresence>
       </Container>
     </ChallengeBase>
   );

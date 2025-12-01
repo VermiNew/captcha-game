@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -42,8 +42,6 @@ const Container = styled.div`
  */
 const ImagePuzzleChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit = 180,
-  challengeId,
 }) => {
   const [phase, setPhase] = useState<GamePhase>('loading');
   const [tiles, setTiles] = useState<Tile[]>([]);
@@ -54,7 +52,6 @@ const ImagePuzzleChallenge: React.FC<ChallengeProps> = ({
   const [loadedImages, setLoadedImages] = useState(0);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const startTimeRef = useRef<number>(0);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageUrlsRef = useRef<string[]>([]);
 
@@ -76,9 +73,9 @@ const ImagePuzzleChallenge: React.FC<ChallengeProps> = ({
     let loadedCount = 0;
 
     // Create URLs for all images
-    Array.from(files).forEach((file, index) => {
-      const url = URL.createObjectURL(file);
-      urls.push(url);
+     Array.from(files).forEach((file) => {
+       const url = URL.createObjectURL(file);
+       urls.push(url);
       
       // Preload image to ensure it's ready
       const img = new Image();
@@ -263,12 +260,12 @@ const ImagePuzzleChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Image Puzzle"
       description="Upload 9 images and solve the puzzle"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
       <motion.h2
         initial={{ opacity: 0, y: -20 }}

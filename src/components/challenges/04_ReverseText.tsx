@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 import { getRandomSentence } from '../../utils/sentenceDataset';
 
@@ -197,8 +196,6 @@ const getFeedback = (accuracy: number, length: number, targetLength: number): st
  */
 const ReverseTextChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [targetText] = useState(() => getRandomSentence());
   const [userInput, setUserInput] = useState('');
@@ -258,12 +255,8 @@ const ReverseTextChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Reverse Text Challenge"
       description="Read the backwards text and type it normally"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <ReversedTextDisplay
           initial={{ opacity: 0, rotateX: -20 }}

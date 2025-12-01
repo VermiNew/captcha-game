@@ -16,7 +16,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 import { sentenceDataset } from '../../utils/sentenceDataset';
 
@@ -273,8 +272,6 @@ const SortableWord: React.FC<{
  */
 const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [targetSentence] = useState(() =>
     sentenceDataset[Math.floor(Math.random() * sentenceDataset.length)],
@@ -347,12 +344,8 @@ const DragDropSentenceChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Drag & Drop Sentence"
       description="Arrange the words in the correct order"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <TargetSentence
           initial={{ opacity: 0 }}

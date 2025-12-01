@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -516,11 +516,7 @@ const HintBox = styled(motion.div)`
  * 6. On success: celebratory animation and auto-complete
  * 7. On error: shake animation, allow retry
  */
-const OddOneOutChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const OddOneOutChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   // Generate random category and shuffle grid on mount
   const [{ category, grid, oddOneIndex }] = useState(() => {
     const selectedCategory = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
@@ -596,12 +592,12 @@ const OddOneOutChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Pattern Recognition"
       description="Identify the item that doesn't belong"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         {/* Header section */}
         <Header>

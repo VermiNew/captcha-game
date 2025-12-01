@@ -6,8 +6,6 @@ import { theme } from './theme';
  * Includes CSS reset, typography, and default styles
  */
 export const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
   /* ============================================
      CSS Reset & Base Styles
      ============================================ */

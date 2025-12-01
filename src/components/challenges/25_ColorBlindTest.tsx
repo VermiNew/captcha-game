@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -446,11 +446,7 @@ const generateColorPattern = (
 /**
  * Color Blind Test Challenge Component
  */
-const ColorBlindTestChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const ColorBlindTestChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [answered, setAnswered] = useState(false);
@@ -539,12 +535,12 @@ const ColorBlindTestChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Color Blind Test Challenge"
       description="Identify the hidden numbers in the colored patterns"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -496,18 +496,18 @@ function generateExpressions(): MathExpression[] {
 /**
  * Math Sorting Challenge Component
  */
-const MathSortingChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
-  const [expressions, setExpressions] = useState<MathExpression[]>(() => {
-    return generateExpressions();
-  });
-  const [shuffled, setShuffled] = useState<MathExpression[]>(() => {
-    const newExpressions = generateExpressions();
-    return [...newExpressions].sort(() => Math.random() - 0.5);
-  });
+const generateInitialState = () => {
+  const generated = generateExpressions();
+  return {
+    expressions: generated,
+    shuffled: [...generated].sort(() => Math.random() - 0.5),
+  };
+};
+
+const MathSortingChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
+  const initialState = generateInitialState();
+  const [expressions, setExpressions] = useState<MathExpression[]>(initialState.expressions);
+  const [shuffled, setShuffled] = useState<MathExpression[]>(initialState.shuffled);
   const [selected, setSelected] = useState<string[]>([]);
   const [verified, setVerified] = useState(false);
   const [result, setResult] = useState<{
@@ -576,12 +576,9 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
    * Reset challenge
    */
   const handleReset = () => {
-    const newExpressions = generateExpressions();
-    setExpressions(newExpressions);
-    const shuffledExpressions = [...newExpressions].sort(
-      () => Math.random() - 0.5
-    );
-    setShuffled(shuffledExpressions);
+    const newState = generateInitialState();
+    setExpressions(newState.expressions);
+    setShuffled(newState.shuffled);
     setSelected([]);
     setVerified(false);
     setResult(null);
@@ -592,9 +589,9 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
       <ChallengeBase
         title="Math Sorting Challenge"
         description="Select all expressions in order from least to greatest value"
-        timeLimit={timeLimit}
-        challengeId={challengeId}
-        onComplete={onComplete}
+   
+   
+  
       >
         <Container>Loading...</Container>
       </ChallengeBase>
@@ -605,12 +602,12 @@ const MathSortingChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Math Sorting Challenge"
       description="Select all expressions in order from least to greatest value"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <Grid>
           {shuffled.map((expr) => {

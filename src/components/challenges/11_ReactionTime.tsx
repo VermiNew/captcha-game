@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -184,11 +184,7 @@ const READY_TIMEOUT = 3000; // Time to click after green
  * Reaction Time Challenge Component
  * Click the button as fast as possible when it turns green
  */
-const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const ReactionTimeChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const [round, setRound] = useState(1);
   const [state, setState] = useState<GameState>('waiting');
   const [times, setTimes] = useState<number[]>([]);
@@ -204,76 +200,72 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
     stateRef.current = state;
   }, [state]);
 
-  /**
-   * Finish current round and start next
-   */
-  const finishRound = useCallback((reactionTime: number) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    setTimes((prev) => [...prev, reactionTime]);
-
-    // Move to next round after delay
-    timeoutRef.current = setTimeout(() => {
-      setRound((r) => {
-        if (r < TOTAL_ROUNDS) {
-          // Next round will be started by useEffect
-          return r + 1;
-        } else {
-          // Game complete
-          setState('complete');
-          return r;
-        }
-      });
-    }, 800);
-  }, []);
 
   /**
-   * Start new round
-   */
-  const startRound = useCallback(() => {
+    * Start new round - no dependencies to avoid infinite loops
+    */
+  useEffect(() => {
+    if (round > TOTAL_ROUNDS) return;
+
+    let isMounted = true;
     setCurrentTime(null);
     setState('waiting');
 
     // Random delay 1-3 seconds before turning green
     const delay = Math.random() * 2000 + 1000;
 
-    timeoutRef.current = setTimeout(() => {
+    const delayTimeout = setTimeout(() => {
+      if (!isMounted) return;
       setState('ready');
       readyTimeRef.current = performance.now();
 
       // Auto-timeout if not clicked in 3 seconds
       timeoutRef.current = setTimeout(() => {
-        if (stateRef.current === 'ready') {
+        if (stateRef.current === 'ready' && isMounted) {
           setCurrentTime(READY_TIMEOUT);
           setState('result');
-          finishRound(READY_TIMEOUT);
+          setTimes((prev) => [...prev, READY_TIMEOUT]);
         }
       }, READY_TIMEOUT);
     }, delay);
-  }, [finishRound]);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(delayTimeout);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [round]);
 
   /**
-   * Handle button click
-   */
-  const handleClick = () => {
-    if (state !== 'ready') return;
+    * Handle button click
+    */
+  const handleClick = useCallback(() => {
+    if (stateRef.current !== 'ready') return;
 
     const reactionTime = Math.round(performance.now() - readyTimeRef.current);
     setCurrentTime(reactionTime);
     setState('result');
-    finishRound(reactionTime);
-  };
+    setTimes((prev) => [...prev, reactionTime]);
+  }, []);
 
   /**
-   * Initialize first round
-   */
+    * Handle round transitions
+    */
   useEffect(() => {
-    startRound();
+    if (state === 'result') {
+      const timer = setTimeout(() => {
+        if (round < TOTAL_ROUNDS) {
+          setRound((r) => r + 1);
+        } else {
+          setState('complete');
+        }
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [state, round]);
 
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [startRound]);
+
 
   /**
    * Calculate stats
@@ -306,12 +298,12 @@ const ReactionTimeChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Reaction Time Challenge"
       description="Click as fast as you can when the button turns green"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <Instruction>
           {state === 'waiting'

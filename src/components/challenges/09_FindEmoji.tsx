@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 /**
@@ -381,8 +380,6 @@ const SuccessOverlay = styled(motion.div)`
  */
 const FindEmojiChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   // Grid configuration
   const gridSize = 8;
@@ -460,12 +457,8 @@ const FindEmojiChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Visual Search Challenge"
       description="Test your observation skills by finding the target emoji"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         {/* Header with title and instructions */}
         <Header>

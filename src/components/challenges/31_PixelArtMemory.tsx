@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
 
@@ -272,11 +272,7 @@ const HintText = styled(motion.p)`
 /**
  * Pixel Art Memory Challenge Component
  */
-const PixelArtMemoryChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const PixelArtMemoryChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const [phase, setPhase] = useState<'showing' | 'drawing' | 'result'>('showing');
   const [timeLeft, setTimeLeft] = useState(MEMORIZE_TIME);
   const [patternName] = useState<PatternName>(
@@ -383,12 +379,12 @@ const PixelArtMemoryChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Pixel Art Memory Challenge"
       description="Memorize and recreate the pattern"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

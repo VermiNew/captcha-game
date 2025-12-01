@@ -28,7 +28,6 @@ export interface Challenge {
   name: string;
   description: string;
   component: React.ComponentType<ChallengeProps>;
-  timeLimit: number; // in seconds
   maxScore: number;
 }
 
@@ -37,8 +36,6 @@ export interface Challenge {
  */
 export interface ChallengeProps {
   onComplete: (success: boolean, timeSpent: number, score: number, accuracy?: number) => void;
-  timeLimit: number; // in seconds
-  challengeId: string;
 }
 
 /**

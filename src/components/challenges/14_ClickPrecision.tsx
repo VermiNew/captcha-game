@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 
 /**
  * Game phase type
@@ -47,8 +47,6 @@ const getQualityColor = (quality: 'excellent' | 'good' | 'fair' | 'poor'): strin
  */
 const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit = 90,
-  challengeId,
 }) => {
   const [currentAttempt, setCurrentAttempt] = useState(1);
   const [results, setResults] = useState<AttemptResult[]>([]);
@@ -60,8 +58,8 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationStartRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
 
   const TOTAL_ATTEMPTS = 3;
   const CIRCLE_SIZE = 200; // px
@@ -237,12 +235,12 @@ const ClickPrecisionChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Click Precision"
       description="Click the center of the shrinking circle"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <div style={{
         display: 'flex',
         flexDirection: 'column',

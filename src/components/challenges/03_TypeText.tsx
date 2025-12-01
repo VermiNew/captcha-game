@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 import { getRandomSentence } from '../../utils/sentenceDataset';
 
@@ -172,8 +171,6 @@ const SuccessMessage = styled(motion.div)`
  */
 const TypeTextChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [targetText] = useState(() => getRandomSentence());
   const [userInput, setUserInput] = useState('');
@@ -265,12 +262,8 @@ const TypeTextChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Type Text Challenge"
       description="Type the text exactly as shown below"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <TargetTextContainer
           initial={{ opacity: 0, y: -10 }}

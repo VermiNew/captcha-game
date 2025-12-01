@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -181,11 +181,7 @@ const ScoreItem = styled.div`
  * Binary Calculator Challenge Component
  * Convert 4 random decimal numbers to binary
  */
-const BinaryCalculatorChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const BinaryCalculatorChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   // Generate 4 random numbers between 8-255
   const [numbers] = useState<number[]>(() => {
     return Array.from({ length: 4 }, () =>
@@ -281,12 +277,12 @@ const BinaryCalculatorChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Binary Calculator"
       description="Convert decimal numbers to binary"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <Title
           initial={{ opacity: 0, y: -20 }}

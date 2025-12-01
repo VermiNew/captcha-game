@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -173,11 +173,7 @@ const Stats = styled.div`
  * Fraction Fighter Challenge Component
  * Compare two fractions and select which is larger
  */
-const FractionFighterChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const FractionFighterChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [left, setLeft] = useState<Fraction | null>(() =>
     FRACTIONS[Math.floor(Math.random() * FRACTIONS.length)]
@@ -262,12 +258,12 @@ const FractionFighterChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Fraction Fighter"
       description="Select which fraction is larger"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <Progress>
           Question {questionIndex + 1} / {totalQuestions}

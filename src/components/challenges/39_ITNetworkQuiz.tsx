@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
+ 
 import { theme } from '../../styles/theme';
 
 /**
@@ -296,11 +296,7 @@ const ScoreDisplay = styled(motion.p)`
  * IT & Network Knowledge Quiz Challenge Component
  * 12 IT and Network related questions with multiple choice
  */
-const ITNetworkQuizChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
+const ITNetworkQuizChallenge: React.FC<ChallengeProps> = ({ onComplete, }) => {
   // Randomly select 12 questions from the bank
   const [questions] = useState<QuizQuestion[]>(() => {
     const shuffled = [...itNetworkQuestions].sort(() => Math.random() - 0.5);
@@ -395,12 +391,12 @@ const ITNetworkQuizChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="IT & Network Knowledge Quiz"
       description="Answer 12 IT and Network questions (need 9/12 correct)"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
+ 
+ 
+
+
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container>
         <Title
           initial={{ opacity: 0, y: -20 }}

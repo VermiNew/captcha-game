@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import { theme } from './styles/theme';
@@ -7,7 +7,8 @@ import StartScreen from './components/StartScreen';
 import GameContainer from './components/GameContainer';
 import ResultScreen from './components/ResultScreen';
 import DebugPanel from './components/DebugPanel';
-import { getTotalChallenges } from './utils/challengeRegistry';
+import LoadingScreen from './components/LoadingScreen';
+import { getTotalChallenges, preloadChallenges } from './utils/challengeRegistry';
 import logger from './utils/logger';
 
 /**
@@ -21,6 +22,61 @@ const App: React.FC = () => {
   const [cheatDetected, setCheatDetected] = useState(false);
   const [cheatAttemptCount, setCheatAttemptCount] = useState(0);
   const [devToolsOpen, setDevToolsOpen] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [eta, setEta] = useState<number | null>(null);
+  const [startTime] = useState(() => Date.now());
+
+  /**
+    * Preload all challenges on app start
+    */
+  useEffect(() => {
+    let mounted = true;
+
+    const loadChallenges = async () => {
+      try {
+        await preloadChallenges((loaded, total) => {
+          if (mounted) {
+            const progress = (loaded / total) * 100;
+            setLoadingProgress(progress);
+
+            // Calculate ETA
+            if (loaded > 0) {
+              const elapsedTime = Date.now() - startTime;
+              const timePerChallenge = elapsedTime / loaded;
+              const remainingChallenges = total - loaded;
+              const estimatedRemainingTime = remainingChallenges * timePerChallenge;
+              const estimatedTotalTime = elapsedTime + estimatedRemainingTime;
+              const estimatedEndTime = startTime + estimatedTotalTime;
+              setEta(estimatedEndTime);
+            }
+          }
+        });
+
+        if (mounted) {
+          setLoadingProgress(100);
+          setEta(null);
+          // Small delay to show 100% progress
+          setTimeout(() => {
+            if (mounted) {
+              setIsLoaded(true);
+            }
+          }, 300);
+        }
+      } catch (error) {
+        logger.error('Failed to preload challenges:', error);
+        if (mounted) {
+          setIsLoaded(true);
+        }
+      }
+    };
+
+    loadChallenges();
+
+    return () => {
+      mounted = false;
+    };
+  }, [startTime]);
 
   /**
    * Initialize debug mode from localStorage
@@ -76,6 +132,27 @@ const App: React.FC = () => {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [setCurrentChallengeIndex, setGameState]);
+
+  /**
+   * Trigger cheat detection
+   */
+  const triggerCheatDetection = useCallback(() => {
+    setCheatAttemptCount((prevCount) => {
+      const newAttemptCount = prevCount + 1;
+
+      if (newAttemptCount === 1) {
+        // First attempt - clear localStorage but allow to continue if DevTools closed
+        localStorage.removeItem('game-store');
+        setCheatDetected(true);
+      } else {
+        // Second attempt - permanently disable and clear all data
+        localStorage.clear();
+        setCheatDetected(true);
+      }
+
+      return newAttemptCount;
+    });
+  }, []);
 
   /**
    * Block page refresh and detect cheating attempts (DevTools, localStorage manipulation)
@@ -170,25 +247,7 @@ const App: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isDebugMode, cheatDetected, devToolsOpen]);
-
-  /**
-   * Trigger cheat detection
-   */
-  const triggerCheatDetection = () => {
-    const newAttemptCount = cheatAttemptCount + 1;
-    setCheatAttemptCount(newAttemptCount);
-
-    if (newAttemptCount === 1) {
-      // First attempt - clear localStorage but allow to continue if DevTools closed
-      localStorage.removeItem('game-store');
-      setCheatDetected(true);
-    } else {
-      // Second attempt - permanently disable and clear all data
-      localStorage.clear();
-      setCheatDetected(true);
-    }
-  };
+  }, [isDebugMode, cheatDetected, devToolsOpen, triggerCheatDetection]);
 
   /**
    * Render appropriate screen based on game state
@@ -209,7 +268,8 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyles />
-      {renderScreen()}
+      {!isLoaded && <LoadingScreen progress={loadingProgress} isLoading={!isLoaded} eta={eta} />}
+      {isLoaded && renderScreen()}
       {cheatDetected && (
         <div
           style={{

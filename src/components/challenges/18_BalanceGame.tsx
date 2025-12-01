@@ -1,664 +1,530 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { ChallengeProps } from '../../types';
-import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
-import Button from '../ui/Button';
-import { theme } from '../../styles/theme';
 
 /**
- * Weight item type
+ * Game phase type
  */
-interface Weight {
-  id: string;
-  value: number;
-}
+type GamePhase = 'ready' | 'playing' | 'complete';
 
 /**
- * Styled container
+ * Balance Game Challenge
+ * Keep the platform balanced by moving left and right
  */
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.xl};
-  width: 100%;
-`;
+const BalanceGame: React.FC = () => {
+  const GAME_DURATION = 30; // seconds
+  const PLATFORM_WIDTH = 300;
+  const BALL_SIZE = 40;
+  const GRAVITY = 0.15; // Reduced from 0.3 for lighter feel
+  const TILT_SPEED = 0.3; // Greatly reduced from 2.5 for precise control
+  const MAX_TILT = 10; // Reduced from 20 for minimal tilt
+  const DAMPING = 0.99; // High damping for smooth deceleration
+  const BALL_FRICTION = 0.95; // High friction to keep ball stable
+  const RANDOM_TILT_STRENGTH = 0.05; // Minimal random movement
+  const RANDOM_TILT_INTERVAL = 5000; // Rare random disruptions
 
-/**
- * Styled instruction
- */
-const Instruction = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.md};
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin: 0;
-`;
-
-/**
- * Styled game area
- */
-const GameArea = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${theme.spacing.xl};
-  width: 100%;
-  max-width: 600px;
-`;
-
-/**
- * Styled section
- */
-const Section = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.md};
-`;
-
-/**
- * Styled section title
- */
-const SectionTitle = styled.h3`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.md};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`;
-
-/**
- * Styled weights list
- */
-const WeightsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.border};
-  min-height: 300px;
-`;
-
-/**
- * Styled weight button
- */
-const WeightButton = styled(motion.button)`
-  width: 100%;
-  padding: ${theme.spacing.lg};
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%);
-  color: white;
-  border: none;
-  border-radius: ${theme.borderRadius.md};
-  font-weight: ${theme.fontWeights.bold};
-  font-size: ${theme.fontSizes.lg};
-  cursor: pointer;
-  transition: all 0.16s ease;
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.md};
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:focus {
-    outline: 3px solid ${theme.colors.primary};
-    outline-offset: 2px;
-  }
-`;
-
-/**
- * Styled balance display
- */
-const BalanceDisplay = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.lg};
-  align-items: center;
-`;
-
-/**
- * Styled weight info
- */
-const WeightInfo = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${theme.spacing.lg};
-  width: 100%;
-`;
-
-/**
- * Styled weight box
- */
-const WeightBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.border};
-`;
-
-/**
- * Styled weight label
- */
-const WeightLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-  font-weight: ${theme.fontWeights.medium};
-`;
-
-/**
- * Styled weight value
- */
-const WeightValue = styled(motion.p)`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes['3xl']};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
-`;
-
-/**
- * Styled scale visual
- */
-const ScaleVisual = styled.div`
-  width: 100%;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1000px;
-`;
-
-/**
- * Styled balance beam
- */
-const BalanceBeam = styled(motion.div)<{ $rotation: number }>`
-  width: 200px;
-  height: 16px;
-  background: linear-gradient(90deg, #8b7355 0%, #a0826d 50%, #8b7355 100%);
-  border-radius: 8px;
-  box-shadow: ${theme.shadows.md};
-  transform-origin: center;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 30px;
-    background: #654321;
-    border-radius: 50% 50% 0 0;
-    top: -30px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-`;
-
-/**
- * Styled difference indicator
- */
-const DifferenceIndicator = styled(motion.div)<{ $balanced: boolean }>`
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  background: ${(props) =>
-    props.$balanced ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  border: 2px solid ${(props) => (props.$balanced ? theme.colors.success : theme.colors.error)};
-  border-radius: ${theme.borderRadius.lg};
-  text-align: center;
-  color: ${(props) => (props.$balanced ? theme.colors.success : theme.colors.error)};
-  font-weight: ${theme.fontWeights.bold};
-  width: 100%;
-`;
-
-/**
- * Styled pan display
- */
-const PanDisplay = styled(motion.div)`
-  padding: ${theme.spacing.md};
-  background: linear-gradient(135deg, #daa520 0%, #ffd700 100%);
-  border: 3px solid #b8860b;
-  border-radius: ${theme.borderRadius.md};
-  min-height: 80px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${theme.spacing.sm};
-  align-items: flex-start;
-  justify-content: center;
-  align-content: flex-start;
-`;
-
-/**
- * Styled weight item in pan
- */
-const WeightItemInPan = styled(motion.div)`
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  background: linear-gradient(135deg, ${theme.colors.success} 0%, ${theme.colors.info} 100%);
-  color: white;
-  border-radius: ${theme.borderRadius.md};
-  font-weight: ${theme.fontWeights.bold};
-  font-size: ${theme.fontSizes.sm};
-  box-shadow: ${theme.shadows.sm};
-`;
-
-/**
- * Styled remove button
- */
-const RemoveButton = styled(motion.button)`
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  background: ${theme.colors.error};
-  color: white;
-  border: none;
-  border-radius: ${theme.borderRadius.md};
-  font-weight: ${theme.fontWeights.bold};
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: ${theme.shadows.md};
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-`;
-
-/**
- * Styled button container
- */
-const ButtonContainer = styled.div`
-  display: flex;
-  gap: ${theme.spacing.md};
-  justify-content: center;
-  width: 100%;
-`;
-
-/**
- * Styled completion message
- */
-const CompletionMessage = styled(motion.div)<{ $success: boolean }>`
-  padding: ${theme.spacing.lg};
-  background: ${(props) =>
-    props.$success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-  border: 2px solid ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  border-radius: ${theme.borderRadius.lg};
-  text-align: center;
-  color: ${(props) => (props.$success ? theme.colors.success : theme.colors.error)};
-  font-weight: ${theme.fontWeights.bold};
-  width: 100%;
-`;
-
-/**
- * Styled stats
- */
-const Stats = styled(motion.div)`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${theme.spacing.lg};
-  width: 100%;
-`;
-
-/**
- * Styled stat card
- */
-const StatCard = styled(motion.div)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.lg};
-  background: ${theme.colors.surface};
-  border-radius: ${theme.borderRadius.lg};
-  border: 2px solid ${theme.colors.border};
-`;
-
-/**
- * Styled stat label
- */
-const StatLabel = styled.p`
-  font-family: ${theme.fonts.primary};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.textSecondary};
-  margin: 0;
-`;
-
-/**
- * Styled stat value
- */
-const StatValue = styled.p`
-  font-family: ${theme.fonts.mono};
-  font-size: ${theme.fontSizes.xl};
-  font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.primary};
-  margin: 0;
-`;
-
-/**
- * Available weights pool
- */
-const WEIGHT_POOL = [
-  { id: 'w5-1', value: 5 },
-  { id: 'w5-2', value: 5 },
-  { id: 'w10-1', value: 10 },
-  { id: 'w10-2', value: 10 },
-  { id: 'w15-1', value: 15 },
-  { id: 'w20-1', value: 20 },
-  { id: 'w20-2', value: 20 },
-  { id: 'w30', value: 30 },
-  { id: 'w50-1', value: 50 },
-  { id: 'w50-2', value: 50 },
-  { id: 'w100', value: 100 },
-];
-
-/**
- * Generate target weight achievable with available weights
- */
-function generateTargetWeight(): number {
-  // Build all subset sums and track minimal number of items needed for each sum
-  const weights = WEIGHT_POOL.map((w) => w.value);
-  const map = new Map<number, number>(); // sum -> min count
-
-  const totalComb = 1 << weights.length;
-  for (let mask = 1; mask < totalComb; mask++) {
-    let sum = 0;
-    let count = 0;
-    for (let j = 0; j < weights.length; j++) {
-      if (mask & (1 << j)) {
-        sum += weights[j];
-        count++;
-      }
-    }
-    if (sum > 0 && sum < 300) {
-      const prev = map.get(sum);
-      if (prev === undefined || count < prev) map.set(sum, count);
-    }
-  }
-
-  // Prefer sums achievable with few weights (easier puzzles)
-  const easy: number[] = [];
-  const medium: number[] = [];
-  const hard: number[] = [];
-
-  for (const [s, cnt] of map.entries()) {
-    if (cnt <= 3) easy.push(s);
-    else if (cnt <= 5) medium.push(s);
-    else hard.push(s);
-  }
-
-  const pickFrom = easy.length ? easy : medium.length ? medium : hard;
-  if (pickFrom.length === 0) return 75;
-
-  // bias towards smaller sums within the chosen difficulty
-  pickFrom.sort((a, b) => a - b);
-  const cutoff = Math.max(1, Math.floor(pickFrom.length * 0.6));
-  const candidate = pickFrom.slice(0, cutoff);
-  return candidate[Math.floor(Math.random() * candidate.length)];
-}
-
-/**
- * Balance Game Challenge Component
- */
-const BalanceGameChallenge: React.FC<ChallengeProps> = ({
-  onComplete,
-  timeLimit,
-  challengeId,
-}) => {
-  const [leftWeight] = useState(() => generateTargetWeight());
-  const [available, setAvailable] = useState<Weight[]>(WEIGHT_POOL);
-  const [rightWeights, setRightWeights] = useState<Weight[]>([]);
+  const [phase, setPhase] = useState<GamePhase>('ready');
+  const [countdown, setCountdown] = useState(3);
+  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+  const [tilt, setTilt] = useState(0);
+  const [ballPosition, setBallPosition] = useState(0);
+  const [ballVelocity, setBallVelocity] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [startTime] = useState(() => Date.now());
+  const [score, setScore] = useState(0);
 
-  const rightTotal = rightWeights.reduce((sum, w) => sum + w.value, 0);
-  const difference = Math.abs(leftWeight - rightTotal);
-  const BALANCE_TOLERANCE = 3; // tighten tolerance for greater challenge
-  const balanced = difference <= BALANCE_TOLERANCE && rightWeights.length > 0;
-  const rotation = Math.max(-20, Math.min(20, ((rightTotal - leftWeight) / Math.max(1, leftWeight)) * 20));
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const randomTiltIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const keysPressed = useRef<Set<string>>(new Set());
+  const lastUpdateRef = useRef<number>(0);
+  const startTimeRef = useRef<number>(0);
 
   /**
-   * Add weight to right pan
+   * Start countdown before game
    */
-  const addWeight = (weight: Weight) => {
-    // use functional updates to avoid stale closures
-    setAvailable((prev) => prev.filter((w) => w.id !== weight.id));
-    setRightWeights((prev) => [...prev, weight]);
-  };
+  const startCountdown = useCallback(() => {
+    setPhase('ready');
+    setCountdown(3);
+    let count = 3;
+    
+    const runCountdown = () => {
+      if (count > 0) {
+        setCountdown(count);
+        count--;
+        countdownTimerRef.current = setTimeout(runCountdown, 1000);
+      } else {
+        startTimeRef.current = Date.now();
+        lastUpdateRef.current = Date.now();
+        setPhase('playing');
+      }
+    };
+    
+    runCountdown();
+  }, []);
 
   /**
-   * Remove weight from right pan
-   */
-  const removeWeight = (weightId: string) => {
-    const weight = rightWeights.find((w) => w.id === weightId);
-    if (weight) {
-      setRightWeights((prev) => prev.filter((w) => w.id !== weightId));
-      // Re-insert into available and keep original WEIGHT_POOL order
-      setAvailable((prev) => {
-        const next = [...prev, weight];
-        return next.sort((a, b) => {
-          const ia = WEIGHT_POOL.findIndex((x) => x.id === a.id);
-          const ib = WEIGHT_POOL.findIndex((x) => x.id === b.id);
-          return ia - ib;
-        });
-      });
-    }
-  };
-
-  /**
-   * Check balance and complete
+   * Start game on mount
    */
   useEffect(() => {
-    if (balanced && rightWeights.length > 0 && !completed) {
-      const timer = setTimeout(() => {
-        const timeSpent = (Date.now() - startTime) / 1000;
-
-        // Scoring: base points with penalties for more weights and time
-        const base = 200;
-        const weightPenalty = rightWeights.length * 10; // each weight reduces score
-        const timePenalty = Math.floor(timeSpent * 0.5); // half point per second
-        let score = Math.max(0, Math.round(base - weightPenalty - timePenalty));
-
-        // Bonus for very precise balancing
-        if (difference <= 1) score += 30;
-        else if (difference <= BALANCE_TOLERANCE) score += 10;
-
-        setCompleted(true);
-        onComplete(true, timeSpent, score);
-      }, 1500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [balanced, rightWeights.length, completed, startTime, onComplete, difference]);
+    startCountdown();
+    
+    return () => {
+      if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (randomTiltIntervalRef.current) clearInterval(randomTiltIntervalRef.current);
+    };
+  }, [startCountdown]);
 
   /**
-   * Reset game
+   * Game timer
    */
-  const handleReset = () => {
-    setAvailable(WEIGHT_POOL);
-    setRightWeights([]);
+  useEffect(() => {
+    if (phase !== 'playing') return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        const newTime = prev - 1;
+        if (newTime <= 0) {
+          setCompleted(true);
+          setPhase('complete');
+          return 0;
+        }
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  /**
+   * Keyboard controls
+   */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (phase !== 'playing') return;
+      keysPressed.current.add(e.key.toLowerCase());
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keysPressed.current.delete(e.key.toLowerCase());
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [phase]);
+
+  /**
+   * Random platform movements
+   */
+  useEffect(() => {
+    if (phase !== 'playing' || gameOver) return;
+
+    const applyRandomTilt = () => {
+      setTilt((prevTilt) => {
+        const randomPush = (Math.random() - 0.5) * RANDOM_TILT_STRENGTH;
+        return prevTilt + randomPush;
+      });
+    };
+
+    randomTiltIntervalRef.current = setInterval(applyRandomTilt, RANDOM_TILT_INTERVAL);
+
+    return () => {
+      if (randomTiltIntervalRef.current) clearInterval(randomTiltIntervalRef.current);
+    };
+  }, [phase, gameOver]);
+
+  /**
+   * Game physics loop
+   */
+  useEffect(() => {
+    if (phase !== 'playing' || gameOver) return;
+
+    const updateGame = () => {
+      const now = Date.now();
+      lastUpdateRef.current = now;
+
+      // Update tilt based on input
+      setTilt((prevTilt) => {
+        let newTilt = prevTilt;
+        let tiltChange = 0;
+
+        if (keysPressed.current.has('arrowleft') || keysPressed.current.has('a')) {
+          tiltChange -= TILT_SPEED;
+        }
+        if (keysPressed.current.has('arrowright') || keysPressed.current.has('d')) {
+          tiltChange += TILT_SPEED;
+        }
+
+        // Apply tilt change
+        newTilt += tiltChange;
+        
+        // Return to center when no input
+        if (tiltChange === 0) {
+          newTilt *= DAMPING;
+        }
+
+        // Clamp tilt
+        newTilt = Math.max(-MAX_TILT, Math.min(MAX_TILT, newTilt));
+
+        return newTilt;
+      });
+
+      // Update ball physics
+      setBallVelocity((prevVelocity) => {
+        const tiltRadians = (tilt * Math.PI) / 180;
+        const tiltForce = Math.sin(tiltRadians) * GRAVITY;
+        let newVelocity = prevVelocity + tiltForce;
+        newVelocity *= BALL_FRICTION;
+        return newVelocity;
+      });
+
+      setBallPosition((prevPosition) => {
+        const newPosition = prevPosition + ballVelocity;
+
+        // Check boundaries
+        const maxPosition = (PLATFORM_WIDTH / 2 - BALL_SIZE / 2) / (PLATFORM_WIDTH / 2);
+        if (Math.abs(newPosition) > maxPosition) {
+          setGameOver(true);
+          setPhase('complete');
+          return prevPosition;
+        }
+
+        return newPosition;
+      });
+
+      // Increase score
+      setScore((prevScore) => {
+        const balanceQuality = Math.max(0, 1 - Math.abs(ballPosition) * 1.5);
+        return prevScore + balanceQuality * 0.5;
+      });
+
+      animationFrameRef.current = requestAnimationFrame(updateGame);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(updateGame);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [phase, gameOver, tilt, ballVelocity, ballPosition]);
+
+  /**
+   * Restart game
+   */
+  const restartGame = () => {
+    setPhase('ready');
+    setCountdown(3);
+    setTimeLeft(GAME_DURATION);
+    setTilt(0);
+    setBallPosition(0);
+    setBallVelocity(0);
+    setGameOver(false);
     setCompleted(false);
+    setScore(0);
+    keysPressed.current.clear();
+    startCountdown();
   };
 
   return (
-    <ChallengeBase
-      title="Balance Game Challenge"
-      description="Add weights to the right pan to balance the scale"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
-    >
-      <Timer timeLimit={timeLimit} />
-      <Container>
-        <Instruction>
-          {completed
-            ? 'Perfect balance achieved!'
-            : `Left: ${leftWeight} | Right: ${rightTotal} | Difference: ${difference}`}
-        </Instruction>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2rem',
+      width: '100%',
+      minHeight: '100vh',
+      padding: '2rem',
+      background: '#f3f4f6',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    }}>
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{
+          fontSize: '2.5rem',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          textAlign: 'center',
+          margin: 0,
+        }}
+      >
+        Balance Game
+      </motion.h1>
 
-        <GameArea>
-          {/* Available Weights */}
-          <Section
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+      <p style={{
+        fontSize: '1.125rem',
+        color: '#6b7280',
+        textAlign: 'center',
+        margin: 0,
+      }}>
+        {phase === 'ready' && '🎮 Get ready...'}
+        {phase === 'playing' && '⚖️ Keep the ball balanced!'}
+        {phase === 'complete' && (completed ? '🎉 You survived!' : '💔 Ball fell off!')}
+      </p>
+
+      {/* Countdown Display */}
+      <AnimatePresence>
+        {phase === 'ready' && (
+          <motion.div
+            key={countdown}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.5 }}
             transition={{ duration: 0.3 }}
+            style={{
+              fontSize: '6rem',
+              fontWeight: 'bold',
+              color: '#6366f1',
+            }}
           >
-            <SectionTitle>Available Weights</SectionTitle>
-            <WeightsList>
-              <AnimatePresence>
-                {available.map((weight) => (
-                  <WeightButton
-                    key={weight.id}
-                    onClick={() => addWeight(weight)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                  >
-                    {weight.value} units
-                  </WeightButton>
-                ))}
-              </AnimatePresence>
-              {available.length === 0 && (
-                <p style={{ textAlign: 'center', color: theme.colors.textSecondary, margin: 0 }}>
-                  No weights available
-                </p>
-              )}
-            </WeightsList>
-          </Section>
-
-          {/* Balance Display */}
-          <Section
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <SectionTitle>Scale</SectionTitle>
-
-            <BalanceDisplay>
-              <WeightInfo>
-                <WeightBox>
-                  <WeightLabel>Left Pan</WeightLabel>
-                  <WeightValue>{leftWeight}</WeightValue>
-                </WeightBox>
-                <WeightBox>
-                  <WeightLabel>Right Pan</WeightLabel>
-                  <WeightValue
-                    key={rightTotal}
-                    animate={{ scale: 1 }}
-                    initial={{ scale: 1.2 }}
-                  >
-                    {rightTotal}
-                  </WeightValue>
-                </WeightBox>
-              </WeightInfo>
-
-              <ScaleVisual>
-                <BalanceBeam
-                  $rotation={rotation}
-                  animate={{ rotateZ: rotation }}
-                  transition={{ type: 'spring', stiffness: 80, damping: 12 }}
-                />
-              </ScaleVisual>
-
-              <DifferenceIndicator $balanced={balanced}>
-                {balanced ? 'BALANCED!' : `Difference: ±${difference} units`}
-              </DifferenceIndicator>
-
-              <PanDisplay
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <AnimatePresence>
-                  {rightWeights.map((weight, idx) => (
-                    <WeightItemInPan
-                      key={weight.id}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.5 }}
-                      transition={{ delay: idx * 0.05 }}
-                    >
-                      {weight.value}
-                    </WeightItemInPan>
-                  ))}
-                </AnimatePresence>
-              </PanDisplay>
-
-              {rightWeights.length > 0 && (
-                <RemoveButton
-                  onClick={() => removeWeight(rightWeights[rightWeights.length - 1].id)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Remove Last Weight
-                </RemoveButton>
-              )}
-            </BalanceDisplay>
-          </Section>
-        </GameArea>
-
-        {completed && (
-          <Stats
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ staggerChildren: 0.1 }}
-          >
-            <StatCard>
-              <StatLabel>Weights Used</StatLabel>
-              <StatValue>{rightWeights.length}</StatValue>
-            </StatCard>
-            <StatCard>
-              <StatLabel>Total Weight</StatLabel>
-              <StatValue>{rightTotal}</StatValue>
-            </StatCard>
-            <StatCard>
-              <StatLabel>Difference</StatLabel>
-              <StatValue>±{difference}</StatValue>
-            </StatCard>
-            <CompletionMessage
-              $success={true}
-              style={{ gridColumn: '1 / -1' }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Perfect Balance Achieved!
-            </CompletionMessage>
-          </Stats>
+            {countdown}
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {!completed && (
-          <ButtonContainer>
-            <Button
-              onClick={handleReset}
-              disabled={false}
-              size="md"
-              variant="secondary"
+      {/* Game Stats */}
+      {phase !== 'ready' && (
+        <div style={{
+          display: 'flex',
+          gap: '2rem',
+          justifyContent: 'center',
+          width: '100%',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '1rem 2rem',
+            background: 'white',
+            borderRadius: '1rem',
+            border: '2px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          }}>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#6b7280',
+              margin: 0,
+              fontWeight: '500',
+            }}>Time Left</p>
+            <p style={{
+              fontFamily: 'monospace',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: timeLeft <= 5 ? '#ef4444' : '#1f2937',
+              margin: 0,
+            }}>
+              {timeLeft}s
+            </p>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '1rem 2rem',
+            background: 'white',
+            borderRadius: '1rem',
+            border: '2px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          }}>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#6b7280',
+              margin: 0,
+              fontWeight: '500',
+            }}>Score</p>
+            <p style={{
+              fontFamily: 'monospace',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#1f2937',
+              margin: 0,
+            }}>
+              {Math.round(score)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Game Area */}
+      {phase !== 'ready' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '2rem',
+            padding: '3rem',
+            background: 'white',
+            borderRadius: '1rem',
+            border: '2px solid #e5e7eb',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          {/* Platform and Ball */}
+          <div style={{
+            position: 'relative',
+            width: '400px',
+            height: '300px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {/* Platform */}
+            <div
+              style={{
+                transform: `rotate(${tilt}deg)`,
+                width: `${PLATFORM_WIDTH}px`,
+                height: '15px',
+                background: '#6366f1',
+                borderRadius: '8px',
+                position: 'relative',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+              }}
             >
-              Reset
-            </Button>
-          </ButtonContainer>
+              {/* Ball */}
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  left: `${((ballPosition + 1) / 2) * 100}%`,
+                  top: `-${BALL_SIZE + 5}px`,
+                  transform: 'translateX(-50%)',
+                  width: `${BALL_SIZE}px`,
+                  height: `${BALL_SIZE}px`,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b)',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+                }}
+              />
+            </div>
+
+            {/* Danger zones */}
+            <div style={{
+              position: 'absolute',
+              bottom: '130px',
+              left: '0',
+              right: '0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              padding: '0 20px',
+            }}>
+              <div style={{
+                width: '2px',
+                height: '40px',
+                background: '#ef4444',
+                opacity: 0.3,
+              }} />
+              <div style={{
+                width: '2px',
+                height: '40px',
+                background: '#ef4444',
+                opacity: 0.3,
+              }} />
+            </div>
+          </div>
+
+          {/* Controls hint */}
+          {phase === 'playing' && !gameOver && (
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#6b7280',
+              textAlign: 'center',
+              margin: 0,
+            }}>
+              ⌨️ Use Arrow Keys or A/D to tilt the platform
+            </p>
+          )}
+        </motion.div>
+      )}
+
+      {/* Game Over / Complete Message */}
+      <AnimatePresence>
+        {phase === 'complete' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 200 }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1.5rem',
+              padding: '2rem',
+              borderRadius: '1rem',
+              background: 'white',
+              border: `3px solid ${completed ? '#10b981' : '#ef4444'}`,
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              textAlign: 'center',
+              minWidth: '300px',
+            }}
+          >
+            <span style={{ fontSize: '4rem', lineHeight: 1 }}>
+              {completed ? '🎉' : '💔'}
+            </span>
+            <div>
+              <h2 style={{ 
+                fontSize: '2rem', 
+                margin: '0 0 0.5rem 0',
+                fontWeight: 'bold',
+                color: '#1f2937',
+              }}>
+                {completed ? 'Congratulations!' : 'Game Over!'}
+              </h2>
+              <p style={{ 
+                fontSize: '1.125rem', 
+                margin: 0,
+                color: '#6b7280',
+              }}>
+                {completed
+                  ? `You kept your balance for ${GAME_DURATION} seconds!`
+                  : 'The ball fell off the platform!'}
+              </p>
+            </div>
+            <div style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              color: '#6366f1',
+            }}>
+              Score: {Math.round(score)}
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={restartGame}
+              style={{
+                padding: '1rem 2rem',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: 'white',
+                background: '#6366f1',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              🔄 Play Again
+            </motion.button>
+          </motion.div>
         )}
-      </Container>
-    </ChallengeBase>
+      </AnimatePresence>
+    </div>
   );
 };
 
-export default BalanceGameChallenge;
+export default BalanceGame;

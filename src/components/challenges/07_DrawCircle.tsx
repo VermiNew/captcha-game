@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 /**
@@ -112,9 +111,8 @@ const Canvas = styled.canvas`
  */
 const HintOverlay = styled(motion.div)`
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 35%;
+  left: 28%;
   font-size: 8rem;
   opacity: 0.1;
   pointer-events: none;
@@ -247,8 +245,6 @@ const calculateCircularity = (points: Point[]): number => {
  */
 const DrawCircleChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [points, setPoints] = useState<Point[]>([]);
   const [accuracy, setAccuracy] = useState(0);
@@ -424,13 +420,8 @@ const DrawCircleChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Draw a Perfect Circle"
       description="Draw a circle in one smooth stroke"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      maxWidth="600px"
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
+ 
       <Container
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

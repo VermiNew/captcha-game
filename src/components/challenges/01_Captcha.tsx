@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChallengeProps } from '../../types';
 import ChallengeBase from './ChallengeBase';
-import Timer from './Timer';
 import { theme } from '../../styles/theme';
 
 /**
@@ -162,8 +161,6 @@ const HintText = styled(motion.p)`
  */
 const CaptchaChallenge: React.FC<ChallengeProps> = ({
   onComplete,
-  timeLimit,
-  challengeId,
 }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -204,12 +201,7 @@ const CaptchaChallenge: React.FC<ChallengeProps> = ({
     <ChallengeBase
       title="Verification Required"
       description="Complete this quick verification to prove you're human"
-      timeLimit={timeLimit}
-      challengeId={challengeId}
-      onComplete={onComplete}
-      hideTimer
     >
-      <Timer timeLimit={timeLimit} />
       <Container>
         {/* Success message with enter/exit animation */}
         <AnimatePresence>
